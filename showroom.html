@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Visitez le showroom Primavet et découvrez nos collections et réalisations textiles de haute qualité.">
+    <meta name="keywords" content="Primavet, showroom, galerie, collections, réalisations, textile">
+    
+    <title>Showroom | Primavet - Textile de Qualité</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <span class="logo-text">Prima<span>vet</span></span>
+            </a>
+            
+            <nav class="nav">
+                <ul class="nav-menu">
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="about.html">À propos</a></li>
+                    <li><a href="products.html">Produits</a></li>
+                    <li><a href="showroom.html" class="active">Showroom</a></li>
+                    <li><a href="news.html">Actualités</a></li>
+                    <li><a href="recruitment.html">Recrutement</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+                <a href="quote.html" class="btn btn-primary nav-cta">Demander un devis</a>
+                <div class="nav-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1>Showroom & Réalisations</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Accueil</a>
+                <span>/</span>
+                <span>Showroom</span>
+            </nav>
+        </div>
+    </section>
+
+    <!-- Showroom Introduction -->
+    <section class="section">
+        <div class="container">
+            <div class="section-title">
+                <h2>Nos Collections</h2>
+                <p>Découvrez nos réalisations et collections à travers notre galerie. Cliquez sur une image pour l'agrandir.</p>
+            </div>
+            
+            <!-- Filter -->
+            <div class="products-filter">
+                <button class="filter-btn active" data-filter="all">Toutes</button>
+                <button class="filter-btn" data-filter="collection">Collections</button>
+                <button class="filter-btn" data-filter="realisation">Réalisations</button>
+                <button class="filter-btn" data-filter="evenement">Événements</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Showroom Gallery -->
+    <section class="showroom section" style="padding-top: 0;">
+        <div class="container">
+            <div class="showroom-grid">
+                <!-- Collection Items -->
+                <div class="showroom-item" data-category="collection">
+                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-tshirt" style="font-size: 5rem; color: white;"></i>
+                    </div>
+                    <div class="showroom-overlay">
+                        <h4>Collection Printemps 2024</h4>
+                        <p>Nouvelle collection de vêtements légers et colorés</p>
+                    </div>
+                </div>
+                
+                <div class="showroom-item" data-category="collection">
+                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-vest" style="font-size: 5rem; color: white;"></i>
+                    </div>
+                    <div class="showroom-overlay">
+                        <h4>Collection Été 2024</h4>
+                        <p>Vêtements frais et confortables pour l'été</p>
+                    </div>
+                </div>
+                
+                <div class="showroom-item" data-category="collection">
+                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #dc2626 0%, #f87171 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-user-tie" style="font-size: 5rem; color: white;"></i>
+                    </div>
+                    <div class="showroom-overlay">
+                        <h4>Collection Automne 2024</h4>
+                        <p>Tons chauds et matières douces</p>
+                    </div>
+                </div>
+                
+                <div class="showroom-item" data-category="collection">
+                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #1e293b 0%, #475569 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-mitten" style="font-size: 5rem; color: white;"></i>
+                    </div>
+                    <div class="showroom-overlay">
+                        <h4>Collection Hiver 2024</h4>
+                        <p>Vêtements chauds et élégants</p>
+                    </div>
+                </div>
+                
+                <!-- Réalisations -->
+                <div class="showroom-item" data-category="realisation">
+                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #059669 0%, #10b981 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-industry" style="font-size: 5rem; color: white;"></i>
+                    </div>
+                    <div class="showroom-overlay">
+                        <h4>Uniforme Entreprise ABC</h4>
+                        <p>Réalisation complète d'uniformes corporate</p>
+                    </div>
+                </div>
+                
+                <div class="showroom-item" data-category="realisation">
+                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-hotel" style="font-size: 5rem; color: white;"></i>
+                    </div>
+                    <div class="showroom-overlay">
+                        <h4>Tenues Hôtel Luxe</h4>
+                        <p>Collection complète pour chaîne hôtelière</p>
+                    </div>
+                </div>
+                
+                <div class="showroom-item" data-category="realisation">
+                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-utensils" style="font-size: 5rem; color: white;"></i>
+                    </div>
+                    <div class="showroom-overlay">
+                        <h4>Uniformes Restaurant Étoilé</h4>
+                        <p>Tenues personnalisées pour la haute gastronomie</p>
+                    </div>
+                </div>
+                
+                <div class="showroom-item" data-category="realisation">
+                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #db2777 0%, #ec4899 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-store" style="font-size: 5rem; color: white;"></i>
+                    </div>
+                    <div class="showroom-overlay">
+                        <h4>Boutique Mode Paris</h4>
+                        <p>Collection exclusive pour boutique parisienne</p>
+                    </div>
+                </div>
+                
+                <!-- Événements -->
+                <div class="showroom-item" data-category="evenement">
+                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-calendar-check" style="font-size: 5rem; color: white;"></i>
+                    </div>
+                    <div class="showroom-overlay">
+                        <h4>Salon du Textile 2024</h4>
+                        <p>Notre présence au salon international</p>
+                    </div>
+                </div>
+                
+                <div class="showroom-item" data-category="evenement">
+                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-award" style="font-size: 5rem; color: white;"></i>
+                    </div>
+                    <div class="showroom-overlay">
+                        <h4>Prix de l'Innovation 2024</h4>
+                        <p>Reconnaissance pour nos créations innovantes</p>
+                    </div>
+                </div>
+                
+                <div class="showroom-item" data-category="evenement">
+                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-handshake" style="font-size: 5rem; color: white;"></i>
+                    </div>
+                    <div class="showroom-overlay">
+                        <h4>Partenariat International</h4>
+                        <p>Nouvelle collaboration avec des marques mondiales</p>
+                    </div>
+                </div>
+                
+                <div class="showroom-item" data-category="evenement">
+                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #854d0e 0%, #a16207 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-users" style="font-size: 5rem; color: white;"></i>
+                    </div>
+                    <div class="showroom-overlay">
+                        <h4>Journée Portes Ouvertes</h4>
+                        <p>Visite de nos ateliers de production</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Image Modal -->
+    <div class="modal" id="imageModal">
+        <span class="modal-close">&times;</span>
+        <div class="modal-content">
+            <img src="" alt="Image agrandie" id="modalImage">
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <section class="section section-bg">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text" style="max-width: 100%;">
+                    <h2>Visitez notre Showroom</h2>
+                    <p>Découvrez l'ensemble de nos collections en personne dans notre showroom situé à Paris. Notre équipe se fera un plaisir de vous accueillir et de vous présenter nos dernières créations.</p>
+                    <p>Prenez rendez-vous pour une visite personnalisée et découvrez le savoir-faire Primavet.</p>
+                    
+                    <div class="about-features" style="grid-template-columns: 1fr;">
+                        <div class="about-feature">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>123 Avenue du Textile, 75001 Paris</span>
+                        </div>
+                        <div class="about-feature">
+                            <i class="fas fa-clock"></i>
+                            <span>Lundi - Vendredi : 9h00 - 18h00</span>
+                        </div>
+                        <div class="about-feature">
+                            <i class="fas fa-phone"></i>
+                            <span>+33 1 23 45 67 89</span>
+                        </div>
+                    </div>
+                    
+                    <a href="contact.html" class="btn btn-primary mt-2">Prendre rendez-vous</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Banner -->
+    <section class="cta-banner">
+        <div class="container">
+            <h2>Intéressé par nos créations ?</h2>
+            <p>Contactez-nous pour discuter de vos projets et obtenir un devis personnalisé.</p>
+            <div class="cta-buttons">
+                <a href="quote.html" class="btn btn-white btn-lg">Demander un devis</a>
+                <a href="contact.html" class="btn btn-secondary btn-lg" style="border-color: white; color: white;">Nous contacter</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <div class="footer-logo">Prima<span>vet</span></div>
+                    <p>Votre partenaire de confiance pour des produits textiles de qualité supérieure. Innovation, savoir-faire et engagement envers l'excellence.</p>
+                    <div class="footer-social">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-links-col">
+                    <h4 class="footer-title">Liens Rapides</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Accueil</a></li>
+                        <li><a href="about.html">À propos</a></li>
+                        <li><a href="products.html">Produits</a></li>
+                        <li><a href="showroom.html">Showroom</a></li>
+                        <li><a href="news.html">Actualités</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links-col">
+                    <h4 class="footer-title">Services</h4>
+                    <ul class="footer-links">
+                        <li><a href="quote.html">Demande de devis</a></li>
+                        <li><a href="quote.html">Passer commande</a></li>
+                        <li><a href="recruitment.html">Recrutement</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links-col">
+                    <h4 class="footer-title">Contact</h4>
+                    <ul class="footer-contact">
+                        <li>
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>123 Avenue du Textile<br>75001 Paris, France</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-phone"></i>
+                            <span>+33 1 23 45 67 89</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-envelope"></i>
+                            <span>contact@primavet.com</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-clock"></i>
+                            <span>Lun - Ven: 9h00 - 18h00</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2024 Primavet. Tous droits réservés.</p>
+                <div class="footer-bottom-links">
+                    <a href="#">Mentions légales</a>
+                    <a href="#">Politique de confidentialité</a>
+                    <a href="#">CGV</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+</body>
+</html>
