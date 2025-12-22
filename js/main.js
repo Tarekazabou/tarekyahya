@@ -254,8 +254,25 @@ function initModal() {
     showroomItems.forEach(item => {
         item.addEventListener('click', function() {
             const img = this.querySelector('img');
-            if (img) {
-                modalContent.innerHTML = `<img src="${img.src}" alt="${img.alt}">`;
+            const overlay = this.querySelector('.showroom-overlay');
+            
+            if (img && img.src) {
+                // If there's an actual image, display it
+                modalContent.innerHTML = `<img src="${img.src}" alt="${img.alt || 'Image'}">`;
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            } else if (overlay) {
+                // If using placeholder divs, show item details
+                const title = overlay.querySelector('h4')?.textContent || 'Détail';
+                const desc = overlay.querySelector('p')?.textContent || '';
+                modalContent.innerHTML = `
+                    <div style="background: var(--white); padding: 2rem; border-radius: 16px; max-width: 500px; text-align: center;">
+                        <h3 style="color: var(--primary-color); margin-bottom: 1rem;">${title}</h3>
+                        <p style="color: var(--gray);">${desc}</p>
+                        <p style="margin-top: 1rem; color: var(--dark-gray);">Contactez-nous pour plus d'informations sur cette réalisation.</p>
+                        <a href="contact.html" class="btn btn-primary" style="margin-top: 1rem;">Nous contacter</a>
+                    </div>
+                `;
                 modal.classList.add('active');
                 document.body.style.overflow = 'hidden';
             }
