@@ -1,0 +1,10 @@
+{
+  "name": "project-textile",
+  "assets": {
+    "directory": "."
+  },
+  "compatibility_date": "2024-12-23",
+  "observability": {
+    "enabled": true
+  }
+}
