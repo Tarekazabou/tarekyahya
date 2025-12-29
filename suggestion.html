@@ -4,11 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Contactez Primavet pour toute demande d'information, devis ou partenariat. Nous sommes à votre écoute.">
-    <meta name="keywords" content="Primavet, contact, adresse, téléphone, email, localisation">
+    <meta name="description" content="Envoyez-nous vos suggestions de tenues et d'outfits.">
+    <meta name="keywords" content="Primavet, suggestion, outfit, tenue, mode, textile">
 
-    <title>Contact | Primavet - Textile de Qualité</title>
+    <title>Suggestion | Primavet - Textile de Qualité</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,8 +39,8 @@
                     <li><a href="showroom.html">Showroom</a></li>
                     <li><a href="news.html">Actualités</a></li>
                     <li><a href="recruitment.html">Recrutement</a></li>
-                    <li><a href="contact.html" class="active">Contact</a></li>
-                    <li><a href="suggestion.html">Suggestion</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="suggestion.html" class="active">Suggestion</a></li>
                 </ul>
                 <a href="quote.html" class="btn btn-primary nav-cta">Demander un devis</a>
                 <div class="nav-toggle">
@@ -56,82 +55,28 @@
     <!-- Page Header -->
     <section class="page-header">
         <div class="container">
-            <h1>Contact & Localisation</h1>
+            <h1>Coin Suggestion</h1>
             <nav class="breadcrumb">
                 <a href="index.html">Accueil</a>
                 <span>/</span>
-                <span>Contact</span>
+                <span>Suggestion</span>
             </nav>
         </div>
     </section>
 
-    <!-- Contact Section -->
-    <section class="contact section">
+    <!-- Suggestion Section -->
+    <section class="section">
         <div class="container">
-            <div class="contact-grid">
-                <!-- Contact Info -->
-                <div class="contact-info">
-                    <h2>Contactez-nous</h2>
-                    <p>Nous sommes à votre disposition pour répondre à toutes vos questions. N'hésitez pas à nous
-                        contacter via le formulaire ou par les coordonnées ci-dessous.</p>
+            <div class="contact-grid" style="grid-template-columns: 1fr; max-width: 800px; margin: 0 auto;">
 
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                        <div>
-                            <h4>Adresse</h4>
-                            <p>123 Avenue du Textile<br>75001 Paris, France</p>
-                        </div>
-                    </div>
-
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-phone"></i>
-                        </div>
-                        <div>
-                            <h4>Téléphone</h4>
-                            <p>+33 1 23 45 67 89<br>+33 1 23 45 67 90</p>
-                        </div>
-                    </div>
-
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-envelope"></i>
-                        </div>
-                        <div>
-                            <h4>E-mail</h4>
-                            <p>contact@primavet.com<br>info@primavet.com</p>
-                        </div>
-                    </div>
-
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div>
-                            <h4>Horaires d'ouverture</h4>
-                            <p>Lundi - Vendredi: 9h00 - 18h00<br>Samedi: 9h00 - 12h00<br>Dimanche: Fermé</p>
-                        </div>
-                    </div>
-
-                    <!-- Social Media -->
-                    <div style="margin-top: var(--spacing-xl);">
-                        <h4 style="margin-bottom: var(--spacing-md); color: var(--primary-color);">Suivez-nous</h4>
-                        <div class="footer-social" style="justify-content: flex-start;">
-                            <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                            <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Contact Form -->
                 <div class="contact-form">
-                    <h3 style="color: var(--primary-color); margin-bottom: var(--spacing-lg);">Envoyez-nous un message
-                    </h3>
-                    <form action="#" method="post" id="contactForm">
+                    <h3 style="color: var(--primary-color); margin-bottom: var(--spacing-lg); text-align: center;">
+                        Proposez votre Outfit</h3>
+                    <p style="text-align: center; margin-bottom: 2rem; color: var(--gray);">Vous avez une idée de tenue
+                        ou un style que vous aimeriez voir chez Primavet ? Envoyez-nous une photo et vos suggestions !
+                    </p>
+
+                    <form action="#" method="post" id="suggestionForm">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="name">Nom complet *</label>
@@ -143,59 +88,38 @@
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="phone">Téléphone</label>
-                                <input type="tel" id="phone" name="phone" placeholder="Votre téléphone">
-                            </div>
-                            <div class="form-group">
-                                <label for="subject">Sujet</label>
-                                <select id="subject" name="subject">
-                                    <option value="">Sélectionnez un sujet</option>
-                                    <option value="information">Demande d'information</option>
-                                    <option value="devis">Demande de devis</option>
-                                    <option value="partenariat">Partenariat</option>
-                                    <option value="reclamation">Réclamation</option>
-                                    <option value="autre">Autre</option>
-                                </select>
+                        <div class="form-group">
+                            <label>Photo de l'outfit (Image uniquement) *</label>
+                            <div class="file-upload"
+                                style="border: 2px dashed #cbd5e1; padding: 2rem; text-align: center; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">
+                                <input type="file" id="outfit-image" name="outfit-image" accept="image/*" required
+                                    style="display: none;">
+                                <i class="fas fa-camera"
+                                    style="font-size: 2rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+                                <p style="margin: 0; color: var(--gray);">Cliquez ou déposez votre photo ici (JPG, PNG)
+                                </p>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label for="message">Message *</label>
-                            <textarea id="message" name="message" placeholder="Votre message..." required></textarea>
+                            <label for="message">Description / Suggestion *</label>
+                            <textarea id="message" name="message" placeholder="Décrivez votre suggestion..." required
+                                style="min-height: 150px;"></textarea>
                         </div>
 
                         <div class="form-group">
                             <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
                                 <input type="checkbox" name="privacy" required style="width: auto; margin-top: 4px;">
                                 <span style="font-size: 0.9rem; color: var(--gray);">J'accepte que mes données soient
-                                    traitées conformément à la politique de confidentialité de Primavet. *</span>
+                                    traitées par Primavet. *</span>
                             </label>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-lg">Envoyer le message</button>
+                        <div style="text-align: center;">
+                            <button type="submit" class="btn btn-primary btn-lg">Envoyer ma suggestion</button>
+                        </div>
                     </form>
                 </div>
-            </div>
-
-            <!-- Map -->
-            <div class="map-container">
-                <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2624.9916256937595!2d2.292292615509614!3d48.85837007928757!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e66e2964e34e2d%3A0x8ddca9ee380ef7e0!2sTour%20Eiffel!5e0!3m2!1sfr!2sfr!4v1620000000000!5m2!1sfr!2sfr"
-                    allowfullscreen="" loading="lazy" title="Localisation Primavet">
-                </iframe>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Banner -->
-    <section class="cta-banner">
-        <div class="container">
-            <h2>Besoin d'un devis rapide ?</h2>
-            <p>Remplissez notre formulaire de demande de devis et recevez une réponse sous 24h.</p>
-            <div class="cta-buttons">
-                <a href="quote.html" class="btn btn-white btn-lg">Demander un devis</a>
             </div>
         </div>
     </section>

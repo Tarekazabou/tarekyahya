@@ -1,24 +1,29 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Demandez un devis personnalisé ou passez une commande chez Primavet. Service rapide et professionnel.">
+    <meta name="description"
+        content="Demandez un devis personnalisé ou passez une commande chez Primavet. Service rapide et professionnel.">
     <meta name="keywords" content="Primavet, devis, commande, textile, personnalisé">
-    
+
     <title>Demande de Devis | Primavet - Textile de Qualité</title>
-    
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -26,7 +31,7 @@
             <a href="index.html" class="logo">
                 <span class="logo-text">Prima<span>vet</span></span>
             </a>
-            
+
             <nav class="nav">
                 <ul class="nav-menu">
                     <li><a href="index.html">Accueil</a></li>
@@ -36,6 +41,7 @@
                     <li><a href="news.html">Actualités</a></li>
                     <li><a href="recruitment.html">Recrutement</a></li>
                     <li><a href="contact.html">Contact</a></li>
+                    <li><a href="suggestion.html">Suggestion</a></li>
                 </ul>
                 <a href="quote.html" class="btn btn-primary nav-cta active">Demander un devis</a>
                 <div class="nav-toggle">
@@ -65,8 +71,10 @@
             <div class="quote-content">
                 <div class="quote-form">
                     <h2>Formulaire de Demande</h2>
-                    <p style="text-align: center; color: var(--gray); margin-bottom: var(--spacing-xl);">Remplissez le formulaire ci-dessous pour recevoir un devis personnalisé ou passer une commande. Notre équipe vous répondra sous 24h.</p>
-                    
+                    <p style="text-align: center; color: var(--gray); margin-bottom: var(--spacing-xl);">Remplissez le
+                        formulaire ci-dessous pour recevoir un devis personnalisé ou passer une commande. Notre équipe
+                        vous répondra sous 24h.</p>
+
                     <form action="#" method="post" id="quoteForm">
                         <!-- Request Type -->
                         <div class="form-group">
@@ -82,23 +90,25 @@
                                 </label>
                             </div>
                         </div>
-                        
+
                         <!-- Contact Information -->
-                        <h4 style="color: var(--primary-color); margin: var(--spacing-xl) 0 var(--spacing-lg); border-bottom: 2px solid var(--light-gray); padding-bottom: var(--spacing-sm);">
+                        <h4
+                            style="color: var(--primary-color); margin: var(--spacing-xl) 0 var(--spacing-lg); border-bottom: 2px solid var(--light-gray); padding-bottom: var(--spacing-sm);">
                             <i class="fas fa-user"></i> Informations de contact
                         </h4>
-                        
+
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="quote-company">Entreprise</label>
-                                <input type="text" id="quote-company" name="company" placeholder="Nom de votre entreprise">
+                                <input type="text" id="quote-company" name="company"
+                                    placeholder="Nom de votre entreprise">
                             </div>
                             <div class="form-group">
                                 <label for="quote-name">Nom complet *</label>
                                 <input type="text" id="quote-name" name="name" placeholder="Votre nom" required>
                             </div>
                         </div>
-                        
+
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="quote-email">E-mail *</label>
@@ -109,17 +119,18 @@
                                 <input type="tel" id="quote-phone" name="phone" placeholder="Votre téléphone" required>
                             </div>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="quote-address">Adresse de livraison</label>
                             <input type="text" id="quote-address" name="address" placeholder="Adresse complète">
                         </div>
-                        
+
                         <!-- Product Information -->
-                        <h4 style="color: var(--primary-color); margin: var(--spacing-xl) 0 var(--spacing-lg); border-bottom: 2px solid var(--light-gray); padding-bottom: var(--spacing-sm);">
+                        <h4
+                            style="color: var(--primary-color); margin: var(--spacing-xl) 0 var(--spacing-lg); border-bottom: 2px solid var(--light-gray); padding-bottom: var(--spacing-sm);">
                             <i class="fas fa-box"></i> Détails de la demande
                         </h4>
-                        
+
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="quote-category">Catégorie de produit *</label>
@@ -145,18 +156,19 @@
                                 </select>
                             </div>
                         </div>
-                        
+
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="quote-product">Type de produit souhaité</label>
-                                <input type="text" id="quote-product" name="product" placeholder="Ex: Chemises, Polos, Uniformes...">
+                                <input type="text" id="quote-product" name="product"
+                                    placeholder="Ex: Chemises, Polos, Uniformes...">
                             </div>
                             <div class="form-group">
                                 <label for="quote-deadline">Date de livraison souhaitée</label>
                                 <input type="date" id="quote-deadline" name="deadline">
                             </div>
                         </div>
-                        
+
                         <!-- Customization Options -->
                         <div class="form-group">
                             <label>Options de personnalisation</label>
@@ -174,17 +186,20 @@
                                     <span>Tailles spéciales</span>
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                    <input type="checkbox" name="customization[]" value="etiquette" style="width: auto;">
+                                    <input type="checkbox" name="customization[]" value="etiquette"
+                                        style="width: auto;">
                                     <span>Étiquette personnalisée</span>
                                 </label>
                             </div>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="quote-details">Description détaillée de votre demande *</label>
-                            <textarea id="quote-details" name="details" placeholder="Décrivez précisément vos besoins : types de produits, couleurs, matériaux souhaités, usage prévu..." required></textarea>
+                            <textarea id="quote-details" name="details"
+                                placeholder="Décrivez précisément vos besoins : types de produits, couleurs, matériaux souhaités, usage prévu..."
+                                required></textarea>
                         </div>
-                        
+
                         <!-- Budget -->
                         <div class="form-group">
                             <label for="quote-budget">Budget estimé</label>
@@ -197,7 +212,7 @@
                                 <option value="10000+">Plus de 10 000 €</option>
                             </select>
                         </div>
-                        
+
                         <!-- How did you hear about us -->
                         <div class="form-group">
                             <label for="quote-source">Comment avez-vous connu Primavet ?</label>
@@ -210,22 +225,25 @@
                                 <option value="autre">Autre</option>
                             </select>
                         </div>
-                        
+
                         <!-- Privacy -->
                         <div class="form-group">
                             <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
                                 <input type="checkbox" name="privacy" required style="width: auto; margin-top: 4px;">
-                                <span style="font-size: 0.9rem; color: var(--gray);">J'accepte que mes données soient traitées conformément à la politique de confidentialité de Primavet pour le traitement de ma demande. *</span>
+                                <span style="font-size: 0.9rem; color: var(--gray);">J'accepte que mes données soient
+                                    traitées conformément à la politique de confidentialité de Primavet pour le
+                                    traitement de ma demande. *</span>
                             </label>
                         </div>
-                        
+
                         <div class="form-group">
                             <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
                                 <input type="checkbox" name="newsletter" style="width: auto; margin-top: 4px;">
-                                <span style="font-size: 0.9rem; color: var(--gray);">Je souhaite recevoir les actualités et offres de Primavet par e-mail.</span>
+                                <span style="font-size: 0.9rem; color: var(--gray);">Je souhaite recevoir les actualités
+                                    et offres de Primavet par e-mail.</span>
                             </label>
                         </div>
-                        
+
                         <div style="text-align: center;">
                             <button type="submit" class="btn btn-primary btn-lg">Envoyer ma demande</button>
                         </div>
@@ -242,7 +260,7 @@
                 <h2>Comment ça marche ?</h2>
                 <p>Un processus simple et rapide pour vos demandes de devis et commandes.</p>
             </div>
-            
+
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon">
@@ -251,7 +269,7 @@
                     <h3>Remplissez le formulaire</h3>
                     <p>Décrivez vos besoins en détail pour que nous puissions vous proposer la meilleure solution.</p>
                 </div>
-                
+
                 <div class="feature-card">
                     <div class="feature-icon">
                         <span style="font-size: 1.5rem; font-weight: bold;">2</span>
@@ -259,7 +277,7 @@
                     <h3>Recevez votre devis</h3>
                     <p>Notre équipe vous envoie un devis détaillé sous 24-48h avec les meilleures options.</p>
                 </div>
-                
+
                 <div class="feature-card">
                     <div class="feature-icon">
                         <span style="font-size: 1.5rem; font-weight: bold;">3</span>
@@ -267,7 +285,7 @@
                     <h3>Validation & Production</h3>
                     <p>Après votre validation, nous lançons la production de votre commande.</p>
                 </div>
-                
+
                 <div class="feature-card">
                     <div class="feature-icon">
                         <span style="font-size: 1.5rem; font-weight: bold;">4</span>
@@ -290,7 +308,7 @@
                     <h4>Par téléphone</h4>
                     <p>+33 1 23 45 67 89<br>Lun-Ven : 9h-18h</p>
                 </div>
-                
+
                 <div class="contact-item" style="text-align: center; flex-direction: column; align-items: center;">
                     <div class="contact-icon" style="margin-bottom: var(--spacing-md);">
                         <i class="fas fa-envelope"></i>
@@ -298,7 +316,7 @@
                     <h4>Par e-mail</h4>
                     <p>devis@primavet.com<br>Réponse sous 24h</p>
                 </div>
-                
+
                 <div class="contact-item" style="text-align: center; flex-direction: column; align-items: center;">
                     <div class="contact-icon" style="margin-bottom: var(--spacing-md);">
                         <i class="fas fa-map-marker-alt"></i>
@@ -316,7 +334,8 @@
             <div class="footer-grid">
                 <div class="footer-about">
                     <div class="footer-logo">Prima<span>vet</span></div>
-                    <p>Votre partenaire de confiance pour des produits textiles de qualité supérieure. Innovation, savoir-faire et engagement envers l'excellence.</p>
+                    <p>Votre partenaire de confiance pour des produits textiles de qualité supérieure. Innovation,
+                        savoir-faire et engagement envers l'excellence.</p>
                     <div class="footer-social">
                         <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
@@ -324,7 +343,7 @@
                         <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
                     </div>
                 </div>
-                
+
                 <div class="footer-links-col">
                     <h4 class="footer-title">Liens Rapides</h4>
                     <ul class="footer-links">
@@ -335,7 +354,7 @@
                         <li><a href="news.html">Actualités</a></li>
                     </ul>
                 </div>
-                
+
                 <div class="footer-links-col">
                     <h4 class="footer-title">Services</h4>
                     <ul class="footer-links">
@@ -343,9 +362,10 @@
                         <li><a href="quote.html">Passer commande</a></li>
                         <li><a href="recruitment.html">Recrutement</a></li>
                         <li><a href="contact.html">Contact</a></li>
+                        <li><a href="suggestion.html">Suggestion</a></li>
                     </ul>
                 </div>
-                
+
                 <div class="footer-links-col">
                     <h4 class="footer-title">Contact</h4>
                     <ul class="footer-contact">
@@ -368,7 +388,7 @@
                     </ul>
                 </div>
             </div>
-            
+
             <div class="footer-bottom">
                 <p>&copy; 2024 Primavet. Tous droits réservés.</p>
                 <div class="footer-bottom-links">
@@ -383,4 +403,5 @@
     <!-- Scripts -->
     <script src="js/main.js"></script>
 </body>
+
 </html>
