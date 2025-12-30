@@ -30,6 +30,9 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
@@ -171,62 +174,11 @@
                 </p>
             </div>
 
-            <div class="products-grid">
-                <div class="product-card" data-category="homme">
-                    <div class="product-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-tshirt" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                        <span class="product-badge">Nouveau</span>
-                    </div>
-                    <div class="product-content">
-                        <span class="product-category">Homme</span>
-                        <h3>Collection Classique</h3>
-                        <p>Élégance et confort au quotidien avec notre gamme de vêtements classiques pour homme.</p>
-                        <div class="product-actions">
-                            <a href="quote.html" class="btn btn-primary">Devis</a>
-                            <a href="products.html" class="btn btn-secondary">Détails</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card" data-category="femme">
-                    <div class="product-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-vest" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                        <span class="product-badge">Tendance</span>
-                    </div>
-                    <div class="product-content">
-                        <span class="product-category">Femme</span>
-                        <h3>Collection Élégance</h3>
-                        <p>Des pièces féminines et raffinées pour sublimer votre garde-robe.</p>
-                        <div class="product-actions">
-                            <a href="quote.html" class="btn btn-primary">Devis</a>
-                            <a href="products.html" class="btn btn-secondary">Détails</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card" data-category="professionnel">
-                    <div class="product-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #1e293b 0%, #475569 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-user-tie" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                        <span class="product-badge">Pro</span>
-                    </div>
-                    <div class="product-content">
-                        <span class="product-category">Professionnel</span>
-                        <h3>Tenues de Travail</h3>
-                        <p>Vêtements professionnels alliant fonctionnalité, confort et image de marque.</p>
-                        <div class="product-actions">
-                            <a href="quote.html" class="btn btn-primary">Devis</a>
-                            <a href="products.html" class="btn btn-secondary">Détails</a>
-                        </div>
-                    </div>
+            <div class="products-grid" id="featured-products">
+                <!-- Products loaded dynamically from Supabase -->
+                <div class="loading-spinner" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+                    <p style="margin-top: 1rem; color: var(--gray);">Chargement des produits...</p>
                 </div>
             </div>
 
@@ -287,62 +239,12 @@
                 <p>Restez informé des dernières nouvelles, collections et événements Primavet.</p>
             </div>
 
-            <div class="news-grid">
-                <article class="news-card">
-                    <div class="news-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-newspaper" style="font-size: 3rem; color: white;"></i>
-                        </div>
-                    </div>
-                    <div class="news-content">
-                        <div class="news-meta">
-                            <span><i class="far fa-calendar"></i> 15 Dec 2024</span>
-                            <span><i class="far fa-folder"></i> Collection</span>
-                        </div>
-                        <h3><a href="news.html">Nouvelle Collection Printemps 2025</a></h3>
-                        <p>Découvrez en avant-première notre nouvelle collection printemps avec des pièces uniques et
-                            tendances.</p>
-                        <a href="news.html" class="news-link">Lire la suite <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </article>
-
-                <article class="news-card">
-                    <div class="news-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-calendar-check" style="font-size: 3rem; color: white;"></i>
-                        </div>
-                    </div>
-                    <div class="news-content">
-                        <div class="news-meta">
-                            <span><i class="far fa-calendar"></i> 10 Dec 2024</span>
-                            <span><i class="far fa-folder"></i> Événement</span>
-                        </div>
-                        <h3><a href="news.html">Salon du Textile 2025</a></h3>
-                        <p>Primavet sera présent au salon international du textile. Venez nous rencontrer sur notre
-                            stand.</p>
-                        <a href="news.html" class="news-link">Lire la suite <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </article>
-
-                <article class="news-card">
-                    <div class="news-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-leaf" style="font-size: 3rem; color: white;"></i>
-                        </div>
-                    </div>
-                    <div class="news-content">
-                        <div class="news-meta">
-                            <span><i class="far fa-calendar"></i> 5 Dec 2024</span>
-                            <span><i class="far fa-folder"></i> Développement Durable</span>
-                        </div>
-                        <h3><a href="news.html">Engagement Écologique</a></h3>
-                        <p>Notre nouvelle gamme éco-responsable utilise des matériaux durables et recyclés.</p>
-                        <a href="news.html" class="news-link">Lire la suite <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </article>
+            <div class="news-grid" id="featured-news">
+                <!-- News loaded dynamically from Supabase -->
+                <div class="loading-spinner" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+                    <p style="margin-top: 1rem; color: var(--gray);">Chargement des actualités...</p>
+                </div>
             </div>
 
             <div class="text-center mt-4">
@@ -438,7 +340,29 @@
     </footer>
 
     <!-- Scripts -->
+    <script src="js/supabase-client.js"></script>
+    <script src="js/data-service.js"></script>
+    <script src="js/page-renderers.js"></script>
     <script src="js/main.js"></script>
+    <script>
+        // Initialize dynamic content on page load
+        document.addEventListener('DOMContentLoaded', async function () {
+            try {
+                // Load featured products
+                await PageRenderers.renderFeaturedProducts('featured-products');
+
+                // Load featured news
+                await PageRenderers.renderFeaturedNews('featured-news');
+
+                // Load footer contact info
+                await PageRenderers.renderFooterContact();
+
+                console.log('✅ Homepage content loaded from Supabase');
+            } catch (error) {
+                console.error('Error loading homepage content:', error);
+            }
+        });
+    </script>
 </body>
 
 </html>

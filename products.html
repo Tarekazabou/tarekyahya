@@ -22,6 +22,9 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
@@ -83,229 +86,11 @@
             </div>
 
             <!-- Products Grid -->
-            <div class="products-grid">
-                <!-- Homme Products -->
-                <div class="product-card" data-category="homme">
-                    <div class="product-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-tshirt" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                        <span class="product-badge">Nouveau</span>
-                    </div>
-                    <div class="product-content">
-                        <span class="product-category">Homme</span>
-                        <h3>Chemises Classiques</h3>
-                        <p>Collection de chemises élégantes pour homme, disponibles en plusieurs couleurs et tailles.
-                        </p>
-                        <div class="product-actions">
-                            <a href="quote.html" class="btn btn-primary">Demander un devis</a>
-                            <a href="quote.html" class="btn btn-secondary">Commander</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card" data-category="homme">
-                    <div class="product-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #1e293b 0%, #475569 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-user-tie" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                    </div>
-                    <div class="product-content">
-                        <span class="product-category">Homme</span>
-                        <h3>Costumes Business</h3>
-                        <p>Costumes professionnels de haute qualité pour une allure impeccable au bureau.</p>
-                        <div class="product-actions">
-                            <a href="quote.html" class="btn btn-primary">Demander un devis</a>
-                            <a href="quote.html" class="btn btn-secondary">Commander</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card" data-category="homme">
-                    <div class="product-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #059669 0%, #10b981 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-vest" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                    </div>
-                    <div class="product-content">
-                        <span class="product-category">Homme</span>
-                        <h3>Polos Casual</h3>
-                        <p>Polos confortables pour un style décontracté mais soigné au quotidien.</p>
-                        <div class="product-actions">
-                            <a href="quote.html" class="btn btn-primary">Demander un devis</a>
-                            <a href="quote.html" class="btn btn-secondary">Commander</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Femme Products -->
-                <div class="product-card" data-category="femme">
-                    <div class="product-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #db2777 0%, #ec4899 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-tshirt" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                        <span class="product-badge">Tendance</span>
-                    </div>
-                    <div class="product-content">
-                        <span class="product-category">Femme</span>
-                        <h3>Blouses Élégantes</h3>
-                        <p>Collection de blouses féminines et raffinées pour toutes les occasions.</p>
-                        <div class="product-actions">
-                            <a href="quote.html" class="btn btn-primary">Demander un devis</a>
-                            <a href="quote.html" class="btn btn-secondary">Commander</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card" data-category="femme">
-                    <div class="product-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-dress" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                    </div>
-                    <div class="product-content">
-                        <span class="product-category">Femme</span>
-                        <h3>Robes Collection</h3>
-                        <p>Robes élégantes pour femme, parfaites pour les événements professionnels et personnels.</p>
-                        <div class="product-actions">
-                            <a href="quote.html" class="btn btn-primary">Demander un devis</a>
-                            <a href="quote.html" class="btn btn-secondary">Commander</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card" data-category="femme">
-                    <div class="product-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-vest" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                    </div>
-                    <div class="product-content">
-                        <span class="product-category">Femme</span>
-                        <h3>Tailleurs Femme</h3>
-                        <p>Tailleurs professionnels pour une image de marque impeccable.</p>
-                        <div class="product-actions">
-                            <a href="quote.html" class="btn btn-primary">Demander un devis</a>
-                            <a href="quote.html" class="btn btn-secondary">Commander</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Professionnel Products -->
-                <div class="product-card" data-category="professionnel">
-                    <div class="product-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-hard-hat" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                        <span class="product-badge">Pro</span>
-                    </div>
-                    <div class="product-content">
-                        <span class="product-category">Professionnel</span>
-                        <h3>Vêtements de Travail</h3>
-                        <p>Tenues de travail résistantes et confortables pour tous les secteurs d'activité.</p>
-                        <div class="product-actions">
-                            <a href="quote.html" class="btn btn-primary">Demander un devis</a>
-                            <a href="quote.html" class="btn btn-secondary">Commander</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card" data-category="professionnel">
-                    <div class="product-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-user-md" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                    </div>
-                    <div class="product-content">
-                        <span class="product-category">Professionnel</span>
-                        <h3>Blouses Médicales</h3>
-                        <p>Blouses et uniformes pour le secteur médical, confortables et faciles d'entretien.</p>
-                        <div class="product-actions">
-                            <a href="quote.html" class="btn btn-primary">Demander un devis</a>
-                            <a href="quote.html" class="btn btn-secondary">Commander</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card" data-category="professionnel">
-                    <div class="product-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-utensils" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                    </div>
-                    <div class="product-content">
-                        <span class="product-category">Professionnel</span>
-                        <h3>Uniformes Restauration</h3>
-                        <p>Tenues professionnelles pour la restauration et l'hôtellerie.</p>
-                        <div class="product-actions">
-                            <a href="quote.html" class="btn btn-primary">Demander un devis</a>
-                            <a href="quote.html" class="btn btn-secondary">Commander</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Accessoires -->
-                <div class="product-card" data-category="accessoires">
-                    <div class="product-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-hat-cowboy" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                    </div>
-                    <div class="product-content">
-                        <span class="product-category">Accessoires</span>
-                        <h3>Chapeaux & Casquettes</h3>
-                        <p>Accessoires de tête pour compléter votre tenue professionnelle ou décontractée.</p>
-                        <div class="product-actions">
-                            <a href="quote.html" class="btn btn-primary">Demander un devis</a>
-                            <a href="quote.html" class="btn btn-secondary">Commander</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card" data-category="accessoires">
-                    <div class="product-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #854d0e 0%, #a16207 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-scarf" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                    </div>
-                    <div class="product-content">
-                        <span class="product-category">Accessoires</span>
-                        <h3>Écharpes & Foulards</h3>
-                        <p>Collection d'écharpes et foulards élégants pour toutes les saisons.</p>
-                        <div class="product-actions">
-                            <a href="quote.html" class="btn btn-primary">Demander un devis</a>
-                            <a href="quote.html" class="btn btn-secondary">Commander</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card" data-category="accessoires">
-                    <div class="product-image">
-                        <div
-                            style="width: 100%; height: 100%; background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-socks" style="font-size: 4rem; color: white;"></i>
-                        </div>
-                    </div>
-                    <div class="product-content">
-                        <span class="product-category">Accessoires</span>
-                        <h3>Chaussettes & Bas</h3>
-                        <p>Chaussettes de qualité pour le confort quotidien, disponibles en plusieurs coloris.</p>
-                        <div class="product-actions">
-                            <a href="quote.html" class="btn btn-primary">Demander un devis</a>
-                            <a href="quote.html" class="btn btn-secondary">Commander</a>
-                        </div>
-                    </div>
+            <div class="products-grid" id="products-grid">
+                <!-- Products loaded dynamically from Supabase -->
+                <div class="loading-spinner" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+                    <p style="margin-top: 1rem; color: var(--gray);">Chargement des produits...</p>
                 </div>
             </div>
         </div>
@@ -441,7 +226,26 @@
     </footer>
 
     <!-- Scripts -->
+    <script src="js/supabase-client.js"></script>
+    <script src="js/data-service.js"></script>
+    <script src="js/page-renderers.js"></script>
     <script src="js/main.js"></script>
+    <script>
+        // Initialize dynamic content on page load
+        document.addEventListener('DOMContentLoaded', async function () {
+            try {
+                // Load all products
+                await PageRenderers.renderProducts('products-grid');
+
+                // Load footer contact info
+                await PageRenderers.renderFooterContact();
+
+                console.log('✅ Products page content loaded from Supabase');
+            } catch (error) {
+                console.error('Error loading products page content:', error);
+            }
+        });
+    </script>
 </body>
 
 </html>
