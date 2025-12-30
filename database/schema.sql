@@ -109,13 +109,10 @@ ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public read site_config" ON site_config FOR SELECT USING (true);
 CREATE POLICY "Public read products" ON products FOR SELECT USING (true);
 CREATE POLICY "Public read news" ON news FOR SELECT USING (true);
-CREATE POLICY "Public read active jobs" ON jobs FOR SELECT USING (is_active = true);
+CREATE POLICY "Public read all jobs" ON jobs FOR SELECT USING (true);
 CREATE POLICY "Public read showroom" ON showroom_items FOR SELECT USING (true);
 CREATE POLICY "Public read stats" ON stats FOR SELECT USING (true);
 CREATE POLICY "Public read clients" ON clients FOR SELECT USING (true);
-
--- Admin read ALL jobs (including inactive)
-CREATE POLICY "Admin read all jobs" ON jobs FOR SELECT USING (true);
 
 -- Public write access for news (admin functionality)
 CREATE POLICY "Public insert news" ON news FOR INSERT WITH CHECK (true);
