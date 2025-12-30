@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Espace Administration Primavet - Tableau de bord et indicateurs globaux.">
+    <meta name="robots" content="noindex, nofollow">
+
+    <title>Espace Admin | Primavet - Tableau de Bord</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <style>
+        /* Admin Dashboard Specific Styles */
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .dashboard-header h1 {
+            color: var(--dark);
+            font-size: 1.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .dashboard-header h1 i {
+            color: var(--primary-color);
+        }
+
+        .dashboard-date {
+            background: var(--light-gray);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .dashboard-date i {
+            margin-right: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Stat Cards */
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary-color);
+        }
+
+        .stat-card.success::before {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        .stat-card.warning::before {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .stat-card.info::before {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        }
+
+        .stat-card.danger::before {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .stat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+        }
+
+        .stat-card.success .stat-card-icon {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        .stat-card.warning .stat-card-icon {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .stat-card.info .stat-card-icon {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        }
+
+        .stat-card.danger .stat-card-icon {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .stat-card.primary .stat-card-icon {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        }
+
+        .stat-card.primary::before {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        }
+
+        .stat-trend {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .stat-trend.up {
+            background: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+        }
+
+        .stat-trend.down {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        .stat-card-title {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        /* Section Cards */
+        .section-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .section-card-header h2 {
+            font-size: 1.1rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-card-header h2 i {
+            color: var(--primary-color);
+        }
+
+        /* Dashboard Layout */
+        .dashboard-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 992px) {
+            .dashboard-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Table Styles */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .admin-table th {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray);
+            font-weight: 600;
+        }
+
+        .admin-table tbody tr:hover {
+            background: var(--light-gray);
+        }
+
+        .admin-table .product-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .admin-table .product-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        .badge-info {
+            background: rgba(14, 165, 233, 0.1);
+            color: #0284c7;
+        }
+
+        /* Client List */
+        .client-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .client-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .client-list li:last-child {
+            border-bottom: none;
+        }
+
+        .client-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .client-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .client-details h4 {
+            font-size: 0.95rem;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .client-details span {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        /* Rating Stars */
+        .rating-stars {
+            color: #f59e0b;
+            font-size: 1.25rem;
+        }
+
+        .rating-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-right: 0.5rem;
+        }
+
+        .rating-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Progress Bar */
+        .progress-bar-container {
+            margin-bottom: 1rem;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .progress-label span:first-child {
+            color: var(--dark);
+            font-weight: 500;
+        }
+
+        .progress-label span:last-child {
+            color: var(--gray);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--light-gray);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+        }
+
+        .progress-fill.primary {
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+        }
+
+        .progress-fill.success {
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+        }
+
+        .progress-fill.warning {
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+        }
+
+        .progress-fill.danger {
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .quick-action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            background: var(--light-gray);
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--dark);
+            transition: all 0.3s ease;
+            gap: 0.75rem;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .quick-action-btn i {
+            font-size: 1.5rem;
+        }
+
+        .quick-action-btn span {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Back Link */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: var(--primary-color);
+        }
+
+        /* Admin Header */
+        .admin-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-header .logo-text {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .admin-header .logo-text span {
+            opacity: 0.8;
+        }
+
+        .admin-user {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: white;
+        }
+
+        .admin-user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-user-info span {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .admin-user-info strong {
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+
+<body style="background: #f8fafc;">
+    <!-- Admin Header -->
+    <header class="admin-header">
+        <a href="index.html" class="logo-text">Prima<span>vet</span> Admin</a>
+        <div class="admin-user">
+            <div class="admin-user-info">
+                <span>Bienvenue,</span>
+                <strong>Administrateur</strong>
+            </div>
+            <div class="admin-user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Dashboard Content -->
+    <main class="admin-container">
+        <!-- Back Link -->
+        <a href="index.html" class="back-link">
+            <i class="fas fa-arrow-left"></i> Retour au site
+        </a>
+
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <h1><i class="fas fa-chart-line"></i> Tableau de Bord</h1>
+            <div class="dashboard-date">
+                <i class="far fa-calendar-alt"></i>
+                <span id="current-date">30 Décembre 2024</span>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="section-card">
+            <div class="section-card-header">
+                <h2><i class="fas fa-bolt"></i> Actions Rapides</h2>
+            </div>
+            <div class="quick-actions">
+                <a href="products.html" class="quick-action-btn">
+                    <i class="fas fa-box"></i>
+                    <span>Produits</span>
+                </a>
+                <a href="quote.html" class="quick-action-btn">
+                    <i class="fas fa-file-invoice"></i>
+                    <span>Commandes</span>
+                </a>
+                <a href="contact.html" class="quick-action-btn">
+                    <i class="fas fa-users"></i>
+                    <span>Clients</span>
+                </a>
+                <a href="news.html" class="quick-action-btn">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Actualités</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Activité Générale - Main Stats -->
+        <div class="dashboard-grid">
+            <div class="stat-card info">
+                <div class="stat-card-header">
+                    <div class="stat-card-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <span class="stat-trend up"><i class="fas fa-arrow-up"></i> +12%</span>
+                </div>
+                <p class="stat-card-title">Visiteurs Totaux</p>
+                <p class="stat-card-value">24,589</p>
+            </div>
+
+            <div class="stat-card success">
+                <div class="stat-card-header">
+                    <div class="stat-card-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <span class="stat-trend up"><i class="fas fa-arrow-up"></i> +8%</span>
+                </div>
+                <p class="stat-card-title">Clients Totaux</p>
+                <p class="stat-card-value">1,247</p>
+            </div>
+
+            <div class="stat-card primary">
+                <div class="stat-card-header">
+                    <div class="stat-card-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <span class="stat-trend up"><i class="fas fa-arrow-up"></i> +15%</span>
+                </div>
+                <p class="stat-card-title">Commandes Totales</p>
+                <p class="stat-card-value">3,842</p>
+            </div>
+
+            <div class="stat-card warning">
+                <div class="stat-card-header">
+                    <div class="stat-card-icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <span class="stat-trend up"><i class="fas fa-arrow-up"></i> +2.3%</span>
+                </div>
+                <p class="stat-card-title">Taux de Conversion</p>
+                <p class="stat-card-value">5.07%</p>
+            </div>
+        </div>
+
+        <!-- Performance Commerciale -->
+        <div class="section-card">
+            <div class="section-card-header">
+                <h2><i class="fas fa-chart-bar"></i> Performance Commerciale</h2>
+            </div>
+            <div class="dashboard-grid">
+                <div class="stat-card success">
+                    <div class="stat-card-header">
+                        <div class="stat-card-icon">
+                            <i class="fas fa-euro-sign"></i>
+                        </div>
+                        <span class="stat-trend up"><i class="fas fa-arrow-up"></i> +18%</span>
+                    </div>
+                    <p class="stat-card-title">Chiffre d'Affaires Total</p>
+                    <p class="stat-card-value">847,320 €</p>
+                </div>
+
+                <div class="stat-card info">
+                    <div class="stat-card-header">
+                        <div class="stat-card-icon">
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                        <span class="stat-trend up"><i class="fas fa-arrow-up"></i> +22%</span>
+                    </div>
+                    <p class="stat-card-title">CA du Mois</p>
+                    <p class="stat-card-value">72,450 €</p>
+                </div>
+
+                <div class="stat-card primary">
+                    <div class="stat-card-header">
+                        <div class="stat-card-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <span class="stat-trend up"><i class="fas fa-arrow-up"></i> +5.2%</span>
+                    </div>
+                    <p class="stat-card-title">Croissance des Ventes</p>
+                    <p class="stat-card-value">+18.7%</p>
+                </div>
+
+                <div class="stat-card warning">
+                    <div class="stat-card-header">
+                        <div class="stat-card-icon">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                    </div>
+                    <p class="stat-card-title">Panier Moyen</p>
+                    <p class="stat-card-value">220 €</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products & Clients Row -->
+        <div class="dashboard-row">
+            <!-- Produits Section -->
+            <div class="section-card">
+                <div class="section-card-header">
+                    <h2><i class="fas fa-box"></i> Produits</h2>
+                    <span class="badge badge-info">156 produits</span>
+                </div>
+
+                <div class="dashboard-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 1.5rem;">
+                    <div style="text-align: center; padding: 1rem; background: var(--light-gray); border-radius: 12px;">
+                        <p style="font-size: 2rem; font-weight: 700; color: var(--primary-color);">156</p>
+                        <p style="font-size: 0.85rem; color: var(--gray);">Total Produits</p>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: var(--light-gray); border-radius: 12px;">
+                        <p style="font-size: 2rem; font-weight: 700; color: #22c55e;">42</p>
+                        <p style="font-size: 0.85rem; color: var(--gray);">Best-sellers</p>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: var(--light-gray); border-radius: 12px;">
+                        <p style="font-size: 2rem; font-weight: 700; color: #ef4444;">8</p>
+                        <p style="font-size: 0.85rem; color: var(--gray);">Faible Rotation</p>
+                    </div>
+                </div>
+
+                <h4 style="font-size: 0.9rem; color: var(--dark); margin-bottom: 1rem;">
+                    <i class="fas fa-fire" style="color: #ef4444;"></i> Produits les plus vendus
+                </h4>
+
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Produit</th>
+                            <th>Catégorie</th>
+                            <th>Ventes</th>
+                            <th>Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="product-info">
+                                    <div class="product-img"><i class="fas fa-tshirt"></i></div>
+                                    <span>Chemise Classique</span>
+                                </div>
+                            </td>
+                            <td>Homme</td>
+                            <td><strong>847</strong></td>
+                            <td><span class="badge badge-success">En stock</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="product-info">
+                                    <div class="product-img"><i class="fas fa-vest"></i></div>
+                                    <span>Blouse Élégante</span>
+                                </div>
+                            </td>
+                            <td>Femme</td>
+                            <td><strong>623</strong></td>
+                            <td><span class="badge badge-success">En stock</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="product-info">
+                                    <div class="product-img"><i class="fas fa-user-tie"></i></div>
+                                    <span>Costume Business</span>
+                                </div>
+                            </td>
+                            <td>Professionnel</td>
+                            <td><strong>512</strong></td>
+                            <td><span class="badge badge-warning">Stock limité</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="product-info">
+                                    <div class="product-img"><i class="fas fa-hard-hat"></i></div>
+                                    <span>Tenue de Travail</span>
+                                </div>
+                            </td>
+                            <td>Professionnel</td>
+                            <td><strong>489</strong></td>
+                            <td><span class="badge badge-success">En stock</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Clients Section -->
+            <div class="section-card">
+                <div class="section-card-header">
+                    <h2><i class="fas fa-users"></i> Clients</h2>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="progress-label">
+                        <span>Clients Actifs</span>
+                        <span>892 (71%)</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill success" style="width: 71%;"></div>
+                    </div>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="progress-label">
+                        <span>Nouveaux Clients (30j)</span>
+                        <span>127 (10%)</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill primary" style="width: 10%;"></div>
+                    </div>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="progress-label">
+                        <span>Clients Fidèles (+3 commandes)</span>
+                        <span>412 (33%)</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill warning" style="width: 33%;"></div>
+                    </div>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="progress-label">
+                        <span>Clients Inactifs (+6 mois)</span>
+                        <span>228 (18%)</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill danger" style="width: 18%;"></div>
+                    </div>
+                </div>
+
+                <h4 style="font-size: 0.9rem; color: var(--dark); margin: 1.5rem 0 1rem;">
+                    <i class="fas fa-crown" style="color: #f59e0b;"></i> Meilleurs Clients
+                </h4>
+
+                <ul class="client-list">
+                    <li>
+                        <div class="client-info">
+                            <div class="client-avatar">JD</div>
+                            <div class="client-details">
+                                <h4>Jean Dupont</h4>
+                                <span>15 commandes</span>
+                            </div>
+                        </div>
+                        <span class="badge badge-success">VIP</span>
+                    </li>
+                    <li>
+                        <div class="client-info">
+                            <div class="client-avatar">ML</div>
+                            <div class="client-details">
+                                <h4>Marie Laurent</h4>
+                                <span>12 commandes</span>
+                            </div>
+                        </div>
+                        <span class="badge badge-success">VIP</span>
+                    </li>
+                    <li>
+                        <div class="client-info">
+                            <div class="client-avatar">PB</div>
+                            <div class="client-details">
+                                <h4>Pierre Bernard</h4>
+                                <span>9 commandes</span>
+                            </div>
+                        </div>
+                        <span class="badge badge-info">Fidèle</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Satisfaction Client -->
+        <div class="section-card">
+            <div class="section-card-header">
+                <h2><i class="fas fa-star"></i> Satisfaction Client</h2>
+            </div>
+
+            <div class="dashboard-row" style="grid-template-columns: 1fr 2fr;">
+                <div style="text-align: center; padding: 2rem; background: var(--light-gray); border-radius: 12px;">
+                    <div class="rating-container" style="justify-content: center;">
+                        <span class="rating-value">4.7</span>
+                        <div>
+                            <div class="rating-stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <p style="font-size: 0.85rem; color: var(--gray); margin-top: 0.25rem;">Sur 5 étoiles</p>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.9rem; color: var(--gray);">Basé sur <strong>1,247 avis</strong></p>
+                </div>
+
+                <div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span><i class="fas fa-star" style="color: #f59e0b;"></i> 5 étoiles</span>
+                            <span>68% (848)</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill success" style="width: 68%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span><i class="fas fa-star" style="color: #f59e0b;"></i> 4 étoiles</span>
+                            <span>22% (274)</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill primary" style="width: 22%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span><i class="fas fa-star" style="color: #f59e0b;"></i> 3 étoiles</span>
+                            <span>7% (87)</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill warning" style="width: 7%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span><i class="fas fa-star" style="color: #f59e0b;"></i> 2 étoiles</span>
+                            <span>2% (25)</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill danger" style="width: 2%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span><i class="fas fa-star" style="color: #f59e0b;"></i> 1 étoile</span>
+                            <span>1% (13)</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill danger" style="width: 1%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer style="background: var(--dark); color: white; text-align: center; padding: 1.5rem; margin-top: 2rem;">
+        <p>&copy; 2024 Primavet - Espace Administration. Tous droits réservés.</p>
+    </footer>
+
+    <script>
+        // Update current date
+        const dateElement = document.getElementById('current-date');
+        const options = { day: 'numeric', month: 'long', year: 'numeric' };
+        dateElement.textContent = new Date().toLocaleDateString('fr-FR', options);
+
+        // Animate progress bars on load
+        document.addEventListener('DOMContentLoaded', function () {
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            });
+        });
+
+        // Animate stat card values
+        function animateValue(element, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const value = Math.floor(progress * (end - start) + start);
+                element.textContent = value.toLocaleString('fr-FR');
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+    </script>
+</body>
+
+</html>
