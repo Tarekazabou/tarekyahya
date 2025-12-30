@@ -308,6 +308,160 @@ const DataService = {
             vipPercent: total > 0 ? Math.round((vip / total) * 100) : 0,
             inactivePercent: total > 0 ? Math.round((inactive / total) * 100) : 0
         };
+    },
+
+    // ==================== ADMIN CRUD OPERATIONS ====================
+
+    // ----- NEWS CRUD -----
+
+    /**
+     * Create a new news article
+     */
+    async createNews(newsData) {
+        const { data, error } = await supabaseClient
+            .from('news')
+            .insert([{
+                title: newsData.title,
+                content: newsData.content,
+                excerpt: newsData.excerpt || newsData.content?.substring(0, 200) + '...',
+                category: newsData.category,
+                author: newsData.author || 'Admin',
+                icon: newsData.icon || 'fa-newspaper',
+                gradient: newsData.gradient || 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+                published_at: newsData.published_at || new Date().toISOString().split('T')[0],
+                is_featured: newsData.is_featured || false
+            }])
+            .select();
+
+        if (error) {
+            console.error('Error creating news:', error);
+            throw error;
+        }
+
+        // Clear news cache
+        delete this.cache['news_all'];
+        delete this.cache['featuredNews'];
+
+        return data[0];
+    },
+
+    /**
+     * Update a news article
+     */
+    async updateNews(id, newsData) {
+        const { data, error } = await supabaseClient
+            .from('news')
+            .update(newsData)
+            .eq('id', id)
+            .select();
+
+        if (error) {
+            console.error('Error updating news:', error);
+            throw error;
+        }
+
+        // Clear news cache
+        this.clearCache();
+
+        return data[0];
+    },
+
+    /**
+     * Delete a news article
+     */
+    async deleteNews(id) {
+        const { error } = await supabaseClient
+            .from('news')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error deleting news:', error);
+            throw error;
+        }
+
+        // Clear news cache
+        delete this.cache['news_all'];
+        delete this.cache['featuredNews'];
+
+        return true;
+    },
+
+    // ----- JOBS CRUD -----
+
+    /**
+     * Create a new job listing
+     */
+    async createJob(jobData) {
+        const { data, error } = await supabaseClient
+            .from('jobs')
+            .insert([{
+                title: jobData.title,
+                location: jobData.location,
+                contract_type: jobData.contract_type,
+                experience: jobData.experience,
+                description: jobData.description,
+                is_active: jobData.is_active !== undefined ? jobData.is_active : true
+            }])
+            .select();
+
+        if (error) {
+            console.error('Error creating job:', error);
+            throw error;
+        }
+
+        // Clear jobs cache
+        delete this.cache['jobs'];
+
+        return data[0];
+    },
+
+    /**
+     * Update a job listing
+     */
+    async updateJob(id, jobData) {
+        const { data, error } = await supabaseClient
+            .from('jobs')
+            .update(jobData)
+            .eq('id', id)
+            .select();
+
+        if (error) {
+            console.error('Error updating job:', error);
+            throw error;
+        }
+
+        // Clear jobs cache
+        delete this.cache['jobs'];
+
+        return data[0];
+    },
+
+    /**
+     * Delete a job listing
+     */
+    async deleteJob(id) {
+        const { error } = await supabaseClient
+            .from('jobs')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error deleting job:', error);
+            throw error;
+        }
+
+        // Clear jobs cache
+        delete this.cache['jobs'];
+
+        return true;
+    },
+
+    /**
+     * Toggle job active status
+     */
+    async toggleJobActive(id, isActive) {
+        return this.updateJob(id, { is_active: isActive });
     }
 };
 
@@ -315,3 +469,4 @@ const DataService = {
 window.DataService = DataService;
 
 console.log('✅ Data Service initialized');
+

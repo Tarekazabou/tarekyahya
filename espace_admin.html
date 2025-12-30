@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Espace Administration Primavet - Tableau de bord et indicateurs globaux.">
+    <meta name="description" content="Espace Administration Primavet - Tableau de bord et gestion du contenu.">
     <meta name="robots" content="noindex, nofollow">
 
     <title>Espace Admin | Primavet - Tableau de Bord</title>
@@ -22,202 +22,135 @@
     <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
 
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
-        /* Admin Dashboard Specific Styles */
-        .admin-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
+        /* Admin Dashboard Styles */
+        :root {
+            --admin-sidebar: 260px;
         }
 
-        .dashboard-header {
+        body {
+            background: #f1f5f9;
+        }
+
+        .admin-layout {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-            gap: 1rem;
+            min-height: 100vh;
         }
 
-        .dashboard-header h1 {
-            color: var(--dark);
-            font-size: 1.75rem;
+        /* Sidebar */
+        .admin-sidebar {
+            width: var(--admin-sidebar);
+            background: linear-gradient(180deg, var(--primary-dark) 0%, var(--primary-color) 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+        }
+
+        .sidebar-logo span {
+            opacity: 0.7;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-section {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.5;
+            margin-top: 1rem;
+        }
+
+        .sidebar-link {
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            padding: 0.875rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
         }
 
-        .dashboard-header h1 i {
-            color: var(--primary-color);
+        .sidebar-link:hover,
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: white;
         }
 
-        .dashboard-date {
-            background: var(--light-gray);
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            color: var(--gray);
+        .sidebar-link i {
+            width: 20px;
+            text-align: center;
         }
 
-        .dashboard-date i {
-            margin-right: 0.5rem;
-            color: var(--primary-color);
+        /* Main Content */
+        .admin-main {
+            flex: 1;
+            margin-left: var(--admin-sidebar);
+            padding: 2rem;
         }
 
-        /* Dashboard Grid */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        @media (max-width: 1200px) {
-            .dashboard-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 600px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Stat Cards */
-        .stat-card {
-            background: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: var(--primary-color);
-        }
-
-        .stat-card.success::before {
-            background: linear-gradient(135deg, #22c55e, #16a34a);
-        }
-
-        .stat-card.warning::before {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-        }
-
-        .stat-card.info::before {
-            background: linear-gradient(135deg, #0ea5e9, #0284c7);
-        }
-
-        .stat-card.danger::before {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-        }
-
-        .stat-card-header {
+        .admin-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1rem;
-        }
-
-        .stat-card-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            color: white;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
-        .stat-card.success .stat-card-icon {
-            background: linear-gradient(135deg, #22c55e, #16a34a);
-        }
-
-        .stat-card.warning .stat-card-icon {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-        }
-
-        .stat-card.info .stat-card-icon {
-            background: linear-gradient(135deg, #0ea5e9, #0284c7);
-        }
-
-        .stat-card.danger .stat-card-icon {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-        }
-
-        .stat-card.primary .stat-card-icon {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-        }
-
-        .stat-card.primary::before {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-        }
-
-        .stat-trend {
-            font-size: 0.8rem;
-            padding: 0.25rem 0.5rem;
-            border-radius: 20px;
-            font-weight: 500;
-        }
-
-        .stat-trend.up {
-            background: rgba(34, 197, 94, 0.1);
-            color: #16a34a;
-        }
-
-        .stat-trend.down {
-            background: rgba(239, 68, 68, 0.1);
-            color: #dc2626;
-        }
-
-        .stat-card-title {
-            font-size: 0.85rem;
-            color: var(--gray);
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-card-value {
-            font-size: 1.75rem;
-            font-weight: 700;
+        .admin-header h1 {
+            font-size: 1.5rem;
             color: var(--dark);
         }
 
-        /* Section Cards */
-        .section-card {
-            background: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            margin-bottom: 1.5rem;
+        .admin-header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
         }
 
-        .section-card-header {
+        /* Cards */
+        .admin-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .admin-card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid var(--light-gray);
+            border-bottom: 1px solid #e2e8f0;
         }
 
-        .section-card-header h2 {
+        .admin-card-header h2 {
             font-size: 1.1rem;
             color: var(--dark);
             display: flex;
@@ -225,22 +158,8 @@
             gap: 0.5rem;
         }
 
-        .section-card-header h2 i {
+        .admin-card-header h2 i {
             color: var(--primary-color);
-        }
-
-        /* Dashboard Layout */
-        .dashboard-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        @media (max-width: 992px) {
-            .dashboard-row {
-                grid-template-columns: 1fr;
-            }
         }
 
         /* Table Styles */
@@ -253,734 +172,918 @@
         .admin-table td {
             padding: 1rem;
             text-align: left;
-            border-bottom: 1px solid var(--light-gray);
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .admin-table th {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: var(--gray);
+            color: #64748b;
             font-weight: 600;
+            background: #f8fafc;
         }
 
         .admin-table tbody tr:hover {
-            background: var(--light-gray);
+            background: #f8fafc;
         }
 
-        .admin-table .product-info {
+        .admin-table .actions {
             display: flex;
-            align-items: center;
-            gap: 0.75rem;
+            gap: 0.5rem;
         }
 
-        .admin-table .product-img {
-            width: 40px;
-            height: 40px;
+        .btn-icon {
+            width: 36px;
+            height: 36px;
             border-radius: 8px;
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            border: none;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 1rem;
+            transition: all 0.3s ease;
         }
 
+        .btn-icon.edit {
+            background: #e0f2fe;
+            color: #0284c7;
+        }
+
+        .btn-icon.edit:hover {
+            background: #0284c7;
+            color: white;
+        }
+
+        .btn-icon.delete {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .btn-icon.delete:hover {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-icon.toggle {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .btn-icon.toggle:hover {
+            background: #d97706;
+            color: white;
+        }
+
+        /* Badge */
         .badge {
-            padding: 0.35rem 0.75rem;
+            padding: 0.25rem 0.75rem;
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 500;
         }
 
         .badge-success {
-            background: rgba(34, 197, 94, 0.1);
+            background: #dcfce7;
             color: #16a34a;
         }
 
         .badge-warning {
-            background: rgba(245, 158, 11, 0.1);
+            background: #fef3c7;
             color: #d97706;
         }
 
         .badge-danger {
-            background: rgba(239, 68, 68, 0.1);
+            background: #fee2e2;
             color: #dc2626;
         }
 
         .badge-info {
-            background: rgba(14, 165, 233, 0.1);
+            background: #e0f2fe;
             color: #0284c7;
         }
 
-        /* Client List */
-        .client-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .client-list li {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--light-gray);
-        }
-
-        .client-list li:last-child {
-            border-bottom: none;
-        }
-
-        .client-info {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .client-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        .client-details h4 {
-            font-size: 0.95rem;
-            color: var(--dark);
-            margin-bottom: 0.25rem;
-        }
-
-        .client-details span {
-            font-size: 0.8rem;
-            color: var(--gray);
-        }
-
-        /* Rating Stars */
-        .rating-stars {
-            color: #f59e0b;
-            font-size: 1.25rem;
-        }
-
-        .rating-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin-right: 0.5rem;
-        }
-
-        .rating-container {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        /* Progress Bar */
-        .progress-bar-container {
-            margin-bottom: 1rem;
-        }
-
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-            font-size: 0.85rem;
-        }
-
-        .progress-label span:first-child {
-            color: var(--dark);
-            font-weight: 500;
-        }
-
-        .progress-label span:last-child {
-            color: var(--gray);
-        }
-
-        .progress-bar {
-            height: 8px;
-            background: var(--light-gray);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            border-radius: 10px;
-            transition: width 1s ease;
-        }
-
-        .progress-fill.primary {
-            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-        }
-
-        .progress-fill.success {
-            background: linear-gradient(90deg, #22c55e, #16a34a);
-        }
-
-        .progress-fill.warning {
-            background: linear-gradient(90deg, #f59e0b, #d97706);
-        }
-
-        .progress-fill.danger {
-            background: linear-gradient(90deg, #ef4444, #dc2626);
-        }
-
-        /* Quick Actions */
-        .quick-actions {
+        /* Forms */
+        .form-row {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 1rem;
+            margin-bottom: 1rem;
         }
 
-        @media (max-width: 768px) {
-            .quick-actions {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .form-group {
+            margin-bottom: 1rem;
         }
 
-        .quick-action-btn {
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-actions {
             display: flex;
-            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
             align-items: center;
             justify-content: center;
-            padding: 1.5rem;
-            background: var(--light-gray);
-            border-radius: 12px;
-            text-decoration: none;
-            color: var(--dark);
-            transition: all 0.3s ease;
-            gap: 0.75rem;
+            z-index: 1000;
         }
 
-        .quick-action-btn:hover {
-            background: var(--primary-color);
-            color: white;
-            transform: translateY(-3px);
+        .modal-overlay.active {
+            display: flex;
         }
 
-        .quick-action-btn i {
-            font-size: 1.5rem;
+        .modal {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2rem;
         }
 
-        .quick-action-btn span {
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        /* Back Link */
-        .back-link {
-            display: inline-flex;
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 0.5rem;
-            color: var(--gray);
-            text-decoration: none;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            font-size: 1.25rem;
+            color: var(--dark);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #94a3b8;
             transition: color 0.3s ease;
         }
 
-        .back-link:hover {
-            color: var(--primary-color);
+        .modal-close:hover {
+            color: var(--dark);
         }
 
-        /* Admin Header */
-        .admin-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 2000;
         }
 
-        .admin-header .logo-text {
-            color: white;
-            font-size: 1.5rem;
-            font-weight: 700;
-            text-decoration: none;
-        }
-
-        .admin-header .logo-text span {
-            opacity: 0.8;
-        }
-
-        .admin-user {
+        .toast {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            margin-bottom: 0.5rem;
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            color: white;
+            animation: slideIn 0.3s ease;
         }
 
-        .admin-user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .toast.success {
+            border-left: 4px solid #22c55e;
         }
 
-        .admin-user-info span {
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Section Toggle */
+        .section {
+            display: none;
+        }
+
+        .section.active {
             display: block;
-            font-size: 0.8rem;
-            opacity: 0.8;
         }
 
-        .admin-user-info strong {
-            font-size: 0.95rem;
+        /* Responsive */
+        @media (max-width: 992px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+            }
+
+            .admin-main {
+                margin-left: 0;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+        }
+
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: block;
         }
     </style>
 </head>
 
-<body style="background: #f8fafc;">
-    <!-- Admin Header -->
-    <header class="admin-header">
-        <a href="index.html" class="logo-text">Prima<span>vet</span> Admin</a>
-        <div class="admin-user">
-            <div class="admin-user-info">
-                <span>Bienvenue,</span>
-                <strong>Administrateur</strong>
-            </div>
-            <div class="admin-user-avatar">
-                <i class="fas fa-user"></i>
-            </div>
-        </div>
-    </header>
+<body>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
 
-    <!-- Dashboard Content -->
-    <main class="admin-container">
-        <!-- Back Link -->
-        <a href="index.html" class="back-link">
-            <i class="fas fa-arrow-left"></i> Retour au site
-        </a>
-
-        <!-- Dashboard Header -->
-        <div class="dashboard-header">
-            <h1><i class="fas fa-chart-line"></i> Tableau de Bord</h1>
-            <div class="dashboard-date">
-                <i class="far fa-calendar-alt"></i>
-                <span id="current-date">30 Décembre 2024</span>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <a href="index.html" class="sidebar-logo">Prima<span>vet</span></a>
             </div>
-        </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">Menu Principal</div>
+                <a href="#" class="sidebar-link active" data-section="dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Tableau de Bord</span>
+                </a>
 
-        <!-- Quick Actions -->
-        <div class="section-card">
-            <div class="section-card-header">
-                <h2><i class="fas fa-bolt"></i> Actions Rapides</h2>
-            </div>
-            <div class="quick-actions">
-                <a href="products.html" class="quick-action-btn">
-                    <i class="fas fa-box"></i>
-                    <span>Produits</span>
-                </a>
-                <a href="quote.html" class="quick-action-btn">
-                    <i class="fas fa-file-invoice"></i>
-                    <span>Commandes</span>
-                </a>
-                <a href="contact.html" class="quick-action-btn">
-                    <i class="fas fa-users"></i>
-                    <span>Clients</span>
-                </a>
-                <a href="news.html" class="quick-action-btn">
+                <div class="nav-section">Gestion du Contenu</div>
+                <a href="#" class="sidebar-link" data-section="news">
                     <i class="fas fa-newspaper"></i>
                     <span>Actualités</span>
                 </a>
+                <a href="#" class="sidebar-link" data-section="jobs">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Offres d'Emploi</span>
+                </a>
+
+                <div class="nav-section">Site</div>
+                <a href="index.html" class="sidebar-link">
+                    <i class="fas fa-external-link-alt"></i>
+                    <span>Voir le Site</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Dashboard Section -->
+            <section class="section active" id="section-dashboard">
+                <div class="admin-header">
+                    <h1><i class="fas fa-chart-line"></i> Tableau de Bord</h1>
+                    <div class="admin-header-actions">
+                        <span id="current-date"></span>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="dashboard-grid"
+                    style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div class="admin-card" style="text-align: center;">
+                        <i class="fas fa-newspaper"
+                            style="font-size: 2rem; color: var(--primary-color); margin-bottom: 0.5rem;"></i>
+                        <h3 id="stat-news-count" style="font-size: 2rem; color: var(--dark);">-</h3>
+                        <p style="color: #64748b;">Actualités</p>
+                    </div>
+                    <div class="admin-card" style="text-align: center;">
+                        <i class="fas fa-briefcase" style="font-size: 2rem; color: #22c55e; margin-bottom: 0.5rem;"></i>
+                        <h3 id="stat-jobs-count" style="font-size: 2rem; color: var(--dark);">-</h3>
+                        <p style="color: #64748b;">Offres d'Emploi</p>
+                    </div>
+                    <div class="admin-card" style="text-align: center;">
+                        <i class="fas fa-box" style="font-size: 2rem; color: #f59e0b; margin-bottom: 0.5rem;"></i>
+                        <h3 id="stat-products-count" style="font-size: 2rem; color: var(--dark);">-</h3>
+                        <p style="color: #64748b;">Produits</p>
+                    </div>
+                    <div class="admin-card" style="text-align: center;">
+                        <i class="fas fa-users" style="font-size: 2rem; color: #0ea5e9; margin-bottom: 0.5rem;"></i>
+                        <h3 id="stat-clients-count" style="font-size: 2rem; color: var(--dark);">-</h3>
+                        <p style="color: #64748b;">Clients</p>
+                    </div>
+                </div>
+
+                <!-- Quick Access -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h2><i class="fas fa-bolt"></i> Actions Rapides</h2>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                        <button class="btn btn-primary" onclick="switchSection('news'); openNewsModal();">
+                            <i class="fas fa-plus"></i> Nouvelle Actualité
+                        </button>
+                        <button class="btn btn-primary" onclick="switchSection('jobs'); openJobModal();">
+                            <i class="fas fa-plus"></i> Nouvelle Offre
+                        </button>
+                        <a href="products.html" class="btn btn-secondary">
+                            <i class="fas fa-box"></i> Voir Produits
+                        </a>
+                        <a href="news.html" class="btn btn-secondary">
+                            <i class="fas fa-eye"></i> Voir Actualités
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- News Section -->
+            <section class="section" id="section-news">
+                <div class="admin-header">
+                    <h1><i class="fas fa-newspaper"></i> Gestion des Actualités</h1>
+                    <div class="admin-header-actions">
+                        <button class="btn btn-primary" onclick="openNewsModal()">
+                            <i class="fas fa-plus"></i> Nouvelle Actualité
+                        </button>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h2><i class="fas fa-list"></i> Liste des Actualités</h2>
+                        <span class="badge badge-info" id="news-count-badge">0 articles</span>
+                    </div>
+                    <div id="news-table-container">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            Chargement des actualités...
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Jobs Section -->
+            <section class="section" id="section-jobs">
+                <div class="admin-header">
+                    <h1><i class="fas fa-briefcase"></i> Gestion des Offres d'Emploi</h1>
+                    <div class="admin-header-actions">
+                        <button class="btn btn-primary" onclick="openJobModal()">
+                            <i class="fas fa-plus"></i> Nouvelle Offre
+                        </button>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h2><i class="fas fa-list"></i> Liste des Offres</h2>
+                        <span class="badge badge-info" id="jobs-count-badge">0 offres</span>
+                    </div>
+                    <div id="jobs-table-container">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            Chargement des offres...
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- News Modal -->
+    <div class="modal-overlay" id="news-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="news-modal-title">Nouvelle Actualité</h3>
+                <button class="modal-close" onclick="closeNewsModal()">&times;</button>
+            </div>
+            <form id="news-form">
+                <input type="hidden" id="news-id">
+                <div class="form-group">
+                    <label for="news-title">Titre *</label>
+                    <input type="text" id="news-title" required placeholder="Titre de l'actualité">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="news-category">Catégorie</label>
+                        <select id="news-category">
+                            <option value="Collection">Collection</option>
+                            <option value="Événement">Événement</option>
+                            <option value="Développement Durable">Développement Durable</option>
+                            <option value="Partenariat">Partenariat</option>
+                            <option value="Innovation">Innovation</option>
+                            <option value="Récompense">Récompense</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="news-date">Date de publication</label>
+                        <input type="date" id="news-date">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="news-excerpt">Résumé</label>
+                    <textarea id="news-excerpt" placeholder="Bref résumé de l'actualité"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="news-content">Contenu *</label>
+                    <textarea id="news-content" required placeholder="Contenu complet de l'actualité"
+                        style="min-height: 150px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="news-featured"> Mettre en avant sur la page d'accueil
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeNewsModal()">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Job Modal -->
+    <div class="modal-overlay" id="job-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="job-modal-title">Nouvelle Offre d'Emploi</h3>
+                <button class="modal-close" onclick="closeJobModal()">&times;</button>
+            </div>
+            <form id="job-form">
+                <input type="hidden" id="job-id">
+                <div class="form-group">
+                    <label for="job-title">Titre du Poste *</label>
+                    <input type="text" id="job-title" required placeholder="Ex: Responsable Commercial">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="job-location">Localisation</label>
+                        <input type="text" id="job-location" placeholder="Ex: Paris">
+                    </div>
+                    <div class="form-group">
+                        <label for="job-contract">Type de Contrat</label>
+                        <select id="job-contract">
+                            <option value="CDI">CDI</option>
+                            <option value="CDD">CDD</option>
+                            <option value="Stage">Stage</option>
+                            <option value="Alternance">Alternance</option>
+                            <option value="Freelance">Freelance</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="job-experience">Expérience Requise</label>
+                    <input type="text" id="job-experience" placeholder="Ex: 3+ ans d'expérience">
+                </div>
+                <div class="form-group">
+                    <label for="job-description">Description du Poste *</label>
+                    <textarea id="job-description" required placeholder="Description détaillée du poste"
+                        style="min-height: 150px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="job-active" checked> Offre active (visible sur le site)
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeJobModal()">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="modal" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <h3>Confirmer la Suppression</h3>
+                <button class="modal-close" onclick="closeConfirmModal()">&times;</button>
+            </div>
+            <p style="margin-bottom: 1.5rem; color: #64748b;">
+                Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible.
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <button class="btn btn-secondary" onclick="closeConfirmModal()">Annuler</button>
+                <button class="btn btn-primary" id="confirm-delete-btn" style="background: #dc2626;">
+                    <i class="fas fa-trash"></i> Supprimer
+                </button>
             </div>
         </div>
+    </div>
 
-        <!-- Activité Générale - Main Stats -->
-        <div class="dashboard-grid">
-            <div class="stat-card info">
-                <div class="stat-card-header">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-eye"></i>
-                    </div>
-                    <span class="stat-trend up"><i class="fas fa-arrow-up"></i> +12%</span>
-                </div>
-                <p class="stat-card-title">Visiteurs Totaux</p>
-                <p class="stat-card-value">24,589</p>
-            </div>
-
-            <div class="stat-card success">
-                <div class="stat-card-header">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <span class="stat-trend up"><i class="fas fa-arrow-up"></i> +8%</span>
-                </div>
-                <p class="stat-card-title">Clients Totaux</p>
-                <p class="stat-card-value">1,247</p>
-            </div>
-
-            <div class="stat-card primary">
-                <div class="stat-card-header">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                    <span class="stat-trend up"><i class="fas fa-arrow-up"></i> +15%</span>
-                </div>
-                <p class="stat-card-title">Commandes Totales</p>
-                <p class="stat-card-value">3,842</p>
-            </div>
-
-            <div class="stat-card warning">
-                <div class="stat-card-header">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-percentage"></i>
-                    </div>
-                    <span class="stat-trend up"><i class="fas fa-arrow-up"></i> +2.3%</span>
-                </div>
-                <p class="stat-card-title">Taux de Conversion</p>
-                <p class="stat-card-value">5.07%</p>
-            </div>
-        </div>
-
-        <!-- Performance Commerciale -->
-        <div class="section-card">
-            <div class="section-card-header">
-                <h2><i class="fas fa-chart-bar"></i> Performance Commerciale</h2>
-            </div>
-            <div class="dashboard-grid">
-                <div class="stat-card success">
-                    <div class="stat-card-header">
-                        <div class="stat-card-icon">
-                            <i class="fas fa-euro-sign"></i>
-                        </div>
-                        <span class="stat-trend up"><i class="fas fa-arrow-up"></i> +18%</span>
-                    </div>
-                    <p class="stat-card-title">Chiffre d'Affaires Total</p>
-                    <p class="stat-card-value">847,320 €</p>
-                </div>
-
-                <div class="stat-card info">
-                    <div class="stat-card-header">
-                        <div class="stat-card-icon">
-                            <i class="fas fa-calendar-day"></i>
-                        </div>
-                        <span class="stat-trend up"><i class="fas fa-arrow-up"></i> +22%</span>
-                    </div>
-                    <p class="stat-card-title">CA du Mois</p>
-                    <p class="stat-card-value">72,450 €</p>
-                </div>
-
-                <div class="stat-card primary">
-                    <div class="stat-card-header">
-                        <div class="stat-card-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <span class="stat-trend up"><i class="fas fa-arrow-up"></i> +5.2%</span>
-                    </div>
-                    <p class="stat-card-title">Croissance des Ventes</p>
-                    <p class="stat-card-value">+18.7%</p>
-                </div>
-
-                <div class="stat-card warning">
-                    <div class="stat-card-header">
-                        <div class="stat-card-icon">
-                            <i class="fas fa-receipt"></i>
-                        </div>
-                    </div>
-                    <p class="stat-card-title">Panier Moyen</p>
-                    <p class="stat-card-value">220 €</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Products & Clients Row -->
-        <div class="dashboard-row">
-            <!-- Produits Section -->
-            <div class="section-card">
-                <div class="section-card-header">
-                    <h2><i class="fas fa-box"></i> Produits</h2>
-                    <span class="badge badge-info">156 produits</span>
-                </div>
-
-                <div class="dashboard-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 1.5rem;">
-                    <div style="text-align: center; padding: 1rem; background: var(--light-gray); border-radius: 12px;">
-                        <p style="font-size: 2rem; font-weight: 700; color: var(--primary-color);">156</p>
-                        <p style="font-size: 0.85rem; color: var(--gray);">Total Produits</p>
-                    </div>
-                    <div style="text-align: center; padding: 1rem; background: var(--light-gray); border-radius: 12px;">
-                        <p style="font-size: 2rem; font-weight: 700; color: #22c55e;">42</p>
-                        <p style="font-size: 0.85rem; color: var(--gray);">Best-sellers</p>
-                    </div>
-                    <div style="text-align: center; padding: 1rem; background: var(--light-gray); border-radius: 12px;">
-                        <p style="font-size: 2rem; font-weight: 700; color: #ef4444;">8</p>
-                        <p style="font-size: 0.85rem; color: var(--gray);">Faible Rotation</p>
-                    </div>
-                </div>
-
-                <h4 style="font-size: 0.9rem; color: var(--dark); margin-bottom: 1rem;">
-                    <i class="fas fa-fire" style="color: #ef4444;"></i> Produits les plus vendus
-                </h4>
-
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Produit</th>
-                            <th>Catégorie</th>
-                            <th>Ventes</th>
-                            <th>Stock</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <div class="product-info">
-                                    <div class="product-img"><i class="fas fa-tshirt"></i></div>
-                                    <span>Chemise Classique</span>
-                                </div>
-                            </td>
-                            <td>Homme</td>
-                            <td><strong>847</strong></td>
-                            <td><span class="badge badge-success">En stock</span></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="product-info">
-                                    <div class="product-img"><i class="fas fa-vest"></i></div>
-                                    <span>Blouse Élégante</span>
-                                </div>
-                            </td>
-                            <td>Femme</td>
-                            <td><strong>623</strong></td>
-                            <td><span class="badge badge-success">En stock</span></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="product-info">
-                                    <div class="product-img"><i class="fas fa-user-tie"></i></div>
-                                    <span>Costume Business</span>
-                                </div>
-                            </td>
-                            <td>Professionnel</td>
-                            <td><strong>512</strong></td>
-                            <td><span class="badge badge-warning">Stock limité</span></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="product-info">
-                                    <div class="product-img"><i class="fas fa-hard-hat"></i></div>
-                                    <span>Tenue de Travail</span>
-                                </div>
-                            </td>
-                            <td>Professionnel</td>
-                            <td><strong>489</strong></td>
-                            <td><span class="badge badge-success">En stock</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Clients Section -->
-            <div class="section-card">
-                <div class="section-card-header">
-                    <h2><i class="fas fa-users"></i> Clients</h2>
-                </div>
-
-                <div class="progress-bar-container">
-                    <div class="progress-label">
-                        <span>Clients Actifs</span>
-                        <span>892 (71%)</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill success" style="width: 71%;"></div>
-                    </div>
-                </div>
-
-                <div class="progress-bar-container">
-                    <div class="progress-label">
-                        <span>Nouveaux Clients (30j)</span>
-                        <span>127 (10%)</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill primary" style="width: 10%;"></div>
-                    </div>
-                </div>
-
-                <div class="progress-bar-container">
-                    <div class="progress-label">
-                        <span>Clients Fidèles (+3 commandes)</span>
-                        <span>412 (33%)</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill warning" style="width: 33%;"></div>
-                    </div>
-                </div>
-
-                <div class="progress-bar-container">
-                    <div class="progress-label">
-                        <span>Clients Inactifs (+6 mois)</span>
-                        <span>228 (18%)</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill danger" style="width: 18%;"></div>
-                    </div>
-                </div>
-
-                <h4 style="font-size: 0.9rem; color: var(--dark); margin: 1.5rem 0 1rem;">
-                    <i class="fas fa-crown" style="color: #f59e0b;"></i> Meilleurs Clients
-                </h4>
-
-                <ul class="client-list">
-                    <li>
-                        <div class="client-info">
-                            <div class="client-avatar">JD</div>
-                            <div class="client-details">
-                                <h4>Jean Dupont</h4>
-                                <span>15 commandes</span>
-                            </div>
-                        </div>
-                        <span class="badge badge-success">VIP</span>
-                    </li>
-                    <li>
-                        <div class="client-info">
-                            <div class="client-avatar">ML</div>
-                            <div class="client-details">
-                                <h4>Marie Laurent</h4>
-                                <span>12 commandes</span>
-                            </div>
-                        </div>
-                        <span class="badge badge-success">VIP</span>
-                    </li>
-                    <li>
-                        <div class="client-info">
-                            <div class="client-avatar">PB</div>
-                            <div class="client-details">
-                                <h4>Pierre Bernard</h4>
-                                <span>9 commandes</span>
-                            </div>
-                        </div>
-                        <span class="badge badge-info">Fidèle</span>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- Satisfaction Client -->
-        <div class="section-card">
-            <div class="section-card-header">
-                <h2><i class="fas fa-star"></i> Satisfaction Client</h2>
-            </div>
-
-            <div class="dashboard-row" style="grid-template-columns: 1fr 2fr;">
-                <div style="text-align: center; padding: 2rem; background: var(--light-gray); border-radius: 12px;">
-                    <div class="rating-container" style="justify-content: center;">
-                        <span class="rating-value">4.7</span>
-                        <div>
-                            <div class="rating-stars">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star-half-alt"></i>
-                            </div>
-                            <p style="font-size: 0.85rem; color: var(--gray); margin-top: 0.25rem;">Sur 5 étoiles</p>
-                        </div>
-                    </div>
-                    <p style="font-size: 0.9rem; color: var(--gray);">Basé sur <strong>1,247 avis</strong></p>
-                </div>
-
-                <div>
-                    <div class="progress-bar-container">
-                        <div class="progress-label">
-                            <span><i class="fas fa-star" style="color: #f59e0b;"></i> 5 étoiles</span>
-                            <span>68% (848)</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill success" style="width: 68%;"></div>
-                        </div>
-                    </div>
-
-                    <div class="progress-bar-container">
-                        <div class="progress-label">
-                            <span><i class="fas fa-star" style="color: #f59e0b;"></i> 4 étoiles</span>
-                            <span>22% (274)</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill primary" style="width: 22%;"></div>
-                        </div>
-                    </div>
-
-                    <div class="progress-bar-container">
-                        <div class="progress-label">
-                            <span><i class="fas fa-star" style="color: #f59e0b;"></i> 3 étoiles</span>
-                            <span>7% (87)</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill warning" style="width: 7%;"></div>
-                        </div>
-                    </div>
-
-                    <div class="progress-bar-container">
-                        <div class="progress-label">
-                            <span><i class="fas fa-star" style="color: #f59e0b;"></i> 2 étoiles</span>
-                            <span>2% (25)</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill danger" style="width: 2%;"></div>
-                        </div>
-                    </div>
-
-                    <div class="progress-bar-container">
-                        <div class="progress-label">
-                            <span><i class="fas fa-star" style="color: #f59e0b;"></i> 1 étoile</span>
-                            <span>1% (13)</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill danger" style="width: 1%;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Footer -->
-    <footer style="background: var(--dark); color: white; text-align: center; padding: 1.5rem; margin-top: 2rem;">
-        <p>&copy; 2024 Primavet - Espace Administration. Tous droits réservés.</p>
-    </footer>
-
+    <!-- Scripts -->
+    <script src="js/supabase-client.js"></script>
+    <script src="js/data-service.js"></script>
     <script>
-        // Update current date
-        const dateElement = document.getElementById('current-date');
-        const options = { day: 'numeric', month: 'long', year: 'numeric' };
-        dateElement.textContent = new Date().toLocaleDateString('fr-FR', options);
+        // ==================== NAVIGATION ====================
 
-        // Animate progress bars on load
-        document.addEventListener('DOMContentLoaded', function () {
-            const progressBars = document.querySelectorAll('.progress-fill');
-            progressBars.forEach(bar => {
-                const width = bar.style.width;
-                bar.style.width = '0';
-                setTimeout(() => {
-                    bar.style.width = width;
-                }, 100);
+        const sidebarLinks = document.querySelectorAll('.sidebar-link[data-section]');
+
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = link.dataset.section;
+                switchSection(section);
             });
         });
 
-        // Animate stat card values
-        function animateValue(element, start, end, duration) {
-            let startTimestamp = null;
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                const value = Math.floor(progress * (end - start) + start);
-                element.textContent = value.toLocaleString('fr-FR');
-                if (progress < 1) {
-                    window.requestAnimationFrame(step);
-                }
-            };
-            window.requestAnimationFrame(step);
+        function switchSection(sectionName) {
+            // Update sidebar
+            sidebarLinks.forEach(l => l.classList.remove('active'));
+            document.querySelector(`[data-section="${sectionName}"]`)?.classList.add('active');
+
+            // Update sections
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(`section-${sectionName}`)?.classList.add('active');
+
+            // Load section data
+            if (sectionName === 'news') loadNewsTable();
+            if (sectionName === 'jobs') loadJobsTable();
         }
+
+        // ==================== TOAST NOTIFICATIONS ====================
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}" 
+                   style="color: ${type === 'success' ? '#22c55e' : '#ef4444'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // ==================== NEWS MANAGEMENT ====================
+
+        async function loadNewsTable() {
+            const container = document.getElementById('news-table-container');
+            container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>';
+
+            try {
+                const news = await DataService.getNews();
+                document.getElementById('news-count-badge').textContent = `${news.length} articles`;
+                document.getElementById('stat-news-count').textContent = news.length;
+
+                if (news.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 2rem;">Aucune actualité pour le moment.</p>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Catégorie</th>
+                                <th>Date</th>
+                                <th>En avant</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${news.map(article => `
+                                <tr>
+                                    <td><strong>${article.title}</strong></td>
+                                    <td><span class="badge badge-info">${article.category || '-'}</span></td>
+                                    <td>${formatDate(article.published_at)}</td>
+                                    <td>${article.is_featured ? '<span class="badge badge-success">Oui</span>' : '<span class="badge badge-warning">Non</span>'}</td>
+                                    <td class="actions">
+                                        <button class="btn-icon edit" onclick="editNews(${article.id})" title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-icon delete" onclick="confirmDeleteNews(${article.id})" title="Supprimer">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                container.innerHTML = '<p style="text-align: center; color: #dc2626; padding: 2rem;">Erreur de chargement</p>';
+                console.error(error);
+            }
+        }
+
+        function openNewsModal(newsData = null) {
+            document.getElementById('news-modal').classList.add('active');
+            document.getElementById('news-form').reset();
+            document.getElementById('news-id').value = '';
+            document.getElementById('news-modal-title').textContent = 'Nouvelle Actualité';
+            document.getElementById('news-date').value = new Date().toISOString().split('T')[0];
+
+            if (newsData) {
+                document.getElementById('news-id').value = newsData.id;
+                document.getElementById('news-title').value = newsData.title;
+                document.getElementById('news-category').value = newsData.category || 'Collection';
+                document.getElementById('news-date').value = newsData.published_at;
+                document.getElementById('news-excerpt').value = newsData.excerpt || '';
+                document.getElementById('news-content').value = newsData.content || '';
+                document.getElementById('news-featured').checked = newsData.is_featured;
+                document.getElementById('news-modal-title').textContent = 'Modifier l\'Actualité';
+            }
+        }
+
+        function closeNewsModal() {
+            document.getElementById('news-modal').classList.remove('active');
+        }
+
+        async function editNews(id) {
+            const news = await DataService.getNews();
+            const article = news.find(n => n.id === id);
+            if (article) openNewsModal(article);
+        }
+
+        let deleteNewsId = null;
+        function confirmDeleteNews(id) {
+            deleteNewsId = id;
+            deleteType = 'news';
+            document.getElementById('confirm-modal').classList.add('active');
+        }
+
+        document.getElementById('news-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const newsData = {
+                title: document.getElementById('news-title').value,
+                category: document.getElementById('news-category').value,
+                published_at: document.getElementById('news-date').value,
+                excerpt: document.getElementById('news-excerpt').value,
+                content: document.getElementById('news-content').value,
+                is_featured: document.getElementById('news-featured').checked
+            };
+
+            const id = document.getElementById('news-id').value;
+
+            try {
+                if (id) {
+                    await DataService.updateNews(id, newsData);
+                    showToast('Actualité mise à jour avec succès');
+                } else {
+                    await DataService.createNews(newsData);
+                    showToast('Actualité créée avec succès');
+                }
+                closeNewsModal();
+                loadNewsTable();
+            } catch (error) {
+                showToast('Erreur: ' + error.message, 'error');
+            }
+        });
+
+        // ==================== JOBS MANAGEMENT ====================
+
+        async function loadJobsTable() {
+            const container = document.getElementById('jobs-table-container');
+            container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>';
+
+            try {
+                // Get ALL jobs including inactive for admin
+                const { data: jobs, error } = await supabaseClient
+                    .from('jobs')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                document.getElementById('jobs-count-badge').textContent = `${jobs.length} offres`;
+                document.getElementById('stat-jobs-count').textContent = jobs.length;
+
+                if (jobs.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 2rem;">Aucune offre pour le moment.</p>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Localisation</th>
+                                <th>Contrat</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${jobs.map(job => `
+                                <tr>
+                                    <td><strong>${job.title}</strong></td>
+                                    <td>${job.location || '-'}</td>
+                                    <td><span class="badge badge-info">${job.contract_type || '-'}</span></td>
+                                    <td>${job.is_active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>'}</td>
+                                    <td class="actions">
+                                        <button class="btn-icon toggle" onclick="toggleJob(${job.id}, ${!job.is_active})" title="${job.is_active ? 'Désactiver' : 'Activer'}">
+                                            <i class="fas ${job.is_active ? 'fa-eye-slash' : 'fa-eye'}"></i>
+                                        </button>
+                                        <button class="btn-icon edit" onclick="editJob(${job.id})" title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-icon delete" onclick="confirmDeleteJob(${job.id})" title="Supprimer">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                container.innerHTML = '<p style="text-align: center; color: #dc2626; padding: 2rem;">Erreur de chargement</p>';
+                console.error(error);
+            }
+        }
+
+        function openJobModal(jobData = null) {
+            document.getElementById('job-modal').classList.add('active');
+            document.getElementById('job-form').reset();
+            document.getElementById('job-id').value = '';
+            document.getElementById('job-modal-title').textContent = 'Nouvelle Offre d\'Emploi';
+            document.getElementById('job-active').checked = true;
+
+            if (jobData) {
+                document.getElementById('job-id').value = jobData.id;
+                document.getElementById('job-title').value = jobData.title;
+                document.getElementById('job-location').value = jobData.location || '';
+                document.getElementById('job-contract').value = jobData.contract_type || 'CDI';
+                document.getElementById('job-experience').value = jobData.experience || '';
+                document.getElementById('job-description').value = jobData.description || '';
+                document.getElementById('job-active').checked = jobData.is_active;
+                document.getElementById('job-modal-title').textContent = 'Modifier l\'Offre';
+            }
+        }
+
+        function closeJobModal() {
+            document.getElementById('job-modal').classList.remove('active');
+        }
+
+        async function editJob(id) {
+            const { data: jobs } = await supabaseClient.from('jobs').select('*').eq('id', id);
+            if (jobs && jobs[0]) openJobModal(jobs[0]);
+        }
+
+        async function toggleJob(id, isActive) {
+            try {
+                await DataService.toggleJobActive(id, isActive);
+                showToast(`Offre ${isActive ? 'activée' : 'désactivée'}`);
+                loadJobsTable();
+            } catch (error) {
+                showToast('Erreur: ' + error.message, 'error');
+            }
+        }
+
+        let deleteJobId = null;
+        let deleteType = null;
+
+        function confirmDeleteJob(id) {
+            deleteJobId = id;
+            deleteType = 'job';
+            document.getElementById('confirm-modal').classList.add('active');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirm-modal').classList.remove('active');
+            deleteNewsId = null;
+            deleteJobId = null;
+            deleteType = null;
+        }
+
+        document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+            try {
+                if (deleteType === 'news' && deleteNewsId) {
+                    await DataService.deleteNews(deleteNewsId);
+                    showToast('Actualité supprimée');
+                    loadNewsTable();
+                } else if (deleteType === 'job' && deleteJobId) {
+                    await DataService.deleteJob(deleteJobId);
+                    showToast('Offre supprimée');
+                    loadJobsTable();
+                }
+                closeConfirmModal();
+            } catch (error) {
+                showToast('Erreur: ' + error.message, 'error');
+            }
+        });
+
+        document.getElementById('job-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const jobData = {
+                title: document.getElementById('job-title').value,
+                location: document.getElementById('job-location').value,
+                contract_type: document.getElementById('job-contract').value,
+                experience: document.getElementById('job-experience').value,
+                description: document.getElementById('job-description').value,
+                is_active: document.getElementById('job-active').checked
+            };
+
+            const id = document.getElementById('job-id').value;
+
+            try {
+                if (id) {
+                    await DataService.updateJob(id, jobData);
+                    showToast('Offre mise à jour avec succès');
+                } else {
+                    await DataService.createJob(jobData);
+                    showToast('Offre créée avec succès');
+                }
+                closeJobModal();
+                loadJobsTable();
+            } catch (error) {
+                showToast('Erreur: ' + error.message, 'error');
+            }
+        });
+
+        // ==================== UTILITIES ====================
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        // ==================== INIT ====================
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Set current date
+            document.getElementById('current-date').textContent = new Date().toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+
+            // Load dashboard stats
+            try {
+                const [news, products, clients] = await Promise.all([
+                    DataService.getNews(),
+                    DataService.getProducts(),
+                    DataService.getClients()
+                ]);
+
+                const { data: jobs } = await supabaseClient.from('jobs').select('id');
+
+                document.getElementById('stat-news-count').textContent = news.length;
+                document.getElementById('stat-products-count').textContent = products.length;
+                document.getElementById('stat-clients-count').textContent = clients.length;
+                document.getElementById('stat-jobs-count').textContent = jobs?.length || 0;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        });
     </script>
 </body>
 
