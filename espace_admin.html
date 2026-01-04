@@ -472,11 +472,29 @@
                     <i class="fas fa-briefcase"></i>
                     <span>Offres d'Emploi</span>
                 </a>
+                <a href="#" class="sidebar-link" data-section="products">
+                    <i class="fas fa-box"></i>
+                    <span>Produits</span>
+                </a>
+                <a href="#" class="sidebar-link" data-section="showroom">
+                    <i class="fas fa-images"></i>
+                    <span>Showroom</span>
+                </a>
+
+                <div class="nav-section">Messages</div>
+                <a href="#" class="sidebar-link" data-section="messages">
+                    <i class="fas fa-envelope"></i>
+                    <span>Messages</span>
+                </a>
 
                 <div class="nav-section">Site</div>
                 <a href="index.html" class="sidebar-link">
                     <i class="fas fa-external-link-alt"></i>
                     <span>Voir le Site</span>
+                </a>
+                <a href="#" class="sidebar-link" id="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Déconnexion</span>
                 </a>
             </nav>
         </aside>
@@ -585,6 +603,86 @@
                         <div class="loading">
                             <i class="fas fa-spinner fa-spin"></i>
                             Chargement des offres...
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Products Section -->
+            <section class="section" id="section-products">
+                <div class="admin-header">
+                    <h1><i class="fas fa-box"></i> Gestion des Produits</h1>
+                    <div class="admin-header-actions">
+                        <button class="btn btn-primary" onclick="openProductModal()">
+                            <i class="fas fa-plus"></i> Nouveau Produit
+                        </button>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h2><i class="fas fa-list"></i> Liste des Produits</h2>
+                        <span class="badge badge-info" id="products-count-badge">0 produits</span>
+                    </div>
+                    <div id="products-table-container">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            Chargement des produits...
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Showroom Section -->
+            <section class="section" id="section-showroom">
+                <div class="admin-header">
+                    <h1><i class="fas fa-images"></i> Gestion du Showroom</h1>
+                    <div class="admin-header-actions">
+                        <button class="btn btn-primary" onclick="openShowroomModal()">
+                            <i class="fas fa-plus"></i> Nouvel Élément
+                        </button>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h2><i class="fas fa-list"></i> Éléments du Showroom</h2>
+                        <span class="badge badge-info" id="showroom-count-badge">0 éléments</span>
+                    </div>
+                    <div id="showroom-table-container">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            Chargement du showroom...
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Messages Section -->
+            <section class="section" id="section-messages">
+                <div class="admin-header">
+                    <h1><i class="fas fa-envelope"></i> Messages</h1>
+                    <div class="admin-header-actions">
+                        <select id="messages-filter" onchange="loadMessagesTable()" style="padding: 0.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <option value="all">Tous les messages</option>
+                            <option value="unread">Non lus</option>
+                            <option value="contact">Contact</option>
+                            <option value="quote">Devis</option>
+                            <option value="application">Candidatures</option>
+                            <option value="suggestion">Suggestions</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h2><i class="fas fa-inbox"></i> Boîte de Réception</h2>
+                        <span class="badge badge-info" id="messages-count-badge">0 messages</span>
+                    </div>
+                    <div id="messages-table-container">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            Chargement des messages...
                         </div>
                     </div>
                 </div>
@@ -699,6 +797,131 @@
         </div>
     </div>
 
+    <!-- Product Modal -->
+    <div class="modal-overlay" id="product-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="product-modal-title">Nouveau Produit</h3>
+                <button class="modal-close" onclick="closeProductModal()">&times;</button>
+            </div>
+            <form id="product-form">
+                <input type="hidden" id="product-id">
+                <div class="form-group">
+                    <label for="product-name">Nom du Produit *</label>
+                    <input type="text" id="product-name" required placeholder="Nom du produit">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="product-category">Catégorie *</label>
+                        <select id="product-category" required>
+                            <option value="homme">Homme</option>
+                            <option value="femme">Femme</option>
+                            <option value="professionnel">Professionnel</option>
+                            <option value="accessoires">Accessoires</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-badge">Badge</label>
+                        <input type="text" id="product-badge" placeholder="Ex: Nouveau, Promo">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="product-icon">Icône Font Awesome</label>
+                        <input type="text" id="product-icon" placeholder="Ex: fa-tshirt" value="fa-tshirt">
+                    </div>
+                    <div class="form-group">
+                        <label for="product-sort">Ordre d'affichage</label>
+                        <input type="number" id="product-sort" placeholder="0" value="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="product-gradient">Gradient (couleur)</label>
+                    <input type="text" id="product-gradient" placeholder="linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)" value="linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)">
+                </div>
+                <div class="form-group">
+                    <label for="product-description">Description *</label>
+                    <textarea id="product-description" required placeholder="Description du produit" style="min-height: 100px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="product-featured"> Mettre en avant sur la page d'accueil
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Showroom Modal -->
+    <div class="modal-overlay" id="showroom-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="showroom-modal-title">Nouvel Élément Showroom</h3>
+                <button class="modal-close" onclick="closeShowroomModal()">&times;</button>
+            </div>
+            <form id="showroom-form">
+                <input type="hidden" id="showroom-id">
+                <div class="form-group">
+                    <label for="showroom-title">Titre *</label>
+                    <input type="text" id="showroom-title" required placeholder="Titre de l'élément">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="showroom-category">Catégorie</label>
+                        <select id="showroom-category">
+                            <option value="collection">Collection</option>
+                            <option value="realisation">Réalisation</option>
+                            <option value="evenement">Événement</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="showroom-sort">Ordre d'affichage</label>
+                        <input type="number" id="showroom-sort" placeholder="0" value="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="showroom-icon">Icône Font Awesome</label>
+                        <input type="text" id="showroom-icon" placeholder="Ex: fa-image" value="fa-image">
+                    </div>
+                    <div class="form-group">
+                        <label for="showroom-gradient">Gradient (couleur)</label>
+                        <input type="text" id="showroom-gradient" placeholder="linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)" value="linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="showroom-description">Description</label>
+                    <textarea id="showroom-description" placeholder="Description de l'élément"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeShowroomModal()">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Message Detail Modal -->
+    <div class="modal-overlay" id="message-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="message-modal-title">Détail du Message</h3>
+                <button class="modal-close" onclick="closeMessageModal()">&times;</button>
+            </div>
+            <div id="message-detail-content">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
     <!-- Confirm Delete Modal -->
     <div class="modal-overlay" id="confirm-modal">
         <div class="modal" style="max-width: 400px; text-align: center;">
@@ -722,6 +945,25 @@
     <script src="js/supabase-client.js"></script>
     <script src="js/data-service.js"></script>
     <script>
+        // ==================== AUTHENTICATION ====================
+
+        // Check if user is logged in
+        async function checkAuth() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Logout handler
+        document.getElementById('logout-btn')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await supabaseClient.auth.signOut();
+            window.location.href = 'login.html';
+        });
+
         // ==================== NAVIGATION ====================
 
         const sidebarLinks = document.querySelectorAll('.sidebar-link[data-section]');
@@ -746,6 +988,9 @@
             // Load section data
             if (sectionName === 'news') loadNewsTable();
             if (sectionName === 'jobs') loadJobsTable();
+            if (sectionName === 'products') loadProductsTable();
+            if (sectionName === 'showroom') loadShowroomTable();
+            if (sectionName === 'messages') loadMessagesTable();
         }
 
         // ==================== TOAST NOTIFICATIONS ====================
@@ -998,6 +1243,9 @@
             document.getElementById('confirm-modal').classList.remove('active');
             deleteNewsId = null;
             deleteJobId = null;
+            deleteProductId = null;
+            deleteShowroomId = null;
+            deleteMessageId = null;
             deleteType = null;
         }
 
@@ -1011,6 +1259,23 @@
                     await DataService.deleteJob(deleteJobId);
                     showToast('Offre supprimée');
                     loadJobsTable();
+                } else if (deleteType === 'product' && deleteProductId) {
+                    const { error } = await supabaseClient.from('products').delete().eq('id', deleteProductId);
+                    if (error) throw error;
+                    DataService.clearCache();
+                    showToast('Produit supprimé');
+                    loadProductsTable();
+                } else if (deleteType === 'showroom' && deleteShowroomId) {
+                    const { error } = await supabaseClient.from('showroom_items').delete().eq('id', deleteShowroomId);
+                    if (error) throw error;
+                    DataService.clearCache();
+                    showToast('Élément supprimé');
+                    loadShowroomTable();
+                } else if (deleteType === 'message' && deleteMessageId) {
+                    const { error } = await supabaseClient.from('messages').delete().eq('id', deleteMessageId);
+                    if (error) throw error;
+                    showToast('Message supprimé');
+                    loadMessagesTable();
                 }
                 closeConfirmModal();
             } catch (error) {
@@ -1047,6 +1312,419 @@
             }
         });
 
+        // ==================== PRODUCTS MANAGEMENT ====================
+
+        async function loadProductsTable() {
+            const container = document.getElementById('products-table-container');
+            container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>';
+
+            try {
+                const products = await DataService.getProducts();
+                document.getElementById('products-count-badge').textContent = `${products.length} produits`;
+
+                if (products.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 2rem;">Aucun produit pour le moment.</p>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Catégorie</th>
+                                <th>Badge</th>
+                                <th>En avant</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${products.map(product => `
+                                <tr>
+                                    <td><strong>${product.name}</strong></td>
+                                    <td><span class="badge badge-info">${product.category || '-'}</span></td>
+                                    <td>${product.badge || '-'}</td>
+                                    <td>${product.is_featured ? '<span class="badge badge-success">Oui</span>' : '<span class="badge badge-warning">Non</span>'}</td>
+                                    <td class="actions">
+                                        <button class="btn-icon edit" onclick="editProduct(${product.id})" title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-icon delete" onclick="confirmDeleteProduct(${product.id})" title="Supprimer">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                container.innerHTML = '<p style="text-align: center; color: #dc2626; padding: 2rem;">Erreur de chargement</p>';
+                console.error(error);
+            }
+        }
+
+        function openProductModal(productData = null) {
+            document.getElementById('product-modal').classList.add('active');
+            document.getElementById('product-form').reset();
+            document.getElementById('product-id').value = '';
+            document.getElementById('product-modal-title').textContent = 'Nouveau Produit';
+
+            if (productData) {
+                document.getElementById('product-id').value = productData.id;
+                document.getElementById('product-name').value = productData.name;
+                document.getElementById('product-category').value = productData.category || 'homme';
+                document.getElementById('product-badge').value = productData.badge || '';
+                document.getElementById('product-icon').value = productData.icon || 'fa-tshirt';
+                document.getElementById('product-sort').value = productData.sort_order || 0;
+                document.getElementById('product-gradient').value = productData.gradient || '';
+                document.getElementById('product-description').value = productData.description || '';
+                document.getElementById('product-featured').checked = productData.is_featured;
+                document.getElementById('product-modal-title').textContent = 'Modifier le Produit';
+            }
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.remove('active');
+        }
+
+        async function editProduct(id) {
+            const products = await DataService.getProducts();
+            const product = products.find(p => p.id === id);
+            if (product) openProductModal(product);
+        }
+
+        let deleteProductId = null;
+        function confirmDeleteProduct(id) {
+            deleteProductId = id;
+            deleteType = 'product';
+            document.getElementById('confirm-modal').classList.add('active');
+        }
+
+        document.getElementById('product-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const productData = {
+                name: document.getElementById('product-name').value,
+                category: document.getElementById('product-category').value,
+                badge: document.getElementById('product-badge').value || null,
+                icon: document.getElementById('product-icon').value || 'fa-tshirt',
+                sort_order: parseInt(document.getElementById('product-sort').value) || 0,
+                gradient: document.getElementById('product-gradient').value,
+                description: document.getElementById('product-description').value,
+                is_featured: document.getElementById('product-featured').checked
+            };
+
+            const id = document.getElementById('product-id').value;
+
+            try {
+                if (id) {
+                    const { error } = await supabaseClient.from('products').update(productData).eq('id', id);
+                    if (error) throw error;
+                    showToast('Produit mis à jour avec succès');
+                } else {
+                    const { error } = await supabaseClient.from('products').insert([productData]);
+                    if (error) throw error;
+                    showToast('Produit créé avec succès');
+                }
+                DataService.clearCache();
+                closeProductModal();
+                loadProductsTable();
+            } catch (error) {
+                showToast('Erreur: ' + error.message, 'error');
+            }
+        });
+
+        // ==================== SHOWROOM MANAGEMENT ====================
+
+        async function loadShowroomTable() {
+            const container = document.getElementById('showroom-table-container');
+            container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>';
+
+            try {
+                const items = await DataService.getShowroomItems();
+                document.getElementById('showroom-count-badge').textContent = `${items.length} éléments`;
+
+                if (items.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 2rem;">Aucun élément dans le showroom.</p>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Catégorie</th>
+                                <th>Ordre</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${items.map(item => `
+                                <tr>
+                                    <td><strong>${item.title}</strong></td>
+                                    <td><span class="badge badge-info">${item.category || '-'}</span></td>
+                                    <td>${item.sort_order || 0}</td>
+                                    <td class="actions">
+                                        <button class="btn-icon edit" onclick="editShowroom(${item.id})" title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-icon delete" onclick="confirmDeleteShowroom(${item.id})" title="Supprimer">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                container.innerHTML = '<p style="text-align: center; color: #dc2626; padding: 2rem;">Erreur de chargement</p>';
+                console.error(error);
+            }
+        }
+
+        function openShowroomModal(itemData = null) {
+            document.getElementById('showroom-modal').classList.add('active');
+            document.getElementById('showroom-form').reset();
+            document.getElementById('showroom-id').value = '';
+            document.getElementById('showroom-modal-title').textContent = 'Nouvel Élément Showroom';
+
+            if (itemData) {
+                document.getElementById('showroom-id').value = itemData.id;
+                document.getElementById('showroom-title').value = itemData.title;
+                document.getElementById('showroom-category').value = itemData.category || 'collection';
+                document.getElementById('showroom-sort').value = itemData.sort_order || 0;
+                document.getElementById('showroom-icon').value = itemData.icon || 'fa-image';
+                document.getElementById('showroom-gradient').value = itemData.gradient || '';
+                document.getElementById('showroom-description').value = itemData.description || '';
+                document.getElementById('showroom-modal-title').textContent = 'Modifier l\'Élément';
+            }
+        }
+
+        function closeShowroomModal() {
+            document.getElementById('showroom-modal').classList.remove('active');
+        }
+
+        async function editShowroom(id) {
+            const items = await DataService.getShowroomItems();
+            const item = items.find(i => i.id === id);
+            if (item) openShowroomModal(item);
+        }
+
+        let deleteShowroomId = null;
+        function confirmDeleteShowroom(id) {
+            deleteShowroomId = id;
+            deleteType = 'showroom';
+            document.getElementById('confirm-modal').classList.add('active');
+        }
+
+        document.getElementById('showroom-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const itemData = {
+                title: document.getElementById('showroom-title').value,
+                category: document.getElementById('showroom-category').value,
+                sort_order: parseInt(document.getElementById('showroom-sort').value) || 0,
+                icon: document.getElementById('showroom-icon').value || 'fa-image',
+                gradient: document.getElementById('showroom-gradient').value,
+                description: document.getElementById('showroom-description').value
+            };
+
+            const id = document.getElementById('showroom-id').value;
+
+            try {
+                if (id) {
+                    const { error } = await supabaseClient.from('showroom_items').update(itemData).eq('id', id);
+                    if (error) throw error;
+                    showToast('Élément mis à jour avec succès');
+                } else {
+                    const { error } = await supabaseClient.from('showroom_items').insert([itemData]);
+                    if (error) throw error;
+                    showToast('Élément créé avec succès');
+                }
+                DataService.clearCache();
+                closeShowroomModal();
+                loadShowroomTable();
+            } catch (error) {
+                showToast('Erreur: ' + error.message, 'error');
+            }
+        });
+
+        // ==================== MESSAGES MANAGEMENT ====================
+
+        async function loadMessagesTable() {
+            const container = document.getElementById('messages-table-container');
+            container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>';
+
+            try {
+                const filter = document.getElementById('messages-filter')?.value || 'all';
+                
+                let query = supabaseClient
+                    .from('messages')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (filter === 'unread') {
+                    query = query.eq('status', 'unread');
+                } else if (filter !== 'all') {
+                    query = query.eq('form_type', filter);
+                }
+
+                const { data: messages, error } = await query;
+                if (error) throw error;
+
+                document.getElementById('messages-count-badge').textContent = `${messages?.length || 0} messages`;
+
+                if (!messages || messages.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 2rem;">Aucun message pour le moment.</p>';
+                    return;
+                }
+
+                const formTypeLabels = {
+                    'contact': 'Contact',
+                    'quote': 'Devis',
+                    'application': 'Candidature',
+                    'suggestion': 'Suggestion'
+                };
+
+                container.innerHTML = `
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Nom</th>
+                                <th>Email</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${messages.map(msg => `
+                                <tr style="${msg.status === 'unread' ? 'background: #f0f9ff;' : ''}">
+                                    <td>${formatDate(msg.created_at)}</td>
+                                    <td><span class="badge badge-info">${formTypeLabels[msg.form_type] || msg.form_type}</span></td>
+                                    <td><strong>${msg.name}</strong></td>
+                                    <td>${msg.email}</td>
+                                    <td>${msg.status === 'unread' ? '<span class="badge badge-warning">Non lu</span>' : '<span class="badge badge-success">Lu</span>'}</td>
+                                    <td class="actions">
+                                        <button class="btn-icon edit" onclick="viewMessage('${msg.id}')" title="Voir">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn-icon delete" onclick="confirmDeleteMessage('${msg.id}')" title="Supprimer">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                container.innerHTML = '<p style="text-align: center; color: #dc2626; padding: 2rem;">Erreur de chargement</p>';
+                console.error(error);
+            }
+        }
+
+        async function viewMessage(id) {
+            try {
+                const { data: message, error } = await supabaseClient
+                    .from('messages')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (error) throw error;
+
+                // Mark as read
+                if (message.status === 'unread') {
+                    await supabaseClient.from('messages').update({ status: 'read' }).eq('id', id);
+                }
+
+                const formTypeLabels = {
+                    'contact': 'Contact',
+                    'quote': 'Demande de Devis',
+                    'application': 'Candidature',
+                    'suggestion': 'Suggestion'
+                };
+
+                document.getElementById('message-modal-title').textContent = formTypeLabels[message.form_type] || 'Message';
+                
+                let content = `
+                    <div style="margin-bottom: 1rem;">
+                        <strong>De:</strong> ${message.name} (${message.email})
+                    </div>
+                `;
+
+                if (message.phone) {
+                    content += `<div style="margin-bottom: 1rem;"><strong>Téléphone:</strong> ${message.phone}</div>`;
+                }
+
+                if (message.company) {
+                    content += `<div style="margin-bottom: 1rem;"><strong>Entreprise:</strong> ${message.company}</div>`;
+                }
+
+                if (message.subject) {
+                    content += `<div style="margin-bottom: 1rem;"><strong>Sujet:</strong> ${message.subject}</div>`;
+                }
+
+                if (message.job_id) {
+                    content += `<div style="margin-bottom: 1rem;"><strong>Poste:</strong> ${message.job_id}</div>`;
+                }
+
+                if (message.product_interest) {
+                    content += `<div style="margin-bottom: 1rem;"><strong>Produit:</strong> ${message.product_interest}</div>`;
+                }
+
+                if (message.quantity) {
+                    content += `<div style="margin-bottom: 1rem;"><strong>Quantité:</strong> ${message.quantity}</div>`;
+                }
+
+                content += `
+                    <div style="margin-bottom: 1rem;">
+                        <strong>Message:</strong>
+                        <p style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-top: 0.5rem;">${message.message || 'Pas de message'}</p>
+                    </div>
+                `;
+
+                if (message.metadata && Object.keys(message.metadata).length > 0) {
+                    content += `
+                        <div style="margin-bottom: 1rem;">
+                            <strong>Informations supplémentaires:</strong>
+                            <pre style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-top: 0.5rem; font-size: 0.85rem; overflow-x: auto;">${JSON.stringify(message.metadata, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+
+                content += `
+                    <div style="text-align: right; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                        <small style="color: #64748b;">Reçu le ${formatDate(message.created_at)}</small>
+                    </div>
+                `;
+
+                document.getElementById('message-detail-content').innerHTML = content;
+                document.getElementById('message-modal').classList.add('active');
+                loadMessagesTable(); // Refresh to show read status
+
+            } catch (error) {
+                console.error('Error loading message:', error);
+                showToast('Erreur lors du chargement du message', 'error');
+            }
+        }
+
+        function closeMessageModal() {
+            document.getElementById('message-modal').classList.remove('active');
+        }
+
+        let deleteMessageId = null;
+        function confirmDeleteMessage(id) {
+            deleteMessageId = id;
+            deleteType = 'message';
+            document.getElementById('confirm-modal').classList.add('active');
+        }
+
         // ==================== UTILITIES ====================
 
         function formatDate(dateStr) {
@@ -1058,6 +1736,10 @@
         // ==================== INIT ====================
 
         document.addEventListener('DOMContentLoaded', async () => {
+            // Check authentication first
+            const isLoggedIn = await checkAuth();
+            if (!isLoggedIn) return;
+
             // Set current date
             document.getElementById('current-date').textContent = new Date().toLocaleDateString('fr-FR', {
                 weekday: 'long',

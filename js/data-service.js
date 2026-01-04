@@ -92,6 +92,42 @@ const DataService = {
     },
 
     /**
+     * Get products with pagination and search
+     */
+    async getProductsPaginated(page = 1, perPage = 9, category = null, searchTerm = null) {
+        const offset = (page - 1) * perPage;
+        
+        let query = supabaseClient
+            .from('products')
+            .select('*', { count: 'exact' })
+            .order('sort_order', { ascending: true })
+            .range(offset, offset + perPage - 1);
+
+        if (category && category !== 'all') {
+            query = query.eq('category', category);
+        }
+
+        if (searchTerm) {
+            query = query.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+        }
+
+        const { data, error, count } = await query;
+
+        if (error) {
+            console.error('Error fetching paginated products:', error);
+            return { data: [], count: 0, totalPages: 0 };
+        }
+
+        return {
+            data: data || [],
+            count: count || 0,
+            totalPages: Math.ceil((count || 0) / perPage),
+            currentPage: page,
+            perPage: perPage
+        };
+    },
+
+    /**
      * Get featured products for homepage
      */
     async getFeaturedProducts(limit = 3) {
@@ -136,6 +172,38 @@ const DataService = {
             }
             return data || [];
         });
+    },
+
+    /**
+     * Get news with pagination
+     */
+    async getNewsPaginated(page = 1, perPage = 6, searchTerm = null) {
+        const offset = (page - 1) * perPage;
+        
+        let query = supabaseClient
+            .from('news')
+            .select('*', { count: 'exact' })
+            .order('published_at', { ascending: false })
+            .range(offset, offset + perPage - 1);
+
+        if (searchTerm) {
+            query = query.or(`title.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%`);
+        }
+
+        const { data, error, count } = await query;
+
+        if (error) {
+            console.error('Error fetching paginated news:', error);
+            return { data: [], count: 0, totalPages: 0 };
+        }
+
+        return {
+            data: data || [],
+            count: count || 0,
+            totalPages: Math.ceil((count || 0) / perPage),
+            currentPage: page,
+            perPage: perPage
+        };
     },
 
     /**

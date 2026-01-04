@@ -93,6 +93,24 @@ CREATE TABLE IF NOT EXISTS clients (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Messages (Form Submissions)
+CREATE TABLE IF NOT EXISTS messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMP DEFAULT NOW(),
+    form_type TEXT NOT NULL, -- 'contact', 'quote', 'application', 'suggestion'
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT,
+    company TEXT,
+    subject TEXT,
+    message TEXT,
+    job_id TEXT, -- for job applications
+    product_interest TEXT, -- for quote form
+    quantity TEXT, -- for quote form
+    status TEXT DEFAULT 'unread', -- 'unread', 'read', 'replied', 'archived'
+    metadata JSONB -- for additional form-specific data
+);
+
 -- =====================================================
 -- ROW LEVEL SECURITY (RLS)
 -- =====================================================
@@ -104,6 +122,7 @@ ALTER TABLE jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE showroom_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE stats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
 -- Public read access policies
 CREATE POLICY "Public read site_config" ON site_config FOR SELECT USING (true);
@@ -123,6 +142,25 @@ CREATE POLICY "Public delete news" ON news FOR DELETE USING (true);
 CREATE POLICY "Public insert jobs" ON jobs FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public update jobs" ON jobs FOR UPDATE USING (true) WITH CHECK (true);
 CREATE POLICY "Public delete jobs" ON jobs FOR DELETE USING (true);
+
+-- Messages policies (public insert for form submissions, authenticated users can read/update/delete)
+-- NOTE: In production, consider restricting SELECT/UPDATE/DELETE to auth.uid() IS NOT NULL
+CREATE POLICY "Public insert messages" ON messages FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public read messages" ON messages FOR SELECT USING (true);
+CREATE POLICY "Public update messages" ON messages FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "Public delete messages" ON messages FOR DELETE USING (true);
+
+-- Products CRUD policies (admin functionality)
+-- NOTE: In production, restrict write operations to authenticated admin users: auth.uid() IS NOT NULL
+CREATE POLICY "Public insert products" ON products FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public update products" ON products FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "Public delete products" ON products FOR DELETE USING (true);
+
+-- Showroom CRUD policies (admin functionality)
+-- NOTE: In production, restrict write operations to authenticated admin users: auth.uid() IS NOT NULL
+CREATE POLICY "Public insert showroom" ON showroom_items FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public update showroom" ON showroom_items FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "Public delete showroom" ON showroom_items FOR DELETE USING (true);
 
 -- =====================================================
 -- INITIAL DATA
