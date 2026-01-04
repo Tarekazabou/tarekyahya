@@ -7,6 +7,12 @@ const PageRenderers = {
 
     // ==================== PRODUCTS PAGE ====================
 
+    // Products pagination state
+    productsCurrentPage: 1,
+    productsPerPage: 9,
+    productsCategory: null,
+    productsSearchTerm: null,
+
     async renderProducts(containerId = 'products-grid', category = null) {
         const container = document.getElementById(containerId);
         if (!container) return;
@@ -47,6 +53,71 @@ const PageRenderers = {
             console.error('Error rendering products:', error);
             container.innerHTML = '<p class="error">Erreur lors du chargement des produits.</p>';
         }
+    },
+
+    async renderProductsPaginated(containerId = 'products-grid', paginationId = 'products-pagination') {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        container.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>';
+
+        try {
+            const result = await DataService.getProductsPaginated(
+                this.productsCurrentPage,
+                this.productsPerPage,
+                this.productsCategory,
+                this.productsSearchTerm
+            );
+
+            if (result.data.length === 0) {
+                container.innerHTML = '<p class="no-results" style="text-align: center; padding: 2rem; color: #64748b;">Aucun produit trouvé.</p>';
+                this.renderPagination(paginationId, result, 'products');
+                return;
+            }
+
+            container.innerHTML = result.data.map(product => `
+                <div class="product-card" data-category="${product.category}">
+                    <div class="product-image">
+                        <div style="width: 100%; height: 100%; background: ${product.gradient}; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas ${product.icon}" style="font-size: 4rem; color: white;"></i>
+                        </div>
+                        ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ''}
+                    </div>
+                    <div class="product-content">
+                        <span class="product-category">${this.capitalizeFirst(product.category)}</span>
+                        <h3>${product.name}</h3>
+                        <p>${product.description}</p>
+                        <div class="product-actions">
+                            <a href="quote.html" class="btn btn-primary">Demander un devis</a>
+                            <a href="quote.html" class="btn btn-secondary">Commander</a>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            this.renderPagination(paginationId, result, 'products');
+            this.initProductFilters();
+        } catch (error) {
+            console.error('Error rendering products:', error);
+            container.innerHTML = '<p class="error">Erreur lors du chargement des produits.</p>';
+        }
+    },
+
+    searchProducts(searchTerm) {
+        this.productsSearchTerm = searchTerm || null;
+        this.productsCurrentPage = 1;
+        this.renderProductsPaginated();
+    },
+
+    filterProductsByCategory(category) {
+        this.productsCategory = category === 'all' ? null : category;
+        this.productsCurrentPage = 1;
+        this.renderProductsPaginated();
+    },
+
+    goToProductsPage(page) {
+        this.productsCurrentPage = page;
+        this.renderProductsPaginated();
     },
 
     async renderFeaturedProducts(containerId = 'featured-products') {
@@ -104,16 +175,31 @@ const PageRenderers = {
 
     // ==================== NEWS PAGE ====================
 
-    async renderNews(containerId = 'news-grid') {
+    // News pagination state
+    newsCurrentPage: 1,
+    newsPerPage: 6,
+    newsSearchTerm: null,
+
+    async renderNews(containerId = 'news-grid', paginationId = 'news-pagination') {
         const container = document.getElementById(containerId);
         if (!container) return;
 
         container.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>';
 
         try {
-            const news = await DataService.getNews();
+            const result = await DataService.getNewsPaginated(
+                this.newsCurrentPage, 
+                this.newsPerPage, 
+                this.newsSearchTerm
+            );
 
-            container.innerHTML = news.map(article => `
+            if (result.data.length === 0) {
+                container.innerHTML = '<p class="no-results" style="text-align: center; padding: 2rem; color: #64748b;">Aucune actualité trouvée.</p>';
+                this.renderPagination(paginationId, result, 'news');
+                return;
+            }
+
+            container.innerHTML = result.data.map(article => `
                 <article class="news-card" style="display: flex; flex-direction: row; gap: 2rem;">
                     <div class="news-image" style="width: 300px; min-width: 300px; height: 200px;">
                         <div style="width: 100%; height: 100%; background: ${article.gradient}; display: flex; align-items: center; justify-content: center;">
@@ -132,10 +218,23 @@ const PageRenderers = {
                     </div>
                 </article>
             `).join('');
+
+            this.renderPagination(paginationId, result, 'news');
         } catch (error) {
             console.error('Error rendering news:', error);
             container.innerHTML = '<p class="error">Erreur lors du chargement des actualités.</p>';
         }
+    },
+
+    searchNews(searchTerm) {
+        this.newsSearchTerm = searchTerm || null;
+        this.newsCurrentPage = 1;
+        this.renderNews();
+    },
+
+    goToNewsPage(page) {
+        this.newsCurrentPage = page;
+        this.renderNews();
     },
 
     async renderFeaturedNews(containerId = 'featured-news') {
@@ -343,6 +442,89 @@ const PageRenderers = {
             currency: 'EUR',
             minimumFractionDigits: 0
         }).format(amount);
+    },
+
+    // ==================== PAGINATION ====================
+
+    renderPagination(containerId, result, type) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        const { currentPage, totalPages, count } = result;
+
+        if (totalPages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+
+        let paginationHTML = '<div class="pagination" style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem;">';
+
+        // Previous button
+        paginationHTML += `
+            <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} 
+                    onclick="PageRenderers.goTo${this.capitalizeFirst(type)}Page(${currentPage - 1})"
+                    style="padding: 0.5rem 1rem; border: 1px solid #e2e8f0; border-radius: 8px; background: white; cursor: ${currentPage === 1 ? 'not-allowed' : 'pointer'}; opacity: ${currentPage === 1 ? '0.5' : '1'};">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        `;
+
+        // Page numbers
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+
+        if (startPage > 1) {
+            paginationHTML += `
+                <button class="pagination-btn" onclick="PageRenderers.goTo${this.capitalizeFirst(type)}Page(1)"
+                        style="padding: 0.5rem 1rem; border: 1px solid #e2e8f0; border-radius: 8px; background: white; cursor: pointer;">
+                    1
+                </button>
+            `;
+            if (startPage > 2) {
+                paginationHTML += '<span style="padding: 0.5rem;">...</span>';
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            const isActive = i === currentPage;
+            paginationHTML += `
+                <button class="pagination-btn ${isActive ? 'active' : ''}" 
+                        onclick="PageRenderers.goTo${this.capitalizeFirst(type)}Page(${i})"
+                        style="padding: 0.5rem 1rem; border: 1px solid ${isActive ? 'var(--primary-color)' : '#e2e8f0'}; border-radius: 8px; background: ${isActive ? 'var(--primary-color)' : 'white'}; color: ${isActive ? 'white' : 'inherit'}; cursor: pointer;">
+                    ${i}
+                </button>
+            `;
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                paginationHTML += '<span style="padding: 0.5rem;">...</span>';
+            }
+            paginationHTML += `
+                <button class="pagination-btn" onclick="PageRenderers.goTo${this.capitalizeFirst(type)}Page(${totalPages})"
+                        style="padding: 0.5rem 1rem; border: 1px solid #e2e8f0; border-radius: 8px; background: white; cursor: pointer;">
+                    ${totalPages}
+                </button>
+            `;
+        }
+
+        // Next button
+        paginationHTML += `
+            <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} 
+                    onclick="PageRenderers.goTo${this.capitalizeFirst(type)}Page(${currentPage + 1})"
+                    style="padding: 0.5rem 1rem; border: 1px solid #e2e8f0; border-radius: 8px; background: white; cursor: ${currentPage === totalPages ? 'not-allowed' : 'pointer'}; opacity: ${currentPage === totalPages ? '0.5' : '1'};">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        `;
+
+        paginationHTML += '</div>';
+        paginationHTML += `<p style="text-align: center; color: #64748b; margin-top: 1rem; font-size: 0.9rem;">${count} résultat(s) - Page ${currentPage} sur ${totalPages}</p>`;
+
+        container.innerHTML = paginationHTML;
     }
 };
 

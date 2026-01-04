@@ -76,6 +76,19 @@
                 <p>Explorez notre gamme complète de produits textiles de haute qualité, organisés par catégorie.</p>
             </div>
 
+            <!-- Search Bar -->
+            <div class="search-container" style="margin-bottom: 2rem;">
+                <div style="max-width: 500px; margin: 0 auto;">
+                    <div class="form-group" style="position: relative;">
+                        <input type="text" id="products-search" placeholder="Rechercher un produit..." 
+                               style="padding-right: 50px;" onkeyup="handleProductsSearch(event)">
+                        <button onclick="searchProducts()" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: var(--primary-color); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Filter Buttons -->
             <div class="products-filter">
                 <button class="filter-btn active" data-filter="all">Tous</button>
@@ -93,6 +106,9 @@
                     <p style="margin-top: 1rem; color: var(--gray);">Chargement des produits...</p>
                 </div>
             </div>
+
+            <!-- Pagination -->
+            <div id="products-pagination"></div>
         </div>
     </section>
 
@@ -231,6 +247,18 @@
     <script src="js/page-renderers.js"></script>
     <script src="js/main.js"></script>
     <script>
+        // Search functions
+        function handleProductsSearch(event) {
+            if (event.key === 'Enter') {
+                searchProducts();
+            }
+        }
+
+        function searchProducts() {
+            const searchTerm = document.getElementById('products-search').value.trim();
+            PageRenderers.searchProducts(searchTerm);
+        }
+
         // Initialize dynamic content on page load
         document.addEventListener('DOMContentLoaded', async function () {
             try {

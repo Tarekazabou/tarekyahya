@@ -22,6 +22,9 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
@@ -68,144 +71,31 @@
     <!-- News Section -->
     <section class="news section">
         <div class="container">
+            <!-- Search Bar -->
+            <div class="search-container" style="margin-bottom: 2rem;">
+                <div style="max-width: 500px; margin: 0 auto;">
+                    <div class="form-group" style="position: relative;">
+                        <input type="text" id="news-search" placeholder="Rechercher une actualité..." 
+                               style="padding-right: 50px;" onkeyup="handleNewsSearch(event)">
+                        <button onclick="searchNews()" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: var(--primary-color); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <div class="blog-layout">
                 <!-- Main Content -->
                 <div class="blog-main">
-                    <div class="news-grid" style="grid-template-columns: 1fr;">
-                        <!-- Article 1 -->
-                        <article class="news-card" style="display: flex; flex-direction: row; gap: 2rem;">
-                            <div class="news-image" style="width: 300px; min-width: 300px; height: 200px;">
-                                <div
-                                    style="width: 100%; height: 100%; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-newspaper" style="font-size: 3rem; color: white;"></i>
-                                </div>
-                            </div>
-                            <div class="news-content" style="padding: 0;">
-                                <div class="news-meta">
-                                    <span><i class="far fa-calendar"></i> 15 Décembre 2024</span>
-                                    <span><i class="far fa-folder"></i> Collection</span>
-                                    <span><i class="far fa-user"></i> Admin</span>
-                                </div>
-                                <h3><a href="#">Lancement de la Collection Printemps 2025</a></h3>
-                                <p>Nous sommes ravis de vous présenter en avant-première notre nouvelle collection
-                                    Printemps 2025. Des pièces uniques alliant élégance et confort, conçues avec des
-                                    matériaux de première qualité. Découvrez des couleurs vibrantes et des coupes
-                                    modernes qui sublimeront votre garde-robe.</p>
-                                <a href="#" class="news-link">Lire la suite <i class="fas fa-arrow-right"></i></a>
-                            </div>
-                        </article>
-
-                        <!-- Article 2 -->
-                        <article class="news-card" style="display: flex; flex-direction: row; gap: 2rem;">
-                            <div class="news-image" style="width: 300px; min-width: 300px; height: 200px;">
-                                <div
-                                    style="width: 100%; height: 100%; background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-calendar-check" style="font-size: 3rem; color: white;"></i>
-                                </div>
-                            </div>
-                            <div class="news-content" style="padding: 0;">
-                                <div class="news-meta">
-                                    <span><i class="far fa-calendar"></i> 10 Décembre 2024</span>
-                                    <span><i class="far fa-folder"></i> Événement</span>
-                                    <span><i class="far fa-user"></i> Admin</span>
-                                </div>
-                                <h3><a href="#">Primavet au Salon International du Textile 2025</a></h3>
-                                <p>Primavet sera présent au Salon International du Textile qui se tiendra à Paris du 15
-                                    au 18 janvier 2025. Venez nous rencontrer sur notre stand pour découvrir nos
-                                    dernières innovations et discuter de vos projets textiles avec nos experts.</p>
-                                <a href="#" class="news-link">Lire la suite <i class="fas fa-arrow-right"></i></a>
-                            </div>
-                        </article>
-
-                        <!-- Article 3 -->
-                        <article class="news-card" style="display: flex; flex-direction: row; gap: 2rem;">
-                            <div class="news-image" style="width: 300px; min-width: 300px; height: 200px;">
-                                <div
-                                    style="width: 100%; height: 100%; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-leaf" style="font-size: 3rem; color: white;"></i>
-                                </div>
-                            </div>
-                            <div class="news-content" style="padding: 0;">
-                                <div class="news-meta">
-                                    <span><i class="far fa-calendar"></i> 5 Décembre 2024</span>
-                                    <span><i class="far fa-folder"></i> Développement Durable</span>
-                                    <span><i class="far fa-user"></i> Admin</span>
-                                </div>
-                                <h3><a href="#">Notre Engagement Éco-Responsable</a></h3>
-                                <p>Dans le cadre de notre politique de développement durable, nous lançons une nouvelle
-                                    gamme de produits éco-responsables. Fabriqués à partir de matériaux recyclés et
-                                    biologiques, ces vêtements respectent l'environnement sans compromis sur la qualité.
-                                </p>
-                                <a href="#" class="news-link">Lire la suite <i class="fas fa-arrow-right"></i></a>
-                            </div>
-                        </article>
-
-                        <!-- Article 4 -->
-                        <article class="news-card" style="display: flex; flex-direction: row; gap: 2rem;">
-                            <div class="news-image" style="width: 300px; min-width: 300px; height: 200px;">
-                                <div
-                                    style="width: 100%; height: 100%; background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-handshake" style="font-size: 3rem; color: white;"></i>
-                                </div>
-                            </div>
-                            <div class="news-content" style="padding: 0;">
-                                <div class="news-meta">
-                                    <span><i class="far fa-calendar"></i> 28 Novembre 2024</span>
-                                    <span><i class="far fa-folder"></i> Partenariat</span>
-                                    <span><i class="far fa-user"></i> Admin</span>
-                                </div>
-                                <h3><a href="#">Nouveau Partenariat avec des Marques Internationales</a></h3>
-                                <p>Primavet est fière d'annoncer un nouveau partenariat stratégique avec plusieurs
-                                    marques internationales. Cette collaboration nous permettra d'étendre notre présence
-                                    à l'international et d'offrir des produits encore plus diversifiés.</p>
-                                <a href="#" class="news-link">Lire la suite <i class="fas fa-arrow-right"></i></a>
-                            </div>
-                        </article>
-
-                        <!-- Article 5 -->
-                        <article class="news-card" style="display: flex; flex-direction: row; gap: 2rem;">
-                            <div class="news-image" style="width: 300px; min-width: 300px; height: 200px;">
-                                <div
-                                    style="width: 100%; height: 100%; background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-lightbulb" style="font-size: 3rem; color: white;"></i>
-                                </div>
-                            </div>
-                            <div class="news-content" style="padding: 0;">
-                                <div class="news-meta">
-                                    <span><i class="far fa-calendar"></i> 20 Novembre 2024</span>
-                                    <span><i class="far fa-folder"></i> Innovation</span>
-                                    <span><i class="far fa-user"></i> Admin</span>
-                                </div>
-                                <h3><a href="#">Innovation : Nos Nouveaux Tissus Techniques</a></h3>
-                                <p>Découvrez nos dernières innovations en matière de tissus techniques. Résistants,
-                                    respirants et confortables, ces nouveaux matériaux révolutionneront votre façon de
-                                    concevoir les vêtements professionnels.</p>
-                                <a href="#" class="news-link">Lire la suite <i class="fas fa-arrow-right"></i></a>
-                            </div>
-                        </article>
-
-                        <!-- Article 6 -->
-                        <article class="news-card" style="display: flex; flex-direction: row; gap: 2rem;">
-                            <div class="news-image" style="width: 300px; min-width: 300px; height: 200px;">
-                                <div
-                                    style="width: 100%; height: 100%; background: linear-gradient(135deg, #db2777 0%, #ec4899 100%); display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-award" style="font-size: 3rem; color: white;"></i>
-                                </div>
-                            </div>
-                            <div class="news-content" style="padding: 0;">
-                                <div class="news-meta">
-                                    <span><i class="far fa-calendar"></i> 15 Novembre 2024</span>
-                                    <span><i class="far fa-folder"></i> Récompense</span>
-                                    <span><i class="far fa-user"></i> Admin</span>
-                                </div>
-                                <h3><a href="#">Primavet récompensée pour son Excellence</a></h3>
-                                <p>Nous avons le plaisir de vous annoncer que Primavet a reçu le Prix de l'Excellence
-                                    Textile 2024. Cette distinction récompense notre engagement constant envers la
-                                    qualité et l'innovation.</p>
-                                <a href="#" class="news-link">Lire la suite <i class="fas fa-arrow-right"></i></a>
-                            </div>
-                        </article>
+                    <div class="news-grid" id="news-grid" style="grid-template-columns: 1fr;">
+                        <!-- News articles will be loaded dynamically -->
+                        <div class="loading-spinner" style="text-align: center; padding: 3rem;">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+                            <p style="margin-top: 1rem; color: var(--gray);">Chargement des actualités...</p>
+                        </div>
                     </div>
+                    <!-- Pagination -->
+                    <div id="news-pagination"></div>
                 </div>
 
                 <!-- Sidebar -->
@@ -348,7 +238,33 @@
     </footer>
 
     <!-- Scripts -->
+    <script src="js/supabase-client.js"></script>
+    <script src="js/data-service.js"></script>
+    <script src="js/page-renderers.js"></script>
     <script src="js/main.js"></script>
+    <script>
+        // Search functions
+        function handleNewsSearch(event) {
+            if (event.key === 'Enter') {
+                searchNews();
+            }
+        }
+
+        function searchNews() {
+            const searchTerm = document.getElementById('news-search').value.trim();
+            PageRenderers.searchNews(searchTerm);
+        }
+
+        // Initialize news page
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await PageRenderers.renderNews('news-grid', 'news-pagination');
+                console.log('✅ News page loaded');
+            } catch (error) {
+                console.error('Error loading news:', error);
+            }
+        });
+    </script>
 
     <style>
         @media (max-width: 768px) {
