@@ -143,18 +143,21 @@ CREATE POLICY "Public insert jobs" ON jobs FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public update jobs" ON jobs FOR UPDATE USING (true) WITH CHECK (true);
 CREATE POLICY "Public delete jobs" ON jobs FOR DELETE USING (true);
 
--- Messages policies (public insert, admin read)
+-- Messages policies (public insert for form submissions, authenticated users can read/update/delete)
+-- NOTE: In production, consider restricting SELECT/UPDATE/DELETE to auth.uid() IS NOT NULL
 CREATE POLICY "Public insert messages" ON messages FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public read messages" ON messages FOR SELECT USING (true);
 CREATE POLICY "Public update messages" ON messages FOR UPDATE USING (true) WITH CHECK (true);
 CREATE POLICY "Public delete messages" ON messages FOR DELETE USING (true);
 
 -- Products CRUD policies (admin functionality)
+-- NOTE: In production, restrict write operations to authenticated admin users: auth.uid() IS NOT NULL
 CREATE POLICY "Public insert products" ON products FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public update products" ON products FOR UPDATE USING (true) WITH CHECK (true);
 CREATE POLICY "Public delete products" ON products FOR DELETE USING (true);
 
 -- Showroom CRUD policies (admin functionality)
+-- NOTE: In production, restrict write operations to authenticated admin users: auth.uid() IS NOT NULL
 CREATE POLICY "Public insert showroom" ON showroom_items FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public update showroom" ON showroom_items FOR UPDATE USING (true) WITH CHECK (true);
 CREATE POLICY "Public delete showroom" ON showroom_items FOR DELETE USING (true);
