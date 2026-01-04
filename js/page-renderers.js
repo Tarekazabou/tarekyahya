@@ -1,7 +1,64 @@
 /**
  * Page Renderers
  * Functions to render dynamic content on each page
+ * Includes XSS protection via HTML escaping
  */
+
+// ===========================================
+// SECURITY: HTML Sanitization Utilities
+// ===========================================
+const Sanitizer = {
+    /**
+     * Escape HTML entities to prevent XSS attacks
+     */
+    escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
+    },
+
+    /**
+     * Sanitize URL to prevent javascript: and data: exploits
+     */
+    sanitizeUrl(url) {
+        if (!url) return '#';
+        const trimmed = String(url).trim().toLowerCase();
+        if (trimmed.startsWith('javascript:') || trimmed.startsWith('data:') || trimmed.startsWith('vbscript:')) {
+            return '#';
+        }
+        return this.escapeHtml(url);
+    },
+
+    /**
+     * Validate and sanitize CSS gradient (only allow safe patterns)
+     */
+    sanitizeGradient(gradient) {
+        if (!gradient) return 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)';
+        // Only allow linear-gradient with hex colors and percentages
+        const safePattern = /^linear-gradient\(\s*\d+deg\s*,\s*(#[a-fA-F0-9]{3,6}\s+\d+%\s*,?\s*)+\)$/;
+        if (safePattern.test(gradient)) {
+            return gradient;
+        }
+        return 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)';
+    },
+
+    /**
+     * Sanitize Font Awesome icon class
+     */
+    sanitizeIcon(icon) {
+        if (!icon) return 'fa-box';
+        // Only allow fa-* pattern
+        const safePattern = /^fa-[a-z0-9-]+$/;
+        if (safePattern.test(icon)) {
+            return icon;
+        }
+        return 'fa-box';
+    }
+};
+
+// Export sanitizer globally
+window.Sanitizer = Sanitizer;
 
 const PageRenderers = {
 
@@ -28,17 +85,17 @@ const PageRenderers = {
             }
 
             container.innerHTML = products.map(product => `
-                <div class="product-card" data-category="${product.category}">
+                <div class="product-card" data-category="${Sanitizer.escapeHtml(product.category)}">
                     <div class="product-image">
-                        <div style="width: 100%; height: 100%; background: ${product.gradient}; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas ${product.icon}" style="font-size: 4rem; color: white;"></i>
+                        <div style="width: 100%; height: 100%; background: ${Sanitizer.sanitizeGradient(product.gradient)}; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas ${Sanitizer.sanitizeIcon(product.icon)}" style="font-size: 4rem; color: white;"></i>
                         </div>
-                        ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ''}
+                        ${product.badge ? `<span class="product-badge">${Sanitizer.escapeHtml(product.badge)}</span>` : ''}
                     </div>
                     <div class="product-content">
-                        <span class="product-category">${this.capitalizeFirst(product.category)}</span>
-                        <h3>${product.name}</h3>
-                        <p>${product.description}</p>
+                        <span class="product-category">${Sanitizer.escapeHtml(this.capitalizeFirst(product.category))}</span>
+                        <h3>${Sanitizer.escapeHtml(product.name)}</h3>
+                        <p>${Sanitizer.escapeHtml(product.description)}</p>
                         <div class="product-actions">
                             <a href="quote.html" class="btn btn-primary">Demander un devis</a>
                             <a href="quote.html" class="btn btn-secondary">Commander</a>
@@ -76,17 +133,17 @@ const PageRenderers = {
             }
 
             container.innerHTML = result.data.map(product => `
-                <div class="product-card" data-category="${product.category}">
+                <div class="product-card" data-category="${Sanitizer.escapeHtml(product.category)}">
                     <div class="product-image">
-                        <div style="width: 100%; height: 100%; background: ${product.gradient}; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas ${product.icon}" style="font-size: 4rem; color: white;"></i>
+                        <div style="width: 100%; height: 100%; background: ${Sanitizer.sanitizeGradient(product.gradient)}; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas ${Sanitizer.sanitizeIcon(product.icon)}" style="font-size: 4rem; color: white;"></i>
                         </div>
-                        ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ''}
+                        ${product.badge ? `<span class="product-badge">${Sanitizer.escapeHtml(product.badge)}</span>` : ''}
                     </div>
                     <div class="product-content">
-                        <span class="product-category">${this.capitalizeFirst(product.category)}</span>
-                        <h3>${product.name}</h3>
-                        <p>${product.description}</p>
+                        <span class="product-category">${Sanitizer.escapeHtml(this.capitalizeFirst(product.category))}</span>
+                        <h3>${Sanitizer.escapeHtml(product.name)}</h3>
+                        <p>${Sanitizer.escapeHtml(product.description)}</p>
                         <div class="product-actions">
                             <a href="quote.html" class="btn btn-primary">Demander un devis</a>
                             <a href="quote.html" class="btn btn-secondary">Commander</a>
@@ -128,17 +185,17 @@ const PageRenderers = {
             const products = await DataService.getFeaturedProducts(3);
 
             container.innerHTML = products.map(product => `
-                <div class="product-card" data-category="${product.category}">
+                <div class="product-card" data-category="${Sanitizer.escapeHtml(product.category)}">
                     <div class="product-image">
-                        <div style="width: 100%; height: 100%; background: ${product.gradient}; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas ${product.icon}" style="font-size: 4rem; color: white;"></i>
+                        <div style="width: 100%; height: 100%; background: ${Sanitizer.sanitizeGradient(product.gradient)}; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas ${Sanitizer.sanitizeIcon(product.icon)}" style="font-size: 4rem; color: white;"></i>
                         </div>
-                        ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ''}
+                        ${product.badge ? `<span class="product-badge">${Sanitizer.escapeHtml(product.badge)}</span>` : ''}
                     </div>
                     <div class="product-content">
-                        <span class="product-category">${this.capitalizeFirst(product.category)}</span>
-                        <h3>${product.name}</h3>
-                        <p>${product.description}</p>
+                        <span class="product-category">${Sanitizer.escapeHtml(this.capitalizeFirst(product.category))}</span>
+                        <h3>${Sanitizer.escapeHtml(product.name)}</h3>
+                        <p>${Sanitizer.escapeHtml(product.description)}</p>
                         <div class="product-actions">
                             <a href="quote.html" class="btn btn-primary">Devis</a>
                             <a href="products.html" class="btn btn-secondary">Détails</a>
@@ -202,18 +259,18 @@ const PageRenderers = {
             container.innerHTML = result.data.map(article => `
                 <article class="news-card" style="display: flex; flex-direction: row; gap: 2rem;">
                     <div class="news-image" style="width: 300px; min-width: 300px; height: 200px;">
-                        <div style="width: 100%; height: 100%; background: ${article.gradient}; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas ${article.icon}" style="font-size: 3rem; color: white;"></i>
+                        <div style="width: 100%; height: 100%; background: ${Sanitizer.sanitizeGradient(article.gradient)}; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas ${Sanitizer.sanitizeIcon(article.icon)}" style="font-size: 3rem; color: white;"></i>
                         </div>
                     </div>
                     <div class="news-content" style="padding: 0;">
                         <div class="news-meta">
-                            <span><i class="far fa-calendar"></i> ${this.formatDate(article.published_at)}</span>
-                            <span><i class="far fa-folder"></i> ${article.category}</span>
-                            <span><i class="far fa-user"></i> ${article.author}</span>
+                            <span><i class="far fa-calendar"></i> ${Sanitizer.escapeHtml(this.formatDate(article.published_at))}</span>
+                            <span><i class="far fa-folder"></i> ${Sanitizer.escapeHtml(article.category)}</span>
+                            <span><i class="far fa-user"></i> ${Sanitizer.escapeHtml(article.author)}</span>
                         </div>
-                        <h3><a href="#">${article.title}</a></h3>
-                        <p>${article.excerpt || article.content?.substring(0, 200) + '...'}</p>
+                        <h3><a href="#">${Sanitizer.escapeHtml(article.title)}</a></h3>
+                        <p>${Sanitizer.escapeHtml(article.excerpt || (article.content ? article.content.substring(0, 200) + '...' : ''))}</p>
                         <a href="#" class="news-link">Lire la suite <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </article>
@@ -247,17 +304,17 @@ const PageRenderers = {
             container.innerHTML = news.map(article => `
                 <article class="news-card">
                     <div class="news-image">
-                        <div style="width: 100%; height: 100%; background: ${article.gradient}; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas ${article.icon}" style="font-size: 3rem; color: white;"></i>
+                        <div style="width: 100%; height: 100%; background: ${Sanitizer.sanitizeGradient(article.gradient)}; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas ${Sanitizer.sanitizeIcon(article.icon)}" style="font-size: 3rem; color: white;"></i>
                         </div>
                     </div>
                     <div class="news-content">
                         <div class="news-meta">
-                            <span><i class="far fa-calendar"></i> ${this.formatDate(article.published_at)}</span>
-                            <span><i class="far fa-folder"></i> ${article.category}</span>
+                            <span><i class="far fa-calendar"></i> ${Sanitizer.escapeHtml(this.formatDate(article.published_at))}</span>
+                            <span><i class="far fa-folder"></i> ${Sanitizer.escapeHtml(article.category)}</span>
                         </div>
-                        <h3><a href="news.html">${article.title}</a></h3>
-                        <p>${article.excerpt || article.content?.substring(0, 150) + '...'}</p>
+                        <h3><a href="news.html">${Sanitizer.escapeHtml(article.title)}</a></h3>
+                        <p>${Sanitizer.escapeHtml(article.excerpt || (article.content ? article.content.substring(0, 150) + '...' : ''))}</p>
                         <a href="news.html" class="news-link">Lire la suite <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </article>
@@ -286,13 +343,13 @@ const PageRenderers = {
             container.innerHTML = jobs.map(job => `
                 <div class="job-card">
                     <div class="job-info">
-                        <h3>${job.title}</h3>
+                        <h3>${Sanitizer.escapeHtml(job.title)}</h3>
                         <div class="job-meta">
-                            <span><i class="fas fa-map-marker-alt"></i> ${job.location}</span>
-                            <span><i class="fas fa-clock"></i> ${job.contract_type}</span>
-                            <span><i class="fas fa-briefcase"></i> ${job.experience}</span>
+                            <span><i class="fas fa-map-marker-alt"></i> ${Sanitizer.escapeHtml(job.location)}</span>
+                            <span><i class="fas fa-clock"></i> ${Sanitizer.escapeHtml(job.contract_type)}</span>
+                            <span><i class="fas fa-briefcase"></i> ${Sanitizer.escapeHtml(job.experience)}</span>
                         </div>
-                        <p>${job.description}</p>
+                        <p>${Sanitizer.escapeHtml(job.description)}</p>
                     </div>
                     <a href="#application-form" class="btn btn-primary">Postuler</a>
                 </div>
@@ -315,13 +372,13 @@ const PageRenderers = {
             const items = await DataService.getShowroomItems(category);
 
             container.innerHTML = items.map(item => `
-                <div class="showroom-item" data-category="${item.category}">
-                    <div style="width: 100%; height: 100%; background: ${item.gradient}; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas ${item.icon}" style="font-size: 5rem; color: white;"></i>
+                <div class="showroom-item" data-category="${Sanitizer.escapeHtml(item.category)}">
+                    <div style="width: 100%; height: 100%; background: ${Sanitizer.sanitizeGradient(item.gradient)}; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas ${Sanitizer.sanitizeIcon(item.icon)}" style="font-size: 5rem; color: white;"></i>
                     </div>
                     <div class="showroom-overlay">
-                        <h4>${item.title}</h4>
-                        <p>${item.description}</p>
+                        <h4>${Sanitizer.escapeHtml(item.title)}</h4>
+                        <p>${Sanitizer.escapeHtml(item.description)}</p>
                     </div>
                 </div>
             `).join('');
@@ -368,10 +425,10 @@ const PageRenderers = {
             container.innerHTML = stats.map(stat => `
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <i class="fas ${stat.icon}"></i>
+                        <i class="fas ${Sanitizer.sanitizeIcon(stat.icon)}"></i>
                     </div>
-                    <h3 style="font-size: 2.5rem; color: var(--primary-color);">${stat.value}</h3>
-                    <p style="font-size: 1.1rem; font-weight: 500;">${stat.label}</p>
+                    <h3 style="font-size: 2.5rem; color: var(--primary-color);">${Sanitizer.escapeHtml(stat.value)}</h3>
+                    <p style="font-size: 1.1rem; font-weight: 500;">${Sanitizer.escapeHtml(stat.label)}</p>
                 </div>
             `).join('');
         } catch (error) {
@@ -388,23 +445,23 @@ const PageRenderers = {
             // Update footer contact info
             const footerContact = document.querySelector('.footer-contact');
             if (footerContact && config) {
-                const addressParts = config.address.split(',');
+                const addressParts = String(config.address || '').split(',');
                 footerContact.innerHTML = `
                     <li>
                         <i class="fas fa-map-marker-alt"></i>
-                        <span>${addressParts[0]}<br>${addressParts.slice(1).join(',').trim()}</span>
+                        <span>${Sanitizer.escapeHtml(addressParts[0] || '')}<br>${Sanitizer.escapeHtml(addressParts.slice(1).join(',').trim())}</span>
                     </li>
                     <li>
                         <i class="fas fa-phone"></i>
-                        <span>${config.phone}</span>
+                        <span>${Sanitizer.escapeHtml(config.phone || '')}</span>
                     </li>
                     <li>
                         <i class="fas fa-envelope"></i>
-                        <span>${config.email}</span>
+                        <span>${Sanitizer.escapeHtml(config.email || '')}</span>
                     </li>
                     <li>
                         <i class="fas fa-clock"></i>
-                        <span>${config.business_hours}</span>
+                        <span>${Sanitizer.escapeHtml(config.business_hours || '')}</span>
                     </li>
                 `;
             }
@@ -415,7 +472,7 @@ const PageRenderers = {
                 const platforms = ['facebook', 'instagram', 'linkedin', 'twitter'];
                 socialLinks.forEach((link, index) => {
                     if (platforms[index] && config.social_links[platforms[index]]) {
-                        link.href = config.social_links[platforms[index]];
+                        link.href = Sanitizer.sanitizeUrl(config.social_links[platforms[index]]);
                     }
                 });
             }

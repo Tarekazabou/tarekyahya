@@ -1,6 +1,7 @@
 /* ================================================
    PRIMAVET - Website JavaScript
    Main functionality and interactivity
+   With accessibility enhancements
    ================================================ */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -12,7 +13,48 @@ document.addEventListener('DOMContentLoaded', function() {
     initModal();
     initProductFilter();
     initFileUpload();
+    initAccessibility();
 });
+
+/* ------------------------------------------------
+   Accessibility Module
+   ------------------------------------------------ */
+function initAccessibility() {
+    // Add skip link functionality
+    addSkipLink();
+    
+    // Enhance focus visibility
+    document.body.classList.add('js-focus-visible');
+    
+    // Handle keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        // Add visible focus when Tab is pressed
+        if (e.key === 'Tab') {
+            document.body.classList.add('keyboard-nav');
+        }
+    });
+    
+    document.addEventListener('mousedown', function() {
+        document.body.classList.remove('keyboard-nav');
+    });
+}
+
+function addSkipLink() {
+    // Create skip link if it doesn't exist
+    if (!document.querySelector('.skip-link')) {
+        const skipLink = document.createElement('a');
+        skipLink.href = '#main-content';
+        skipLink.className = 'skip-link';
+        skipLink.textContent = 'Aller au contenu principal';
+        document.body.insertBefore(skipLink, document.body.firstChild);
+        
+        // Add main content ID if not present
+        const main = document.querySelector('main, .hero, section:first-of-type');
+        if (main && !main.id) {
+            main.id = 'main-content';
+        }
+    }
+}
 
 /* ------------------------------------------------
    Navigation Module
@@ -23,19 +65,55 @@ function initNavigation() {
     const header = document.querySelector('.header');
     const navLinks = document.querySelectorAll('.nav-menu a');
 
-    // Mobile menu toggle
+    // Mobile menu toggle - Enhanced for accessibility
     if (navToggle) {
-        navToggle.addEventListener('click', function() {
-            this.classList.toggle('active');
+        // Convert to button if it's not already
+        navToggle.setAttribute('role', 'button');
+        navToggle.setAttribute('aria-label', 'Menu de navigation');
+        navToggle.setAttribute('aria-expanded', 'false');
+        navToggle.setAttribute('aria-controls', 'nav-menu');
+        navToggle.setAttribute('tabindex', '0');
+        
+        // Add ID to nav menu for aria-controls
+        if (navMenu) {
+            navMenu.id = 'nav-menu';
+            navMenu.setAttribute('role', 'navigation');
+            navMenu.setAttribute('aria-label', 'Navigation principale');
+        }
+
+        const toggleMenu = function() {
+            const isExpanded = navToggle.getAttribute('aria-expanded') === 'true';
+            navToggle.classList.toggle('active');
             navMenu.classList.toggle('active');
+            navToggle.setAttribute('aria-expanded', !isExpanded);
+            
+            // Trap focus when menu is open on mobile
+            if (!isExpanded && window.innerWidth <= 768) {
+                navMenu.querySelector('a')?.focus();
+            }
+        };
+
+        navToggle.addEventListener('click', toggleMenu);
+        
+        // Support keyboard activation
+        navToggle.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleMenu();
+            }
         });
     }
 
     // Close menu when clicking a link
     navLinks.forEach(link => {
         link.addEventListener('click', function() {
-            navToggle.classList.remove('active');
-            navMenu.classList.remove('active');
+            if (navToggle) {
+                navToggle.classList.remove('active');
+                navToggle.setAttribute('aria-expanded', 'false');
+            }
+            if (navMenu) {
+                navMenu.classList.remove('active');
+            }
         });
     });
 
@@ -64,6 +142,10 @@ function initNavigation() {
                         top: offsetPosition,
                         behavior: 'smooth'
                     });
+                    
+                    // Set focus to target for accessibility
+                    target.setAttribute('tabindex', '-1');
+                    target.focus();
                 }
             }
         });
@@ -76,6 +158,7 @@ function initNavigation() {
         if (linkPage === currentPage || 
             (currentPage === '' && linkPage === 'index.html')) {
             link.classList.add('active');
+            link.setAttribute('aria-current', 'page');
         }
     });
 }
@@ -95,11 +178,19 @@ function initSlider() {
     function showSlide(index) {
         slides.forEach((slide, i) => {
             slide.classList.remove('active');
-            if (dots[i]) dots[i].classList.remove('active');
+            slide.setAttribute('aria-hidden', 'true');
+            if (dots[i]) {
+                dots[i].classList.remove('active');
+                dots[i].setAttribute('aria-selected', 'false');
+            }
         });
         
         slides[index].classList.add('active');
-        if (dots[index]) dots[index].classList.add('active');
+        slides[index].setAttribute('aria-hidden', 'false');
+        if (dots[index]) {
+            dots[index].classList.add('active');
+            dots[index].setAttribute('aria-selected', 'true');
+        }
     }
 
     function nextSlide() {
@@ -110,17 +201,34 @@ function initSlider() {
     // Auto-play slides
     let autoPlay = setInterval(nextSlide, slideInterval);
 
-    // Dot navigation
+    // Dot navigation with accessibility
     dots.forEach((dot, index) => {
-        dot.addEventListener('click', function() {
+        dot.setAttribute('role', 'button');
+        dot.setAttribute('aria-label', `Slide ${index + 1}`);
+        dot.setAttribute('tabindex', '0');
+        
+        const activateDot = function() {
             clearInterval(autoPlay);
             currentSlide = index;
             showSlide(currentSlide);
             autoPlay = setInterval(nextSlide, slideInterval);
+        };
+        
+        dot.addEventListener('click', activateDot);
+        dot.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                activateDot();
+            }
         });
     });
 
-    // Initialize first slide
+    // Initialize first slide with aria attributes
+    slides.forEach((slide, i) => {
+        slide.setAttribute('role', 'group');
+        slide.setAttribute('aria-roledescription', 'slide');
+        slide.setAttribute('aria-label', `Slide ${i + 1} sur ${slides.length}`);
+    });
     showSlide(0);
 }
 

@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS messages (
 
 -- =====================================================
 -- ROW LEVEL SECURITY (RLS)
+-- PRODUCTION-READY POLICIES
 -- =====================================================
 
 ALTER TABLE site_config ENABLE ROW LEVEL SECURITY;
@@ -124,43 +125,90 @@ ALTER TABLE stats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
--- Public read access policies
+-- ===========================================
+-- HELPER FUNCTION: Check if user is admin
+-- ===========================================
+CREATE OR REPLACE FUNCTION is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+    -- Check if user is authenticated and has admin role in metadata
+    RETURN (
+        auth.uid() IS NOT NULL 
+        AND (
+            (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+            OR (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+        )
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ===========================================
+-- PUBLIC READ-ONLY POLICIES (Content visible to everyone)
+-- ===========================================
 CREATE POLICY "Public read site_config" ON site_config FOR SELECT USING (true);
 CREATE POLICY "Public read products" ON products FOR SELECT USING (true);
 CREATE POLICY "Public read news" ON news FOR SELECT USING (true);
-CREATE POLICY "Public read all jobs" ON jobs FOR SELECT USING (true);
+CREATE POLICY "Public read active jobs" ON jobs FOR SELECT USING (is_active = true);
 CREATE POLICY "Public read showroom" ON showroom_items FOR SELECT USING (true);
 CREATE POLICY "Public read stats" ON stats FOR SELECT USING (true);
-CREATE POLICY "Public read clients" ON clients FOR SELECT USING (true);
 
--- Public write access for news (admin functionality)
-CREATE POLICY "Public insert news" ON news FOR INSERT WITH CHECK (true);
-CREATE POLICY "Public update news" ON news FOR UPDATE USING (true) WITH CHECK (true);
-CREATE POLICY "Public delete news" ON news FOR DELETE USING (true);
+-- ===========================================
+-- CLIENTS TABLE - Admin only (contains PII)
+-- ===========================================
+CREATE POLICY "Admin read clients" ON clients FOR SELECT USING (is_admin());
+CREATE POLICY "Admin insert clients" ON clients FOR INSERT WITH CHECK (is_admin());
+CREATE POLICY "Admin update clients" ON clients FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin delete clients" ON clients FOR DELETE USING (is_admin());
 
--- Public write access for jobs (admin functionality)
-CREATE POLICY "Public insert jobs" ON jobs FOR INSERT WITH CHECK (true);
-CREATE POLICY "Public update jobs" ON jobs FOR UPDATE USING (true) WITH CHECK (true);
-CREATE POLICY "Public delete jobs" ON jobs FOR DELETE USING (true);
+-- ===========================================
+-- NEWS - Public read, Admin write
+-- ===========================================
+CREATE POLICY "Admin insert news" ON news FOR INSERT WITH CHECK (is_admin());
+CREATE POLICY "Admin update news" ON news FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin delete news" ON news FOR DELETE USING (is_admin());
 
--- Messages policies (public insert for form submissions, authenticated users can read/update/delete)
--- NOTE: In production, consider restricting SELECT/UPDATE/DELETE to auth.uid() IS NOT NULL
+-- ===========================================
+-- JOBS - Public read active, Admin full CRUD
+-- ===========================================
+CREATE POLICY "Admin read all jobs" ON jobs FOR SELECT USING (is_admin());
+CREATE POLICY "Admin insert jobs" ON jobs FOR INSERT WITH CHECK (is_admin());
+CREATE POLICY "Admin update jobs" ON jobs FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin delete jobs" ON jobs FOR DELETE USING (is_admin());
+
+-- ===========================================
+-- MESSAGES - Public insert (forms), Admin read/update/delete
+-- Rate limiting should be handled at application/API level
+-- ===========================================
 CREATE POLICY "Public insert messages" ON messages FOR INSERT WITH CHECK (true);
-CREATE POLICY "Public read messages" ON messages FOR SELECT USING (true);
-CREATE POLICY "Public update messages" ON messages FOR UPDATE USING (true) WITH CHECK (true);
-CREATE POLICY "Public delete messages" ON messages FOR DELETE USING (true);
+CREATE POLICY "Admin read messages" ON messages FOR SELECT USING (is_admin());
+CREATE POLICY "Admin update messages" ON messages FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin delete messages" ON messages FOR DELETE USING (is_admin());
 
--- Products CRUD policies (admin functionality)
--- NOTE: In production, restrict write operations to authenticated admin users: auth.uid() IS NOT NULL
-CREATE POLICY "Public insert products" ON products FOR INSERT WITH CHECK (true);
-CREATE POLICY "Public update products" ON products FOR UPDATE USING (true) WITH CHECK (true);
-CREATE POLICY "Public delete products" ON products FOR DELETE USING (true);
+-- ===========================================
+-- PRODUCTS - Public read, Admin write
+-- ===========================================
+CREATE POLICY "Admin insert products" ON products FOR INSERT WITH CHECK (is_admin());
+CREATE POLICY "Admin update products" ON products FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin delete products" ON products FOR DELETE USING (is_admin());
 
--- Showroom CRUD policies (admin functionality)
--- NOTE: In production, restrict write operations to authenticated admin users: auth.uid() IS NOT NULL
-CREATE POLICY "Public insert showroom" ON showroom_items FOR INSERT WITH CHECK (true);
-CREATE POLICY "Public update showroom" ON showroom_items FOR UPDATE USING (true) WITH CHECK (true);
-CREATE POLICY "Public delete showroom" ON showroom_items FOR DELETE USING (true);
+-- ===========================================
+-- SHOWROOM - Public read, Admin write
+-- ===========================================
+CREATE POLICY "Admin insert showroom" ON showroom_items FOR INSERT WITH CHECK (is_admin());
+CREATE POLICY "Admin update showroom" ON showroom_items FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin delete showroom" ON showroom_items FOR DELETE USING (is_admin());
+
+-- ===========================================
+-- SITE CONFIG - Public read, Admin write
+-- ===========================================
+CREATE POLICY "Admin update site_config" ON site_config FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
+
+-- ===========================================
+-- STATS - Public read, Admin write
+-- ===========================================
+CREATE POLICY "Admin update stats" ON stats FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin insert stats" ON stats FOR INSERT WITH CHECK (is_admin());
+CREATE POLICY "Admin delete stats" ON stats FOR DELETE USING (is_admin());
 
 -- =====================================================
 -- INITIAL DATA

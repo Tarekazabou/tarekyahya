@@ -946,23 +946,100 @@
     <script src="js/data-service.js"></script>
     <script>
         // ==================== AUTHENTICATION ====================
+        
+        // Enhanced authentication with proper session management
+        let currentUser = null;
+        let isAdmin = false;
 
-        // Check if user is logged in
+        // Check if user is logged in and has admin privileges
         async function checkAuth() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            if (!user) {
+            try {
+                // Use AuthManager from supabase-client.js
+                const session = await AuthManager.getSession();
+                
+                if (!session) {
+                    console.warn('No session found, redirecting to login');
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                
+                currentUser = session.user;
+                
+                // Check admin role
+                isAdmin = await AuthManager.isAdmin();
+                
+                if (!isAdmin) {
+                    // User is authenticated but not admin
+                    showToast('Accès refusé: privilèges administrateur requis', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
+                    return false;
+                }
+                
+                console.log('✅ Admin authenticated:', currentUser.email);
+                return true;
+            } catch (error) {
+                console.error('Auth check failed:', error);
                 window.location.href = 'login.html';
                 return false;
             }
-            return true;
         }
+
+        // Initialize auth check on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAuthenticated = await checkAuth();
+            if (isAuthenticated) {
+                // Load dashboard data
+                loadDashboardStats();
+                document.getElementById('current-date').textContent = new Date().toLocaleDateString('fr-FR', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+        });
+
+        // Listen for auth state changes
+        AuthManager.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_OUT') {
+                window.location.href = 'login.html';
+            }
+        });
 
         // Logout handler
         document.getElementById('logout-btn')?.addEventListener('click', async (e) => {
             e.preventDefault();
-            await supabaseClient.auth.signOut();
-            window.location.href = 'login.html';
+            try {
+                await AuthManager.signOut();
+                showToast('Déconnexion réussie');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1000);
+            } catch (error) {
+                showToast('Erreur lors de la déconnexion', 'error');
+            }
         });
+
+        // ==================== CSRF TOKEN (for additional protection) ====================
+        
+        const csrfToken = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+        sessionStorage.setItem('csrf_token', csrfToken);
+
+        function validateCsrf() {
+            return sessionStorage.getItem('csrf_token') === csrfToken;
+        }
+
+        // ==================== RATE LIMITING WRAPPER ====================
+        
+        async function rateLimitedRequest(requestFn, key = 'admin') {
+            if (!RateLimiter.canMakeRequest(key)) {
+                showToast('Trop de requêtes. Veuillez patienter.', 'error');
+                throw new Error('Rate limit exceeded');
+            }
+            return await requestFn();
+        }
 
         // ==================== NAVIGATION ====================
 

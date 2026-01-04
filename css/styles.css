@@ -2,6 +2,7 @@
    PRIMAVET - Website Stylesheet
    Textile Company - Blue Color Theme
    Modern, Professional, Responsive Design
+   With Accessibility Enhancements
    ================================================ */
 
 /* ------------------------------------------------
@@ -26,6 +27,10 @@
     --success: #22c55e;
     --warning: #f59e0b;
     --error: #ef4444;
+    
+    /* Focus Color (High contrast for accessibility) */
+    --focus-color: #2563eb;
+    --focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.5);
     
     /* Typography */
     --font-primary: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -53,6 +58,62 @@
     --transition-slow: 0.5s ease;
 }
 
+/* ------------------------------------------------
+   Accessibility: Skip Link
+   ------------------------------------------------ */
+.skip-link {
+    position: absolute;
+    top: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary-color);
+    color: var(--white);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--border-radius);
+    z-index: 10000;
+    text-decoration: none;
+    font-weight: 500;
+    transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+    top: var(--spacing-md);
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+/* ------------------------------------------------
+   Accessibility: Focus Styles
+   ------------------------------------------------ */
+/* Only show focus ring for keyboard navigation */
+.keyboard-nav *:focus {
+    outline: 2px solid var(--focus-color);
+    outline-offset: 2px;
+}
+
+/* Remove default focus for mouse users */
+*:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Enhanced focus-visible support */
+*:focus-visible {
+    outline: 2px solid var(--focus-color);
+    outline-offset: 2px;
+}
+
+/* Specific focus styles for interactive elements */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--focus-color);
+    outline-offset: 2px;
+    box-shadow: var(--focus-ring);
+}
+
 /* Reset & Base */
 *, *::before, *::after {
     margin: 0;
@@ -63,6 +124,21 @@
 html {
     scroll-behavior: smooth;
     font-size: 16px;
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+    
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
 body {
@@ -1446,7 +1522,10 @@ p {
 
 /* ------------------------------------------------
    Responsive Design
+   Enhanced breakpoints for better mobile experience
    ------------------------------------------------ */
+
+/* Large tablets and small desktops */
 @media (max-width: 1024px) {
     .footer-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -1463,8 +1542,17 @@ p {
     .blog-layout {
         grid-template-columns: 1fr;
     }
+    
+    .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
+/* Tablets */
 @media (max-width: 768px) {
     html {
         font-size: 14px;
@@ -1546,9 +1634,87 @@ p {
     
     .job-meta {
         justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .news-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Fix news cards on tablet */
+    .news-card {
+        flex-direction: column !important;
+    }
+    
+    .news-card .news-image {
+        width: 100% !important;
+        min-width: auto !important;
+        height: 200px !important;
+    }
+    
+    .values-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .showroom-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
+/* Large phones */
+@media (max-width: 640px) {
+    .container {
+        padding: 0 var(--spacing-md);
+    }
+    
+    .section {
+        padding: var(--spacing-2xl) 0;
+    }
+    
+    .hero-content h1 {
+        font-size: 1.75rem;
+    }
+    
+    .hero-content p {
+        font-size: 1rem;
+    }
+    
+    .products-filter {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-btn {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .showroom-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Improve touch targets */
+    .btn {
+        min-height: 44px;
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    .nav-menu li a {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+}
+
+/* Small phones */
 @media (max-width: 480px) {
     .container {
         padding: 0 var(--spacing-sm);
@@ -1570,6 +1736,70 @@ p {
         flex-direction: column;
         align-items: center;
     }
+    
+    .product-actions {
+        flex-direction: column;
+    }
+    
+    .product-actions .btn {
+        flex: none;
+    }
+    
+    .page-header h1 {
+        font-size: 1.75rem;
+    }
+    
+    .about-features {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Contact info readability */
+    .footer-contact li {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-xs);
+    }
+    
+    .footer-contact li i {
+        margin-top: 0;
+    }
+}
+
+/* Extra small phones */
+@media (max-width: 360px) {
+    html {
+        font-size: 13px;
+    }
+    
+    .hero-content h1 {
+        font-size: 1.5rem;
+    }
+    
+    .section-title h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* High DPI / Retina displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    /* Ensure crisp borders and shadows on retina */
+    .product-card,
+    .news-card,
+    .feature-card {
+        border: 0.5px solid rgba(0, 0, 0, 0.05);
+    }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .hero {
+        min-height: auto;
+        padding: 100px 0 50px;
+    }
+    
+    .hero-content h1 {
+        font-size: 1.75rem;
+    }
 }
 
 /* ------------------------------------------------
@@ -1580,7 +1810,8 @@ p {
     .footer,
     .nav,
     .btn,
-    .cta-banner {
+    .cta-banner,
+    .skip-link {
         display: none;
     }
     
@@ -1591,5 +1822,11 @@ p {
     
     .section {
         padding: 20pt 0;
+    }
+    
+    a[href]::after {
+        content: " (" attr(href) ")";
+        font-size: 0.8em;
+        color: var(--gray);
     }
 }
