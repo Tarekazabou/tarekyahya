@@ -354,9 +354,6 @@
                 // Load featured news
                 await PageRenderers.renderFeaturedNews('featured-news');
 
-                // Load footer contact info
-                await PageRenderers.renderFooterContact();
-
                 console.log('✅ Homepage content loaded from Supabase');
             } catch (error) {
                 console.error('Error loading homepage content:', error);

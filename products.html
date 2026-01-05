@@ -265,9 +265,6 @@
                 // Load all products
                 await PageRenderers.renderProducts('products-grid');
 
-                // Load footer contact info
-                await PageRenderers.renderFooterContact();
-
                 console.log('✅ Products page content loaded from Supabase');
             } catch (error) {
                 console.error('Error loading products page content:', error);
