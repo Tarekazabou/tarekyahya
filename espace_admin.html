@@ -1136,9 +1136,17 @@
         }
 
         async function editNews(id) {
-            const news = await DataService.getNews();
-            const article = news.find(n => n.id === id);
-            if (article) openNewsModal(article);
+            try {
+                const news = await DataService.getNews();
+                const article = news.find(n => n.id === id);
+                if (article) {
+                    openNewsModal(article);
+                } else {
+                    showToast('Actualité introuvable', 'error');
+                }
+            } catch (error) {
+                showToast('Erreur lors du chargement: ' + error.message, 'error');
+            }
         }
 
         let deleteNewsId = null;
@@ -1150,6 +1158,12 @@
 
         document.getElementById('news-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // CSRF validation
+            if (!validateCsrf()) {
+                showToast('Session invalide. Veuillez rafraîchir la page.', 'error');
+                return;
+            }
 
             const newsData = {
                 title: sanitizeInput(document.getElementById('news-title').value),
@@ -1164,17 +1178,19 @@
 
             try {
                 if (id) {
-                    await DataService.updateNews(id, newsData);
+                    await rateLimitedRequest(() => DataService.updateNews(id, newsData));
                     showToast('Actualité mise à jour avec succès');
                 } else {
-                    await DataService.createNews(newsData);
+                    await rateLimitedRequest(() => DataService.createNews(newsData));
                     showToast('Actualité créée avec succès');
                 }
                 closeNewsModal();
                 loadNewsTable();
                 loadDashboardStats();
             } catch (error) {
-                showToast('Erreur: ' + error.message, 'error');
+                if (error.message !== 'Rate limit exceeded') {
+                    showToast('Erreur: ' + error.message, 'error');
+                }
             }
         });
 
@@ -1260,18 +1276,28 @@
         }
 
         async function editJob(id) {
-            const jobs = await DataService.getAllJobs();
-            const job = jobs.find(j => j.id === id);
-            if (job) openJobModal(job);
+            try {
+                const jobs = await DataService.getAllJobs();
+                const job = jobs.find(j => j.id === id);
+                if (job) {
+                    openJobModal(job);
+                } else {
+                    showToast('Offre introuvable', 'error');
+                }
+            } catch (error) {
+                showToast('Erreur lors du chargement: ' + error.message, 'error');
+            }
         }
 
         async function toggleJob(id, isActive) {
             try {
-                await DataService.toggleJobActive(id, isActive);
+                await rateLimitedRequest(() => DataService.toggleJobActive(id, isActive));
                 showToast(`Offre ${isActive ? 'activée' : 'désactivée'}`);
                 loadJobsTable();
             } catch (error) {
-                showToast('Erreur: ' + error.message, 'error');
+                if (error.message !== 'Rate limit exceeded') {
+                    showToast('Erreur: ' + error.message, 'error');
+                }
             }
         }
 
@@ -1295,39 +1321,53 @@
         }
 
         document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+            // CSRF validation
+            if (!validateCsrf()) {
+                showToast('Session invalide. Veuillez rafraîchir la page.', 'error');
+                return;
+            }
+
             try {
                 if (deleteType === 'news' && deleteNewsId) {
-                    await DataService.deleteNews(deleteNewsId);
+                    await rateLimitedRequest(() => DataService.deleteNews(deleteNewsId));
                     showToast('Actualité supprimée');
                     loadNewsTable();
                     loadDashboardStats();
                 } else if (deleteType === 'job' && deleteJobId) {
-                    await DataService.deleteJob(deleteJobId);
+                    await rateLimitedRequest(() => DataService.deleteJob(deleteJobId));
                     showToast('Offre supprimée');
                     loadJobsTable();
                     loadDashboardStats();
                 } else if (deleteType === 'product' && deleteProductId) {
-                    await DataService.deleteProduct(deleteProductId);
+                    await rateLimitedRequest(() => DataService.deleteProduct(deleteProductId));
                     showToast('Produit supprimé');
                     loadProductsTable();
                     loadDashboardStats();
                 } else if (deleteType === 'showroom' && deleteShowroomId) {
-                    await DataService.deleteShowroomItem(deleteShowroomId);
+                    await rateLimitedRequest(() => DataService.deleteShowroomItem(deleteShowroomId));
                     showToast('Élément supprimé');
                     loadShowroomTable();
                 } else if (deleteType === 'message' && deleteMessageId) {
-                    await DataService.deleteMessage(deleteMessageId);
+                    await rateLimitedRequest(() => DataService.deleteMessage(deleteMessageId));
                     showToast('Message supprimé');
                     loadMessagesTable();
                 }
                 closeConfirmModal();
             } catch (error) {
-                showToast('Erreur: ' + error.message, 'error');
+                if (error.message !== 'Rate limit exceeded') {
+                    showToast('Erreur: ' + error.message, 'error');
+                }
             }
         });
 
         document.getElementById('job-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // CSRF validation
+            if (!validateCsrf()) {
+                showToast('Session invalide. Veuillez rafraîchir la page.', 'error');
+                return;
+            }
 
             const jobData = {
                 title: sanitizeInput(document.getElementById('job-title').value),
@@ -1342,17 +1382,19 @@
 
             try {
                 if (id) {
-                    await DataService.updateJob(id, jobData);
+                    await rateLimitedRequest(() => DataService.updateJob(id, jobData));
                     showToast('Offre mise à jour avec succès');
                 } else {
-                    await DataService.createJob(jobData);
+                    await rateLimitedRequest(() => DataService.createJob(jobData));
                     showToast('Offre créée avec succès');
                 }
                 closeJobModal();
                 loadJobsTable();
                 loadDashboardStats();
             } catch (error) {
-                showToast('Erreur: ' + error.message, 'error');
+                if (error.message !== 'Rate limit exceeded') {
+                    showToast('Erreur: ' + error.message, 'error');
+                }
             }
         });
 
@@ -1433,9 +1475,17 @@
         }
 
         async function editProduct(id) {
-            const products = await DataService.getProducts();
-            const product = products.find(p => p.id === id);
-            if (product) openProductModal(product);
+            try {
+                const products = await DataService.getProducts();
+                const product = products.find(p => p.id === id);
+                if (product) {
+                    openProductModal(product);
+                } else {
+                    showToast('Produit introuvable', 'error');
+                }
+            } catch (error) {
+                showToast('Erreur lors du chargement: ' + error.message, 'error');
+            }
         }
 
         let deleteProductId = null;
@@ -1447,6 +1497,12 @@
 
         document.getElementById('product-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // CSRF validation
+            if (!validateCsrf()) {
+                showToast('Session invalide. Veuillez rafraîchir la page.', 'error');
+                return;
+            }
 
             const productData = {
                 name: sanitizeInput(document.getElementById('product-name').value),
@@ -1463,17 +1519,19 @@
 
             try {
                 if (id) {
-                    await DataService.updateProduct(id, productData);
+                    await rateLimitedRequest(() => DataService.updateProduct(id, productData));
                     showToast('Produit mis à jour avec succès');
                 } else {
-                    await DataService.createProduct(productData);
+                    await rateLimitedRequest(() => DataService.createProduct(productData));
                     showToast('Produit créé avec succès');
                 }
                 closeProductModal();
                 loadProductsTable();
                 loadDashboardStats();
             } catch (error) {
-                showToast('Erreur: ' + error.message, 'error');
+                if (error.message !== 'Rate limit exceeded') {
+                    showToast('Erreur: ' + error.message, 'error');
+                }
             }
         });
 
@@ -1550,9 +1608,17 @@
         }
 
         async function editShowroom(id) {
-            const items = await DataService.getShowroomItems();
-            const item = items.find(i => i.id === id);
-            if (item) openShowroomModal(item);
+            try {
+                const items = await DataService.getShowroomItems();
+                const item = items.find(i => i.id === id);
+                if (item) {
+                    openShowroomModal(item);
+                } else {
+                    showToast('Élément introuvable', 'error');
+                }
+            } catch (error) {
+                showToast('Erreur lors du chargement: ' + error.message, 'error');
+            }
         }
 
         let deleteShowroomId = null;
@@ -1564,6 +1630,12 @@
 
         document.getElementById('showroom-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // CSRF validation
+            if (!validateCsrf()) {
+                showToast('Session invalide. Veuillez rafraîchir la page.', 'error');
+                return;
+            }
 
             const itemData = {
                 title: sanitizeInput(document.getElementById('showroom-title').value),
@@ -1578,16 +1650,18 @@
 
             try {
                 if (id) {
-                    await DataService.updateShowroomItem(id, itemData);
+                    await rateLimitedRequest(() => DataService.updateShowroomItem(id, itemData));
                     showToast('Élément mis à jour avec succès');
                 } else {
-                    await DataService.createShowroomItem(itemData);
+                    await rateLimitedRequest(() => DataService.createShowroomItem(itemData));
                     showToast('Élément créé avec succès');
                 }
                 closeShowroomModal();
                 loadShowroomTable();
             } catch (error) {
-                showToast('Erreur: ' + error.message, 'error');
+                if (error.message !== 'Rate limit exceeded') {
+                    showToast('Erreur: ' + error.message, 'error');
+                }
             }
         });
 
