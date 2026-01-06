@@ -1762,12 +1762,27 @@
          */
         function sanitizeInput(str) {
             if (!str) return '';
-            return String(str)
-                .trim()
-                .replace(/[<>]/g, '') // Remove angle brackets
-                .replace(/javascript:/gi, '') // Remove javascript: protocol
-                .replace(/on\w+=/gi, '') // Remove inline event handlers
-                .substring(0, MAX_INPUT_LENGTH); // Limit length
+            let result = String(str).trim();
+            
+            // Remove angle brackets
+            result = result.replace(/[<>]/g, '');
+            
+            // Remove dangerous URL protocols (apply repeatedly until no more matches)
+            let prevResult;
+            do {
+                prevResult = result;
+                result = result.replace(/javascript\s*:/gi, '');
+                result = result.replace(/vbscript\s*:/gi, '');
+                result = result.replace(/data\s*:/gi, '');
+            } while (result !== prevResult);
+            
+            // Remove inline event handlers (apply repeatedly until no more matches)
+            do {
+                prevResult = result;
+                result = result.replace(/on\w+\s*=/gi, '');
+            } while (result !== prevResult);
+            
+            return result.substring(0, MAX_INPUT_LENGTH);
         }
 
         /**
