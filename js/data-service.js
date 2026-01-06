@@ -530,6 +530,228 @@ const DataService = {
      */
     async toggleJobActive(id, isActive) {
         return this.updateJob(id, { is_active: isActive });
+    },
+
+    // ----- PRODUCTS CRUD -----
+
+    /**
+     * Create a new product
+     */
+    async createProduct(productData) {
+        const { data, error } = await supabaseClient
+            .from('products')
+            .insert([{
+                name: productData.name,
+                description: productData.description,
+                category: productData.category,
+                badge: productData.badge || null,
+                icon: productData.icon || 'fa-tshirt',
+                gradient: productData.gradient || 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+                is_featured: productData.is_featured || false,
+                sort_order: productData.sort_order || 0
+            }])
+            .select();
+
+        if (error) {
+            console.error('Error creating product:', error);
+            throw error;
+        }
+
+        // Clear products cache
+        this.clearCache();
+
+        return data[0];
+    },
+
+    /**
+     * Update a product
+     */
+    async updateProduct(id, productData) {
+        const { data, error } = await supabaseClient
+            .from('products')
+            .update(productData)
+            .eq('id', id)
+            .select();
+
+        if (error) {
+            console.error('Error updating product:', error);
+            throw error;
+        }
+
+        // Clear products cache
+        this.clearCache();
+
+        return data[0];
+    },
+
+    /**
+     * Delete a product
+     */
+    async deleteProduct(id) {
+        const { error } = await supabaseClient
+            .from('products')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error deleting product:', error);
+            throw error;
+        }
+
+        // Clear products cache
+        this.clearCache();
+
+        return true;
+    },
+
+    // ----- SHOWROOM CRUD -----
+
+    /**
+     * Create a new showroom item
+     */
+    async createShowroomItem(itemData) {
+        const { data, error } = await supabaseClient
+            .from('showroom_items')
+            .insert([{
+                title: itemData.title,
+                description: itemData.description || null,
+                category: itemData.category || 'collection',
+                icon: itemData.icon || 'fa-image',
+                gradient: itemData.gradient || 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+                sort_order: itemData.sort_order || 0
+            }])
+            .select();
+
+        if (error) {
+            console.error('Error creating showroom item:', error);
+            throw error;
+        }
+
+        // Clear showroom cache
+        this.clearCache();
+
+        return data[0];
+    },
+
+    /**
+     * Update a showroom item
+     */
+    async updateShowroomItem(id, itemData) {
+        const { data, error } = await supabaseClient
+            .from('showroom_items')
+            .update(itemData)
+            .eq('id', id)
+            .select();
+
+        if (error) {
+            console.error('Error updating showroom item:', error);
+            throw error;
+        }
+
+        // Clear showroom cache
+        this.clearCache();
+
+        return data[0];
+    },
+
+    /**
+     * Delete a showroom item
+     */
+    async deleteShowroomItem(id) {
+        const { error } = await supabaseClient
+            .from('showroom_items')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error deleting showroom item:', error);
+            throw error;
+        }
+
+        // Clear showroom cache
+        this.clearCache();
+
+        return true;
+    },
+
+    // ----- MESSAGES CRUD -----
+
+    /**
+     * Get all messages with optional filters
+     */
+    async getMessages(filter = 'all') {
+        let query = supabaseClient
+            .from('messages')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (filter === 'unread') {
+            query = query.eq('status', 'unread');
+        } else if (filter !== 'all') {
+            query = query.eq('form_type', filter);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+            console.error('Error fetching messages:', error);
+            throw error;
+        }
+
+        return data || [];
+    },
+
+    /**
+     * Get a single message by ID
+     */
+    async getMessage(id) {
+        const { data, error } = await supabaseClient
+            .from('messages')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) {
+            console.error('Error fetching message:', error);
+            throw error;
+        }
+
+        return data;
+    },
+
+    /**
+     * Mark message as read
+     */
+    async markMessageAsRead(id) {
+        const { data, error } = await supabaseClient
+            .from('messages')
+            .update({ status: 'read' })
+            .eq('id', id)
+            .select();
+
+        if (error) {
+            console.error('Error marking message as read:', error);
+            throw error;
+        }
+
+        return data[0];
+    },
+
+    /**
+     * Delete a message
+     */
+    async deleteMessage(id) {
+        const { error } = await supabaseClient
+            .from('messages')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error deleting message:', error);
+            throw error;
+        }
+
+        return true;
     }
 };
 

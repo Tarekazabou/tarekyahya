@@ -972,21 +972,6 @@
             }
         }
 
-        // Initialize auth check on page load
-        document.addEventListener('DOMContentLoaded', async () => {
-            const isAuthenticated = await checkAuth();
-            if (isAuthenticated) {
-                // Load dashboard data
-                loadDashboardStats();
-                document.getElementById('current-date').textContent = new Date().toLocaleDateString('fr-FR', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-            }
-        });
-
         // Listen for auth state changes
         AuthManager.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_OUT') {
@@ -1104,8 +1089,8 @@
                         <tbody>
                             ${news.map(article => `
                                 <tr>
-                                    <td><strong>${article.title}</strong></td>
-                                    <td><span class="badge badge-info">${article.category || '-'}</span></td>
+                                    <td><strong>${escapeHtml(article.title)}</strong></td>
+                                    <td><span class="badge badge-info">${escapeHtml(article.category) || '-'}</span></td>
                                     <td>${formatDate(article.published_at)}</td>
                                     <td>${article.is_featured ? '<span class="badge badge-success">Oui</span>' : '<span class="badge badge-warning">Non</span>'}</td>
                                     <td class="actions">
@@ -1167,11 +1152,11 @@
             e.preventDefault();
 
             const newsData = {
-                title: document.getElementById('news-title').value,
+                title: sanitizeInput(document.getElementById('news-title').value),
                 category: document.getElementById('news-category').value,
                 published_at: document.getElementById('news-date').value,
-                excerpt: document.getElementById('news-excerpt').value,
-                content: document.getElementById('news-content').value,
+                excerpt: sanitizeInput(document.getElementById('news-excerpt').value),
+                content: sanitizeInput(document.getElementById('news-content').value),
                 is_featured: document.getElementById('news-featured').checked
             };
 
@@ -1187,6 +1172,7 @@
                 }
                 closeNewsModal();
                 loadNewsTable();
+                loadDashboardStats();
             } catch (error) {
                 showToast('Erreur: ' + error.message, 'error');
             }
@@ -1229,9 +1215,9 @@
                         <tbody>
                             ${jobs.map(job => `
                                 <tr>
-                                    <td><strong>${job.title}</strong></td>
-                                    <td>${job.location || '-'}</td>
-                                    <td><span class="badge badge-info">${job.contract_type || '-'}</span></td>
+                                    <td><strong>${escapeHtml(job.title)}</strong></td>
+                                    <td>${escapeHtml(job.location) || '-'}</td>
+                                    <td><span class="badge badge-info">${escapeHtml(job.contract_type) || '-'}</span></td>
                                     <td>${job.is_active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>'}</td>
                                     <td class="actions">
                                         <button class="btn-icon toggle" onclick="toggleJob(${job.id}, ${!job.is_active})" title="${job.is_active ? 'Désactiver' : 'Activer'}">
@@ -1318,25 +1304,23 @@
                     await DataService.deleteNews(deleteNewsId);
                     showToast('Actualité supprimée');
                     loadNewsTable();
+                    loadDashboardStats();
                 } else if (deleteType === 'job' && deleteJobId) {
                     await DataService.deleteJob(deleteJobId);
                     showToast('Offre supprimée');
                     loadJobsTable();
+                    loadDashboardStats();
                 } else if (deleteType === 'product' && deleteProductId) {
-                    const { error } = await supabaseClient.from('products').delete().eq('id', deleteProductId);
-                    if (error) throw error;
-                    DataService.clearCache();
+                    await DataService.deleteProduct(deleteProductId);
                     showToast('Produit supprimé');
                     loadProductsTable();
+                    loadDashboardStats();
                 } else if (deleteType === 'showroom' && deleteShowroomId) {
-                    const { error } = await supabaseClient.from('showroom_items').delete().eq('id', deleteShowroomId);
-                    if (error) throw error;
-                    DataService.clearCache();
+                    await DataService.deleteShowroomItem(deleteShowroomId);
                     showToast('Élément supprimé');
                     loadShowroomTable();
                 } else if (deleteType === 'message' && deleteMessageId) {
-                    const { error } = await supabaseClient.from('messages').delete().eq('id', deleteMessageId);
-                    if (error) throw error;
+                    await DataService.deleteMessage(deleteMessageId);
                     showToast('Message supprimé');
                     loadMessagesTable();
                 }
@@ -1350,11 +1334,11 @@
             e.preventDefault();
 
             const jobData = {
-                title: document.getElementById('job-title').value,
-                location: document.getElementById('job-location').value,
+                title: sanitizeInput(document.getElementById('job-title').value),
+                location: sanitizeInput(document.getElementById('job-location').value),
                 contract_type: document.getElementById('job-contract').value,
-                experience: document.getElementById('job-experience').value,
-                description: document.getElementById('job-description').value,
+                experience: sanitizeInput(document.getElementById('job-experience').value),
+                description: sanitizeInput(document.getElementById('job-description').value),
                 is_active: document.getElementById('job-active').checked
             };
 
@@ -1370,6 +1354,7 @@
                 }
                 closeJobModal();
                 loadJobsTable();
+                loadDashboardStats();
             } catch (error) {
                 showToast('Erreur: ' + error.message, 'error');
             }
@@ -1404,9 +1389,9 @@
                         <tbody>
                             ${products.map(product => `
                                 <tr>
-                                    <td><strong>${product.name}</strong></td>
-                                    <td><span class="badge badge-info">${product.category || '-'}</span></td>
-                                    <td>${product.badge || '-'}</td>
+                                    <td><strong>${escapeHtml(product.name)}</strong></td>
+                                    <td><span class="badge badge-info">${escapeHtml(product.category) || '-'}</span></td>
+                                    <td>${escapeHtml(product.badge) || '-'}</td>
                                     <td>${product.is_featured ? '<span class="badge badge-success">Oui</span>' : '<span class="badge badge-warning">Non</span>'}</td>
                                     <td class="actions">
                                         <button class="btn-icon edit" onclick="editProduct(${product.id})" title="Modifier">
@@ -1468,13 +1453,13 @@
             e.preventDefault();
 
             const productData = {
-                name: document.getElementById('product-name').value,
+                name: sanitizeInput(document.getElementById('product-name').value),
                 category: document.getElementById('product-category').value,
-                badge: document.getElementById('product-badge').value || null,
-                icon: document.getElementById('product-icon').value || 'fa-tshirt',
+                badge: sanitizeInput(document.getElementById('product-badge').value) || null,
+                icon: sanitizeInput(document.getElementById('product-icon').value) || 'fa-tshirt',
                 sort_order: parseInt(document.getElementById('product-sort').value) || 0,
-                gradient: document.getElementById('product-gradient').value,
-                description: document.getElementById('product-description').value,
+                gradient: sanitizeInput(document.getElementById('product-gradient').value),
+                description: sanitizeInput(document.getElementById('product-description').value),
                 is_featured: document.getElementById('product-featured').checked
             };
 
@@ -1482,17 +1467,15 @@
 
             try {
                 if (id) {
-                    const { error } = await supabaseClient.from('products').update(productData).eq('id', id);
-                    if (error) throw error;
+                    await DataService.updateProduct(id, productData);
                     showToast('Produit mis à jour avec succès');
                 } else {
-                    const { error } = await supabaseClient.from('products').insert([productData]);
-                    if (error) throw error;
+                    await DataService.createProduct(productData);
                     showToast('Produit créé avec succès');
                 }
-                DataService.clearCache();
                 closeProductModal();
                 loadProductsTable();
+                loadDashboardStats();
             } catch (error) {
                 showToast('Erreur: ' + error.message, 'error');
             }
@@ -1526,8 +1509,8 @@
                         <tbody>
                             ${items.map(item => `
                                 <tr>
-                                    <td><strong>${item.title}</strong></td>
-                                    <td><span class="badge badge-info">${item.category || '-'}</span></td>
+                                    <td><strong>${escapeHtml(item.title)}</strong></td>
+                                    <td><span class="badge badge-info">${escapeHtml(item.category) || '-'}</span></td>
                                     <td>${item.sort_order || 0}</td>
                                     <td class="actions">
                                         <button class="btn-icon edit" onclick="editShowroom(${item.id})" title="Modifier">
@@ -1587,27 +1570,24 @@
             e.preventDefault();
 
             const itemData = {
-                title: document.getElementById('showroom-title').value,
+                title: sanitizeInput(document.getElementById('showroom-title').value),
                 category: document.getElementById('showroom-category').value,
                 sort_order: parseInt(document.getElementById('showroom-sort').value) || 0,
-                icon: document.getElementById('showroom-icon').value || 'fa-image',
-                gradient: document.getElementById('showroom-gradient').value,
-                description: document.getElementById('showroom-description').value
+                icon: sanitizeInput(document.getElementById('showroom-icon').value) || 'fa-image',
+                gradient: sanitizeInput(document.getElementById('showroom-gradient').value),
+                description: sanitizeInput(document.getElementById('showroom-description').value)
             };
 
             const id = document.getElementById('showroom-id').value;
 
             try {
                 if (id) {
-                    const { error } = await supabaseClient.from('showroom_items').update(itemData).eq('id', id);
-                    if (error) throw error;
+                    await DataService.updateShowroomItem(id, itemData);
                     showToast('Élément mis à jour avec succès');
                 } else {
-                    const { error } = await supabaseClient.from('showroom_items').insert([itemData]);
-                    if (error) throw error;
+                    await DataService.createShowroomItem(itemData);
                     showToast('Élément créé avec succès');
                 }
-                DataService.clearCache();
                 closeShowroomModal();
                 loadShowroomTable();
             } catch (error) {
@@ -1623,20 +1603,7 @@
 
             try {
                 const filter = document.getElementById('messages-filter')?.value || 'all';
-                
-                let query = supabaseClient
-                    .from('messages')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (filter === 'unread') {
-                    query = query.eq('status', 'unread');
-                } else if (filter !== 'all') {
-                    query = query.eq('form_type', filter);
-                }
-
-                const { data: messages, error } = await query;
-                if (error) throw error;
+                const messages = await DataService.getMessages(filter);
 
                 document.getElementById('messages-count-badge').textContent = `${messages?.length || 0} messages`;
 
@@ -1669,8 +1636,8 @@
                                 <tr style="${msg.status === 'unread' ? 'background: #f0f9ff;' : ''}">
                                     <td>${formatDate(msg.created_at)}</td>
                                     <td><span class="badge badge-info">${formTypeLabels[msg.form_type] || msg.form_type}</span></td>
-                                    <td><strong>${msg.name}</strong></td>
-                                    <td>${msg.email}</td>
+                                    <td><strong>${escapeHtml(msg.name)}</strong></td>
+                                    <td>${escapeHtml(msg.email)}</td>
                                     <td>${msg.status === 'unread' ? '<span class="badge badge-warning">Non lu</span>' : '<span class="badge badge-success">Lu</span>'}</td>
                                     <td class="actions">
                                         <button class="btn-icon edit" onclick="viewMessage('${msg.id}')" title="Voir">
@@ -1693,17 +1660,11 @@
 
         async function viewMessage(id) {
             try {
-                const { data: message, error } = await supabaseClient
-                    .from('messages')
-                    .select('*')
-                    .eq('id', id)
-                    .single();
-
-                if (error) throw error;
+                const message = await DataService.getMessage(id);
 
                 // Mark as read
                 if (message.status === 'unread') {
-                    await supabaseClient.from('messages').update({ status: 'read' }).eq('id', id);
+                    await DataService.markMessageAsRead(id);
                 }
 
                 const formTypeLabels = {
@@ -1717,38 +1678,38 @@
                 
                 let content = `
                     <div style="margin-bottom: 1rem;">
-                        <strong>De:</strong> ${message.name} (${message.email})
+                        <strong>De:</strong> ${escapeHtml(message.name)} (${escapeHtml(message.email)})
                     </div>
                 `;
 
                 if (message.phone) {
-                    content += `<div style="margin-bottom: 1rem;"><strong>Téléphone:</strong> ${message.phone}</div>`;
+                    content += `<div style="margin-bottom: 1rem;"><strong>Téléphone:</strong> ${escapeHtml(message.phone)}</div>`;
                 }
 
                 if (message.company) {
-                    content += `<div style="margin-bottom: 1rem;"><strong>Entreprise:</strong> ${message.company}</div>`;
+                    content += `<div style="margin-bottom: 1rem;"><strong>Entreprise:</strong> ${escapeHtml(message.company)}</div>`;
                 }
 
                 if (message.subject) {
-                    content += `<div style="margin-bottom: 1rem;"><strong>Sujet:</strong> ${message.subject}</div>`;
+                    content += `<div style="margin-bottom: 1rem;"><strong>Sujet:</strong> ${escapeHtml(message.subject)}</div>`;
                 }
 
                 if (message.job_id) {
-                    content += `<div style="margin-bottom: 1rem;"><strong>Poste:</strong> ${message.job_id}</div>`;
+                    content += `<div style="margin-bottom: 1rem;"><strong>Poste:</strong> ${escapeHtml(message.job_id)}</div>`;
                 }
 
                 if (message.product_interest) {
-                    content += `<div style="margin-bottom: 1rem;"><strong>Produit:</strong> ${message.product_interest}</div>`;
+                    content += `<div style="margin-bottom: 1rem;"><strong>Produit:</strong> ${escapeHtml(message.product_interest)}</div>`;
                 }
 
                 if (message.quantity) {
-                    content += `<div style="margin-bottom: 1rem;"><strong>Quantité:</strong> ${message.quantity}</div>`;
+                    content += `<div style="margin-bottom: 1rem;"><strong>Quantité:</strong> ${escapeHtml(message.quantity)}</div>`;
                 }
 
                 content += `
                     <div style="margin-bottom: 1rem;">
                         <strong>Message:</strong>
-                        <p style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-top: 0.5rem;">${message.message || 'Pas de message'}</p>
+                        <p style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-top: 0.5rem;">${escapeHtml(message.message) || 'Pas de message'}</p>
                     </div>
                 `;
 
@@ -1756,7 +1717,7 @@
                     content += `
                         <div style="margin-bottom: 1rem;">
                             <strong>Informations supplémentaires:</strong>
-                            <pre style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-top: 0.5rem; font-size: 0.85rem; overflow-x: auto;">${JSON.stringify(message.metadata, null, 2)}</pre>
+                            <pre style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-top: 0.5rem; font-size: 0.85rem; overflow-x: auto;">${escapeHtml(JSON.stringify(message.metadata, null, 2))}</pre>
                         </div>
                     `;
                 }
@@ -1796,6 +1757,51 @@
             return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
         }
 
+        /**
+         * Sanitize user input to prevent XSS
+         */
+        function sanitizeInput(str) {
+            if (!str) return '';
+            return String(str)
+                .trim()
+                .replace(/[<>]/g, '') // Remove angle brackets
+                .substring(0, 10000); // Limit length
+        }
+
+        /**
+         * Escape HTML for safe display
+         */
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        /**
+         * Load dashboard statistics
+         */
+        async function loadDashboardStats() {
+            try {
+                DataService.clearCache(); // Clear cache to get fresh data
+                
+                const [news, products, clients] = await Promise.all([
+                    DataService.getNews(),
+                    DataService.getProducts(),
+                    DataService.getClients()
+                ]);
+
+                const { data: jobs } = await supabaseClient.from('jobs').select('id');
+
+                document.getElementById('stat-news-count').textContent = news.length;
+                document.getElementById('stat-products-count').textContent = products.length;
+                document.getElementById('stat-clients-count').textContent = clients.length;
+                document.getElementById('stat-jobs-count').textContent = jobs?.length || 0;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
         // ==================== INIT ====================
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1812,22 +1818,7 @@
             });
 
             // Load dashboard stats
-            try {
-                const [news, products, clients] = await Promise.all([
-                    DataService.getNews(),
-                    DataService.getProducts(),
-                    DataService.getClients()
-                ]);
-
-                const { data: jobs } = await supabaseClient.from('jobs').select('id');
-
-                document.getElementById('stat-news-count').textContent = news.length;
-                document.getElementById('stat-products-count').textContent = products.length;
-                document.getElementById('stat-clients-count').textContent = clients.length;
-                document.getElementById('stat-jobs-count').textContent = jobs?.length || 0;
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
+            await loadDashboardStats();
         });
     </script>
 </body>
