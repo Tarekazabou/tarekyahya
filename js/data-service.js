@@ -3,6 +3,11 @@
  * Handles all data fetching from Supabase for the Primavet website
  */
 
+// Default values constants
+const DEFAULT_GRADIENT = 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)';
+const DEFAULT_PRODUCT_ICON = 'fa-tshirt';
+const DEFAULT_SHOWROOM_ICON = 'fa-image';
+
 const DataService = {
     // Cache to avoid repeated fetches
     cache: {},
@@ -245,6 +250,37 @@ const DataService = {
             }
             return data || [];
         });
+    },
+
+    /**
+     * Get all jobs (including inactive) for admin
+     */
+    async getAllJobs() {
+        const { data, error } = await supabaseClient
+            .from('jobs')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching all jobs:', error);
+            return [];
+        }
+        return data || [];
+    },
+
+    /**
+     * Get total jobs count
+     */
+    async getJobsCount() {
+        const { data, error } = await supabaseClient
+            .from('jobs')
+            .select('id');
+
+        if (error) {
+            console.error('Error fetching jobs count:', error);
+            return 0;
+        }
+        return data?.length || 0;
     },
 
     // ==================== SHOWROOM ====================
@@ -545,8 +581,8 @@ const DataService = {
                 description: productData.description,
                 category: productData.category,
                 badge: productData.badge || null,
-                icon: productData.icon || 'fa-tshirt',
-                gradient: productData.gradient || 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+                icon: productData.icon || DEFAULT_PRODUCT_ICON,
+                gradient: productData.gradient || DEFAULT_GRADIENT,
                 is_featured: productData.is_featured || false,
                 sort_order: productData.sort_order || 0
             }])
@@ -558,7 +594,8 @@ const DataService = {
         }
 
         // Clear products cache
-        this.clearCache();
+        delete this.cache['products_all'];
+        delete this.cache['featuredProducts'];
 
         return data[0];
     },
@@ -579,7 +616,8 @@ const DataService = {
         }
 
         // Clear products cache
-        this.clearCache();
+        delete this.cache['products_all'];
+        delete this.cache['featuredProducts'];
 
         return data[0];
     },
@@ -599,7 +637,8 @@ const DataService = {
         }
 
         // Clear products cache
-        this.clearCache();
+        delete this.cache['products_all'];
+        delete this.cache['featuredProducts'];
 
         return true;
     },
@@ -616,8 +655,8 @@ const DataService = {
                 title: itemData.title,
                 description: itemData.description || null,
                 category: itemData.category || 'collection',
-                icon: itemData.icon || 'fa-image',
-                gradient: itemData.gradient || 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+                icon: itemData.icon || DEFAULT_SHOWROOM_ICON,
+                gradient: itemData.gradient || DEFAULT_GRADIENT,
                 sort_order: itemData.sort_order || 0
             }])
             .select();
@@ -628,7 +667,7 @@ const DataService = {
         }
 
         // Clear showroom cache
-        this.clearCache();
+        delete this.cache['showroom_all'];
 
         return data[0];
     },
@@ -649,7 +688,7 @@ const DataService = {
         }
 
         // Clear showroom cache
-        this.clearCache();
+        delete this.cache['showroom_all'];
 
         return data[0];
     },
@@ -669,7 +708,7 @@ const DataService = {
         }
 
         // Clear showroom cache
-        this.clearCache();
+        delete this.cache['showroom_all'];
 
         return true;
     },

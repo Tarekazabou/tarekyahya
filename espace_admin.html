@@ -1186,12 +1186,7 @@
 
             try {
                 // Get ALL jobs including inactive for admin
-                const { data: jobs, error } = await supabaseClient
-                    .from('jobs')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
+                const jobs = await DataService.getAllJobs();
 
                 document.getElementById('jobs-count-badge').textContent = `${jobs.length} offres`;
                 document.getElementById('stat-jobs-count').textContent = jobs.length;
@@ -1265,8 +1260,9 @@
         }
 
         async function editJob(id) {
-            const { data: jobs } = await supabaseClient.from('jobs').select('*').eq('id', id);
-            if (jobs && jobs[0]) openJobModal(jobs[0]);
+            const jobs = await DataService.getAllJobs();
+            const job = jobs.find(j => j.id === id);
+            if (job) openJobModal(job);
         }
 
         async function toggleJob(id, isActive) {
@@ -1757,15 +1753,21 @@
             return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
         }
 
+        // Constants
+        const MAX_INPUT_LENGTH = 10000;
+
         /**
-         * Sanitize user input to prevent XSS
+         * Sanitize user input to prevent XSS and injection attacks
+         * Note: This removes only actively dangerous patterns while preserving most content
          */
         function sanitizeInput(str) {
             if (!str) return '';
             return String(str)
                 .trim()
                 .replace(/[<>]/g, '') // Remove angle brackets
-                .substring(0, 10000); // Limit length
+                .replace(/javascript:/gi, '') // Remove javascript: protocol
+                .replace(/on\w+=/gi, '') // Remove inline event handlers
+                .substring(0, MAX_INPUT_LENGTH); // Limit length
         }
 
         /**
@@ -1783,20 +1785,17 @@
          */
         async function loadDashboardStats() {
             try {
-                DataService.clearCache(); // Clear cache to get fresh data
-                
-                const [news, products, clients] = await Promise.all([
+                const [news, products, clients, jobsCount] = await Promise.all([
                     DataService.getNews(),
                     DataService.getProducts(),
-                    DataService.getClients()
+                    DataService.getClients(),
+                    DataService.getJobsCount()
                 ]);
-
-                const { data: jobs } = await supabaseClient.from('jobs').select('id');
 
                 document.getElementById('stat-news-count').textContent = news.length;
                 document.getElementById('stat-products-count').textContent = products.length;
                 document.getElementById('stat-clients-count').textContent = clients.length;
-                document.getElementById('stat-jobs-count').textContent = jobs?.length || 0;
+                document.getElementById('stat-jobs-count').textContent = jobsCount;
             } catch (error) {
                 console.error('Error loading stats:', error);
             }
