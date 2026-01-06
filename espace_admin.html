@@ -949,9 +949,8 @@
         
         // Enhanced authentication with proper session management
         let currentUser = null;
-        let isAdmin = false;
 
-        // Check if user is logged in and has admin privileges
+        // Check if user is logged in (no admin role required)
         async function checkAuth() {
             try {
                 // Use AuthManager from supabase-client.js
@@ -964,20 +963,7 @@
                 }
                 
                 currentUser = session.user;
-                
-                // Check admin role
-                isAdmin = await AuthManager.isAdmin();
-                
-                if (!isAdmin) {
-                    // User is authenticated but not admin
-                    showToast('Accès refusé: privilèges administrateur requis', 'error');
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 2000);
-                    return false;
-                }
-                
-                console.log('✅ Admin authenticated:', currentUser.email);
+                console.log('✅ User authenticated:', currentUser.email);
                 return true;
             } catch (error) {
                 console.error('Auth check failed:', error);
