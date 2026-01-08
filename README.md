@@ -1,10 +1,10 @@
-# Primavet - Site Web Textile
+# Primavet - Site Web Prêt à Porter
 
-Site web professionnel pour **Primavet**, entreprise spécialisée dans la conception, le développement et la commercialisation de produits textiles de qualité.
+Site web professionnel pour **Primavet**, entreprise spécialisée dans la conception, le développement et la commercialisation de produits prêt à porter de qualité.
 
 ## 📋 Description
 
-Ce projet est un site web vitrine moderne et responsive pour une entreprise du secteur textile. Il comprend toutes les fonctionnalités nécessaires pour présenter l'entreprise, ses produits, et faciliter la prise de contact avec les clients et partenaires.
+Ce projet est un site web vitrine moderne et responsive pour une entreprise du secteur prêt à porter. Il comprend toutes les fonctionnalités nécessaires pour présenter l'entreprise, ses produits, et faciliter la prise de contact avec les clients et partenaires.
 
 ## 🎨 Caractéristiques
 
@@ -120,7 +120,7 @@ Le site s'adapte à toutes les tailles d'écran :
 ## 📞 Contact
 
 **Primavet**
-- Adresse : 123 Avenue du Textile, 75001 Paris, France
+- Adresse : 123 Avenue du Prêt à Porter, 75001 Paris, France
 - Téléphone : +33 1 23 45 67 89
 - E-mail : contact@primavet.com
 
