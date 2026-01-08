@@ -1,6 +1,6 @@
 /* ================================================
    PRIMAVET - Website Stylesheet
-   Textile Company - Blue Color Theme
+   Prêt à Porter Company - Blue Color Theme
    Modern, Professional, Responsive Design
    With Accessibility Enhancements
    ================================================ */
@@ -362,11 +362,11 @@ p {
 .logo-text {
     font-size: 1.75rem;
     font-weight: 700;
-    color: var(--primary-color);
+    color: #3b82f6; /* Normal blue for "Prima" */
 }
 
 .logo-text span {
-    color: var(--secondary-color);
+    color: #1e3a8a; /* Darker professional blue for "Vet" */
 }
 
 .nav {
@@ -1277,12 +1277,12 @@ p {
 .footer-logo {
     font-size: 1.75rem;
     font-weight: 700;
-    color: var(--white);
+    color: #93c5fd; /* Light blue for "Prima" in footer */
     margin-bottom: var(--spacing-md);
 }
 
 .footer-logo span {
-    color: var(--secondary-color);
+    color: var(--white); /* White/brighter for "Vet" contrast in footer */
 }
 
 .footer-about p {

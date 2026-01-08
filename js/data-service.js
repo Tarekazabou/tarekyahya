@@ -56,7 +56,7 @@ const DataService = {
     getDefaultSiteConfig() {
         return {
             company_name: 'Primavet',
-            address: '123 Avenue du Textile, 75001 Paris, France',
+            address: '123 Avenue du Prêt à Porter, 75001 Paris, France',
             phone: '+33 1 23 45 67 89',
             email: 'contact@primavet.com',
             business_hours: 'Lun - Ven: 9h00 - 18h00',

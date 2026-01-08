@@ -59,12 +59,12 @@
         .sidebar-logo {
             font-size: 1.5rem;
             font-weight: 700;
-            color: white;
+            color: #93c5fd; /* Light blue for "Prima" */
             text-decoration: none;
         }
 
         .sidebar-logo span {
-            opacity: 0.7;
+            color: white; /* White for "Vet" - stands out on dark background */
         }
 
         .sidebar-nav {
@@ -429,6 +429,28 @@
             .form-row {
                 grid-template-columns: 1fr;
             }
+            
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .admin-card {
+                padding: 1rem;
+            }
+            
+            .kpi-card h3 {
+                font-size: 1.5rem !important;
+            }
+            
+            .admin-main {
+                padding: 1rem;
+            }
         }
 
         /* Loading state */
@@ -510,12 +532,161 @@
                     </div>
                 </div>
 
-                <!-- Stats Cards -->
-                <div class="dashboard-grid"
-                    style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                <!-- Section 1: Activité Générale -->
+                <div class="admin-card" style="margin-bottom: 1.5rem;">
+                    <div class="admin-card-header">
+                        <h2><i class="fas fa-chart-bar"></i> Activité Générale</h2>
+                    </div>
+                    <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                        <div class="kpi-card" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
+                            <i class="fas fa-eye" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.9;"></i>
+                            <h3 id="stat-visitors-total" style="font-size: 2rem; margin: 0.5rem 0;">12,458</h3>
+                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Nombre total de visiteurs</p>
+                            <span style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.2); border-radius: 4px; font-size: 0.75rem;">
+                                <i class="fas fa-arrow-up"></i> +12.5%
+                            </span>
+                        </div>
+                        <div class="kpi-card" style="background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
+                            <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.9;"></i>
+                            <h3 id="stat-clients-count" style="font-size: 2rem; margin: 0.5rem 0;">845</h3>
+                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Nombre total de clients</p>
+                            <span style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.2); border-radius: 4px; font-size: 0.75rem;">
+                                <i class="fas fa-arrow-up"></i> +8.3%
+                            </span>
+                        </div>
+                        <div class="kpi-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
+                            <i class="fas fa-shopping-cart" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.9;"></i>
+                            <h3 id="stat-orders-total" style="font-size: 2rem; margin: 0.5rem 0;">1,234</h3>
+                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Nombre total de commandes</p>
+                            <span style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.2); border-radius: 4px; font-size: 0.75rem;">
+                                <i class="fas fa-arrow-up"></i> +15.2%
+                            </span>
+                        </div>
+                        <div class="kpi-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
+                            <i class="fas fa-percentage" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.9;"></i>
+                            <h3 id="stat-conversion-rate" style="font-size: 2rem; margin: 0.5rem 0;">6.8%</h3>
+                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Taux de conversion visiteurs → clients</p>
+                            <span style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.2); border-radius: 4px; font-size: 0.75rem;">
+                                <i class="fas fa-arrow-up"></i> +2.1%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Performance Commerciale -->
+                <div class="admin-card" style="margin-bottom: 1.5rem;">
+                    <div class="admin-card-header">
+                        <h2><i class="fas fa-euro-sign"></i> Performance Commerciale</h2>
+                    </div>
+                    <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                        <div class="kpi-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
+                                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-coins" style="font-size: 1.5rem; color: white;"></i>
+                                </div>
+                                <div style="text-align: left;">
+                                    <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Chiffre d'affaires total</p>
+                                    <h3 id="stat-revenue-total" style="font-size: 1.75rem; margin: 0; color: #1e293b;">€ 458,320</h3>
+                                    <span style="color: #22c55e; font-size: 0.8rem;"><i class="fas fa-arrow-up"></i> +18.5% vs année dernière</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kpi-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
+                                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-calendar-alt" style="font-size: 1.5rem; color: white;"></i>
+                                </div>
+                                <div style="text-align: left;">
+                                    <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Chiffre d'affaires du mois</p>
+                                    <h3 id="stat-revenue-month" style="font-size: 1.75rem; margin: 0; color: #1e293b;">€ 42,580</h3>
+                                    <span style="color: #22c55e; font-size: 0.8rem;"><i class="fas fa-arrow-up"></i> +12.3% vs mois dernier</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kpi-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
+                                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-chart-line" style="font-size: 1.5rem; color: white;"></i>
+                                </div>
+                                <div style="text-align: left;">
+                                    <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Taux de croissance des ventes</p>
+                                    <h3 id="stat-growth-rate" style="font-size: 1.75rem; margin: 0; color: #1e293b;">+24.7%</h3>
+                                    <span style="color: #22c55e; font-size: 0.8rem;"><i class="fas fa-arrow-up"></i> Tendance positive</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Produits -->
+                <div class="admin-card" style="margin-bottom: 1.5rem;">
+                    <div class="admin-card-header">
+                        <h2><i class="fas fa-box"></i> Produits</h2>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
+                        <!-- Total Products -->
+                        <div style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
+                            <i class="fas fa-cubes" style="font-size: 2.5rem; margin-bottom: 0.5rem;"></i>
+                            <h3 id="stat-products-total" style="font-size: 2.5rem; margin: 0.5rem 0;">-</h3>
+                            <p style="margin: 0; font-size: 1rem;">Nombre total de produits</p>
+                        </div>
+                        
+                        <!-- Top Selling Products -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <h4 style="color: #1e293b; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-trophy" style="color: #f59e0b;"></i> Produits les plus vendus
+                            </h4>
+                            <div id="top-selling-products">
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #e2e8f0;">
+                                    <span style="color: #374151;">Costume Homme Classic</span>
+                                    <span class="badge badge-success">152 ventes</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #e2e8f0;">
+                                    <span style="color: #374151;">Robe Femme Élégante</span>
+                                    <span class="badge badge-success">128 ventes</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #e2e8f0;">
+                                    <span style="color: #374151;">Polo Professionnel</span>
+                                    <span class="badge badge-success">98 ventes</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0;">
+                                    <span style="color: #374151;">Chemise Business</span>
+                                    <span class="badge badge-success">87 ventes</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Low Rotation Products -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <h4 style="color: #1e293b; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> Produits à faible rotation
+                            </h4>
+                            <div id="low-rotation-products">
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #e2e8f0;">
+                                    <span style="color: #374151;">Veste d'Hiver Luxe</span>
+                                    <span class="badge badge-warning">5 ventes</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #e2e8f0;">
+                                    <span style="color: #374151;">Écharpe Laine Premium</span>
+                                    <span class="badge badge-warning">8 ventes</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #e2e8f0;">
+                                    <span style="color: #374151;">Cravate Soie Collection</span>
+                                    <span class="badge badge-warning">12 ventes</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0;">
+                                    <span style="color: #374151;">Gilet Sans Manches</span>
+                                    <span class="badge badge-danger">3 ventes</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats Row -->
+                <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
                     <div class="admin-card" style="text-align: center;">
-                        <i class="fas fa-newspaper"
-                            style="font-size: 2rem; color: var(--primary-color); margin-bottom: 0.5rem;"></i>
+                        <i class="fas fa-newspaper" style="font-size: 2rem; color: var(--primary-color); margin-bottom: 0.5rem;"></i>
                         <h3 id="stat-news-count" style="font-size: 2rem; color: var(--dark);">-</h3>
                         <p style="color: #64748b;">Actualités</p>
                     </div>
@@ -525,14 +696,14 @@
                         <p style="color: #64748b;">Offres d'Emploi</p>
                     </div>
                     <div class="admin-card" style="text-align: center;">
-                        <i class="fas fa-box" style="font-size: 2rem; color: #f59e0b; margin-bottom: 0.5rem;"></i>
-                        <h3 id="stat-products-count" style="font-size: 2rem; color: var(--dark);">-</h3>
-                        <p style="color: #64748b;">Produits</p>
+                        <i class="fas fa-envelope" style="font-size: 2rem; color: #8b5cf6; margin-bottom: 0.5rem;"></i>
+                        <h3 id="stat-messages-count" style="font-size: 2rem; color: var(--dark);">24</h3>
+                        <p style="color: #64748b;">Messages</p>
                     </div>
                     <div class="admin-card" style="text-align: center;">
-                        <i class="fas fa-users" style="font-size: 2rem; color: #0ea5e9; margin-bottom: 0.5rem;"></i>
-                        <h3 id="stat-clients-count" style="font-size: 2rem; color: var(--dark);">-</h3>
-                        <p style="color: #64748b;">Clients</p>
+                        <i class="fas fa-images" style="font-size: 2rem; color: #ec4899; margin-bottom: 0.5rem;"></i>
+                        <h3 id="stat-showroom-count" style="font-size: 2rem; color: var(--dark);">18</h3>
+                        <p style="color: #64748b;">Showroom Items</p>
                     </div>
                 </div>
 
@@ -816,8 +987,6 @@
                         <select id="product-category" required>
                             <option value="homme">Homme</option>
                             <option value="femme">Femme</option>
-                            <option value="professionnel">Professionnel</option>
-                            <option value="accessoires">Accessoires</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1883,6 +2052,7 @@
 
                 document.getElementById('stat-news-count').textContent = news.length;
                 document.getElementById('stat-products-count').textContent = products.length;
+                document.getElementById('stat-products-total').textContent = products.length;
                 document.getElementById('stat-clients-count').textContent = clients.length;
                 document.getElementById('stat-jobs-count').textContent = jobsCount;
             } catch (error) {
