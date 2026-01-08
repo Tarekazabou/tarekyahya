@@ -4,7 +4,7 @@
  */
 
 // Default values constants
-const DEFAULT_GRADIENT = 'linear-gradient(135deg, #0b1f44 0%, #3b7cff 100%)';
+const DEFAULT_GRADIENT = 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)';
 const DEFAULT_PRODUCT_ICON = 'fa-tshirt';
 const DEFAULT_SHOWROOM_ICON = 'fa-image';
 
@@ -430,7 +430,7 @@ const DataService = {
                 category: newsData.category,
                 author: newsData.author || 'Admin',
                 icon: newsData.icon || 'fa-newspaper',
-                gradient: newsData.gradient || 'linear-gradient(135deg, #0b1f44 0%, #3b7cff 100%)',
+                gradient: newsData.gradient || 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
                 published_at: newsData.published_at || new Date().toISOString().split('T')[0],
                 is_featured: newsData.is_featured || false
             }])
