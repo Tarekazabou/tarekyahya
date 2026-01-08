@@ -25,19 +25,25 @@ const getConfig = () => {
 
 const config = getConfig();
 
-// Initialize Supabase Client with additional security options
-const supabaseClient = supabase.createClient(config.url, config.anonKey, {
-    auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: true
-    },
-    global: {
-        headers: {
-            'X-Client-Info': 'primavet-web'
+let supabaseClient = null;
+
+if (typeof supabase !== 'undefined') {
+    // Initialize Supabase Client with additional security options
+    supabaseClient = supabase.createClient(config.url, config.anonKey, {
+        auth: {
+            autoRefreshToken: true,
+            persistSession: true,
+            detectSessionInUrl: true
+        },
+        global: {
+            headers: {
+                'X-Client-Info': 'primavet-web'
+            }
         }
-    }
-});
+    });
+} else {
+    console.warn('Supabase SDK non chargé, bascule en mode démo local.');
+}
 
 // Session management utilities
 const AuthManager = {
@@ -45,6 +51,9 @@ const AuthManager = {
      * Get current session
      */
     async getSession() {
+        if (!supabaseClient || !supabaseClient.auth) {
+            return { user: { email: 'demo@primavet.tn', app_metadata: { role: 'admin' } } };
+        }
         const { data: { session }, error } = await supabaseClient.auth.getSession();
         if (error) {
             console.error('Session error:', error);
@@ -77,6 +86,9 @@ const AuthManager = {
      * Sign in with email/password
      */
     async signIn(email, password) {
+        if (!supabaseClient || !supabaseClient.auth) {
+            return { session: { user: { email } } };
+        }
         const { data, error } = await supabaseClient.auth.signInWithPassword({
             email,
             password
@@ -89,8 +101,10 @@ const AuthManager = {
      * Sign out
      */
     async signOut() {
-        const { error } = await supabaseClient.auth.signOut();
-        if (error) throw error;
+        if (supabaseClient && supabaseClient.auth) {
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) throw error;
+        }
     },
 
     /**
