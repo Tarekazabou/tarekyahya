@@ -358,8 +358,11 @@ p {
     align-items: center;
 }
 
-.logo img {
-    height: 50px;
+.logo img,
+.logo-img {
+    height: 70px;
+    width: auto;
+    object-fit: contain;
 }
 
 .logo-text {
@@ -1287,6 +1290,12 @@ p {
 
 .footer-logo span {
     color: var(--white); /* White/brighter for "Vet" contrast in footer */
+}
+
+.footer-logo-img {
+    height: 80px;
+    width: auto;
+    object-fit: contain;
 }
 
 .footer-about p {
