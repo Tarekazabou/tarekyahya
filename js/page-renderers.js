@@ -469,7 +469,7 @@ const PageRenderers = {
             // Update social links
             const socialLinks = document.querySelectorAll('.footer-social a');
             if (socialLinks.length > 0 && config.social_links) {
-                const platforms = ['facebook', 'instagram', 'linkedin', 'twitter'];
+                const platforms = ['facebook', 'instagram', 'linkedin'];
                 socialLinks.forEach((link, index) => {
                     if (platforms[index] && config.social_links[platforms[index]]) {
                         link.href = Sanitizer.sanitizeUrl(config.social_links[platforms[index]]);

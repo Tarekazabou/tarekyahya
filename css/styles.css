@@ -362,11 +362,12 @@ p {
 .logo-text {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #3b82f6; /* Normal blue for "Prima" */
+    color: #1e3a8a; /* Darker professional blue for "prima" */
+    
 }
 
 .logo-text span {
-    color: #1e3a8a; /* Darker professional blue for "Vet" */
+    color: #020f33; /* Darker professional blue for "Vet" */
 }
 
 .nav {

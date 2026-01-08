@@ -63,8 +63,7 @@ const DataService = {
             social_links: {
                 facebook: '#',
                 instagram: '#',
-                linkedin: '#',
-                twitter: '#'
+                linkedin: '#'
             }
         };
     },
