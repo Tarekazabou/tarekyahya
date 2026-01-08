@@ -39,12 +39,7 @@ async function checkAuth() {
     }
 }
 
-// Listen for auth state changes
-AuthManager.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_OUT') {
-        window.location.href = 'login.html';
-    }
-});
+// Auth state change listener will be set up in init
 
 // ==================== CSRF & RATE LIMITING ====================
 
@@ -1250,44 +1245,59 @@ async function testSupabaseConnection() {
 }
 
 // ==================== GLOBAL EXPORTS ====================
-
-Object.assign(window, {
-    switchSection,
+// Export functions to window immediately for onclick handlers
+function exportToWindow() {
+    window.switchSection = switchSection;
     // News
-    openNewsModal,
-    closeNewsModal,
-    editNews,
-    confirmDeleteNews,
-    loadNewsTable,
+    window.openNewsModal = openNewsModal;
+    window.closeNewsModal = closeNewsModal;
+    window.editNews = editNews;
+    window.confirmDeleteNews = confirmDeleteNews;
+    window.deleteNews = deleteNews;
+    window.loadNewsTable = loadNewsTable;
     // Jobs
-    openJobModal,
-    closeJobModal,
-    editJob,
-    toggleJob,
-    confirmDeleteJob,
-    loadJobsTable,
+    window.openJobModal = openJobModal;
+    window.closeJobModal = closeJobModal;
+    window.editJob = editJob;
+    window.toggleJob = toggleJob;
+    window.confirmDeleteJob = confirmDeleteJob;
+    window.deleteJob = deleteJob;
+    window.loadJobsTable = loadJobsTable;
     // Products
-    openProductModal,
-    closeProductModal,
-    editProduct,
-    confirmDeleteProduct,
-    loadProductsTable,
+    window.openProductModal = openProductModal;
+    window.closeProductModal = closeProductModal;
+    window.editProduct = editProduct;
+    window.confirmDeleteProduct = confirmDeleteProduct;
+    window.deleteProduct = deleteProduct;
+    window.loadProductsTable = loadProductsTable;
     // Showroom
-    openShowroomModal,
-    closeShowroomModal,
-    editShowroom,
-    confirmDeleteShowroom,
-    loadShowroomTable,
+    window.openShowroomModal = openShowroomModal;
+    window.closeShowroomModal = closeShowroomModal;
+    window.editShowroom = editShowroom;
+    window.confirmDeleteShowroom = confirmDeleteShowroom;
+    window.deleteShowroom = deleteShowroom;
+    window.loadShowroomTable = loadShowroomTable;
     // Messages
-    viewMessage,
-    confirmDeleteMessage,
-    closeMessageModal,
-    loadMessagesTable,
+    window.viewMessage = viewMessage;
+    window.confirmDeleteMessage = confirmDeleteMessage;
+    window.deleteMessage = deleteMessage;
+    window.closeMessageModal = closeMessageModal;
+    window.loadMessagesTable = loadMessagesTable;
     // Confirm modal
-    closeConfirmModal,
+    window.closeConfirmModal = closeConfirmModal;
+    window.handleConfirmDelete = handleConfirmDelete;
     // Utilities
-    showToast
-});
+    window.showToast = showToast;
+    
+    console.log('✅ Admin functions exported to window scope');
+}
+
+// Export immediately
+try {
+    exportToWindow();
+} catch (e) {
+    console.error('Failed to export functions:', e);
+}
 
 // Global error handler
 window.addEventListener('error', (event) => {
@@ -1347,6 +1357,27 @@ function initEventListeners() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Admin panel initializing...');
+
+    // Re-export functions to window (in case first attempt failed)
+    try {
+        exportToWindow();
+        console.log('✅ Functions exported to window');
+    } catch (e) {
+        console.error('Failed to export functions:', e);
+    }
+
+    // Set up auth state change listener
+    try {
+        if (typeof AuthManager !== 'undefined' && AuthManager.onAuthStateChange) {
+            AuthManager.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_OUT') {
+                    window.location.href = 'login.html';
+                }
+            });
+        }
+    } catch (e) {
+        console.error('Auth state listener setup failed:', e);
+    }
 
     // Check authentication first
     const isLoggedIn = await checkAuth();
