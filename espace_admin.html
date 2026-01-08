@@ -713,10 +713,10 @@
                         <h2><i class="fas fa-bolt"></i> Actions Rapides</h2>
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
-                        <button class="btn btn-primary" onclick="switchSection('news'); openNewsModal();">
+                        <button id="quick-add-news" class="btn btn-primary" onclick="switchSection('news'); openNewsModal();">
                             <i class="fas fa-plus"></i> Nouvelle Actualité
                         </button>
-                        <button class="btn btn-primary" onclick="switchSection('jobs'); openJobModal();">
+                        <button id="quick-add-job" class="btn btn-primary" onclick="switchSection('jobs'); openJobModal();">
                             <i class="fas fa-plus"></i> Nouvelle Offre
                         </button>
                         <a href="products.html" class="btn btn-secondary">
@@ -1312,6 +1312,7 @@
         }
 
         function openNewsModal(newsData = null) {
+            console.log('🟢 openNewsModal called', { newsData });
             document.getElementById('news-modal').classList.add('active');
             document.getElementById('news-form').reset();
             document.getElementById('news-id').value = '';
@@ -1331,6 +1332,7 @@
         }
 
         function closeNewsModal() {
+            console.log('🔴 closeNewsModal called');
             document.getElementById('news-modal').classList.remove('active');
         }
 
@@ -1529,6 +1531,7 @@
         }
 
         function openJobModal(jobData = null) {
+            console.log('🟢 openJobModal called', { jobData });
             document.getElementById('job-modal').classList.add('active');
             document.getElementById('job-form').reset();
             document.getElementById('job-id').value = '';
@@ -1548,12 +1551,13 @@
         }
 
         function closeJobModal() {
+            console.log('🔴 closeJobModal called');
             document.getElementById('job-modal').classList.remove('active');
         }
 
         async function editJob(id) {
             try {
-                const { data: jobs, error } = await supabase
+                const { data: jobs, error } = await supabaseClient
                     .from('jobs')
                     .select('*');
 
@@ -2429,7 +2433,11 @@
             editShowroom,
             confirmDeleteShowroom,
             // Messages
-            confirmDeleteMessage
+            confirmDeleteMessage,
+            // Confirm modal
+            closeConfirmModal,
+            // Message modal
+            closeMessageModal
         });
 
         // Global error handler to surface issues in UI
@@ -2473,6 +2481,26 @@
             await loadDashboardStats();
 
             console.log('✅ Admin panel ready');
+
+            // Bind quick action buttons as a fallback to inline handlers
+            document.getElementById('quick-add-news')?.addEventListener('click', (e) => {
+                try {
+                    switchSection('news');
+                    openNewsModal();
+                } catch (err) {
+                    console.error('Quick Add News failed:', err);
+                    showToast('Action indisponible: ' + err.message, 'error');
+                }
+            });
+            document.getElementById('quick-add-job')?.addEventListener('click', (e) => {
+                try {
+                    switchSection('jobs');
+                    openJobModal();
+                } catch (err) {
+                    console.error('Quick Add Job failed:', err);
+                    showToast('Action indisponible: ' + err.message, 'error');
+                }
+            });
         });
     </script>
 </body>
