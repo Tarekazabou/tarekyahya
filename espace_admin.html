@@ -1247,7 +1247,7 @@
             console.log('📰 Loading news table...');
 
             try {
-                const { data: news, error } = await supabase
+                const { data: news, error } = await supabaseClient
                     .from('news')
                     .select('*')
                     .order('published_at', { ascending: false });
@@ -1365,7 +1365,7 @@
             console.log('🗑️ Deleting news ID:', id);
 
             try {
-                const result = await supabase
+                const result = await supabaseClient
                     .from('news')
                     .delete()
                     .eq('id', id)
@@ -1423,7 +1423,7 @@
                 if (id) {
                     // Update existing
                     console.log('🔄 Updating news ID:', id);
-                    result = await supabase
+                    result = await supabaseClient
                         .from('news')
                         .update(newsData)
                         .eq('id', id)
@@ -1437,7 +1437,7 @@
                 } else {
                     // Create new
                     console.log('➕ Creating new news');
-                    result = await supabase
+                    result = await supabaseClient
                         .from('news')
                         .insert([newsData])
                         .select()
@@ -1596,7 +1596,7 @@
             console.log('🗑️ Deleting job ID:', id);
 
             try {
-                const result = await supabase
+                const result = await supabaseClient
                     .from('jobs')
                     .delete()
                     .eq('id', id)
@@ -1690,7 +1690,7 @@
 
                 if (id) {
                     console.log('🔄 Updating job ID:', id);
-                    result = await supabase
+                    result = await supabaseClient
                         .from('jobs')
                         .update(jobData)
                         .eq('id', id)
@@ -1703,7 +1703,7 @@
                     console.log('✅ Job updated:', result.data);
                 } else {
                     console.log('➕ Creating new job');
-                    result = await supabase
+                    result = await supabaseClient
                         .from('jobs')
                         .insert([jobData])
                         .select()
@@ -1811,7 +1811,7 @@
 
         async function editProduct(id) {
             try {
-                const { data: products, error } = await supabase
+                const { data: products, error } = await supabaseClient
                     .from('products')
                     .select('*');
 
@@ -1840,7 +1840,7 @@
             console.log('🗑️ Deleting product ID:', id);
 
             try {
-                const result = await supabase
+                const result = await supabaseClient
                     .from('products')
                     .delete()
                     .eq('id', id)
@@ -1982,7 +1982,7 @@
 
         async function editShowroom(id) {
             try {
-                const { data: items, error } = await supabase
+                const { data: items, error } = await supabaseClient
                     .from('showroom')
                     .select('*');
 
@@ -2011,7 +2011,7 @@
             console.log('🗑️ Deleting showroom item ID:', id);
 
             try {
-                const result = await supabase
+                const result = await supabaseClient
                     .from('showroom')
                     .delete()
                     .eq('id', id)
@@ -2234,7 +2234,7 @@
             console.log('🗑️ Deleting message ID:', id);
 
             try {
-                const result = await supabase
+                const result = await supabaseClient
                     .from('messages')
                     .delete()
                     .eq('id', id)
@@ -2323,11 +2323,21 @@
                     DataService.getJobsCount()
                 ]);
 
-                document.getElementById('stat-news-count').textContent = news.length;
-                document.getElementById('stat-products-count').textContent = products.length;
-                document.getElementById('stat-products-total').textContent = products.length;
-                document.getElementById('stat-clients-count').textContent = clients.length;
-                document.getElementById('stat-jobs-count').textContent = jobsCount;
+                // Safely update elements only if they exist
+                const el1 = document.getElementById('stat-news-count');
+                if (el1) el1.textContent = news.length;
+                
+                const el2 = document.getElementById('stat-products-count');
+                if (el2) el2.textContent = products.length;
+                
+                const el3 = document.getElementById('stat-products-total');
+                if (el3) el3.textContent = products.length;
+                
+                const el4 = document.getElementById('stat-clients-count');
+                if (el4) el4.textContent = clients.length;
+                
+                const el5 = document.getElementById('stat-jobs-count');
+                if (el5) el5.textContent = jobsCount;
             } catch (error) {
                 console.error('Error loading stats:', error);
             }
@@ -2341,22 +2351,22 @@
 
             try {
                 // Test 1: Check if supabase client exists
-                console.log('1. Supabase client:', typeof supabase !== 'undefined' ? '✅' : '❌');
+                console.log('1. Supabase client:', typeof supabaseClient !== 'undefined' ? '✅' : '❌');
 
                 // Test 2: Check authentication
-                const { data: { session }, error: authError } = await supabase.auth.getSession();
+                const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
                 console.log('2. Auth session:', session ? '✅' : '❌', session?.user?.email);
                 if (authError) console.error('Auth error:', authError);
 
                 // Test 3: Try to read from news table
-                const { data: newsData, error: newsError } = await supabase
+                const { data: newsData, error: newsError } = await supabaseClient
                     .from('news')
                     .select('count');
                 console.log('3. Read news:', newsError ? '❌' : '✅');
                 if (newsError) console.error('News read error:', newsError);
 
                 // Test 4: Try to read from jobs table
-                const { data: jobsData, error: jobsError } = await supabase
+                const { data: jobsData, error: jobsError } = await supabaseClient
                     .from('jobs')
                     .select('count');
                 console.log('4. Read jobs:', jobsError ? '❌' : '✅');
@@ -2372,7 +2382,7 @@
                     published_at: new Date().toISOString().split('T')[0]
                 };
 
-                const { data: insertTest, error: insertError } = await supabase
+                const { data: insertTest, error: insertError } = await supabaseClient
                     .from('news')
                     .insert([testData])
                     .select();
@@ -2380,7 +2390,7 @@
                 if (!insertError && insertTest) {
                     console.log('6. Write permission: ✅');
                     // Delete the test record
-                    await supabase.from('news').delete().eq('title', '__TEST__');
+                    await supabaseClient.from('news').delete().eq('title', '__TEST__');
                 } else {
                     console.log('6. Write permission: ❌');
                     console.error('Insert error:', insertError);
