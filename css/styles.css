@@ -5,11 +5,13 @@
    With Accessibility Enhancements
    ================================================ */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+
 /* ------------------------------------------------
    CSS Variables & Base Styles
    ------------------------------------------------ */
 :root {
-    /* Primary Colors - Blue Theme */
+    /* Primary Colors - Classic Blue Theme */
     --primary-color: #1e3a8a;
     --primary-dark: #1e2d5c;
     --primary-light: #3b82f6;
@@ -33,8 +35,8 @@
     --focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.5);
     
     /* Typography */
-    --font-primary: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    --font-secondary: 'Open Sans', Arial, sans-serif;
+    --font-primary: 'Inter', 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-secondary: 'Playfair Display', 'Inter', 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     
     /* Spacing */
     --spacing-xs: 0.25rem;
@@ -178,6 +180,7 @@ button, input, textarea, select {
    Typography
    ------------------------------------------------ */
 h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-secondary);
     font-weight: 600;
     line-height: 1.3;
     color: var(--dark);
@@ -1278,7 +1281,7 @@ p {
 .footer-logo {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #93c5fd; /* Light blue for "Prima" in footer */
+    color: var(--primary-light); /* Light gold for "Prima" in footer */
     margin-bottom: var(--spacing-md);
 }
 
