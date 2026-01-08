@@ -55,6 +55,77 @@ async function rateLimitedRequest(requestFn, key = 'admin') {
     return await requestFn();
 }
 
+// ==================== EVENT DELEGATION ====================
+// Central click handler - no more inline onclick attributes needed
+
+function initGlobalEventListeners() {
+    document.addEventListener('click', (e) => {
+        // Find the closest button if user clicked on the icon <i> inside
+        const btn = e.target.closest('button[data-action]');
+        
+        // If no button clicked or button has no action, ignore
+        if (!btn || !btn.dataset.action) return;
+
+        // Get the action and ID
+        const action = btn.dataset.action;
+        const id = btn.dataset.id;
+
+        console.log(`🔘 Action detected: ${action} on ID: ${id}`);
+
+        // Route to the correct function
+        switch (action) {
+            // --- NEWS ---
+            case 'edit-news':
+                editNews(parseInt(id));
+                break;
+            case 'delete-news':
+                confirmDeleteNews(parseInt(id));
+                break;
+            case 'reload-news':
+                loadNewsTable();
+                break;
+
+            // --- JOBS ---
+            case 'edit-job':
+                editJob(parseInt(id));
+                break;
+            case 'delete-job':
+                confirmDeleteJob(parseInt(id));
+                break;
+            case 'toggle-job':
+                const currentStatus = btn.dataset.active === 'true';
+                toggleJob(parseInt(id), !currentStatus);
+                break;
+
+            // --- PRODUCTS ---
+            case 'edit-product':
+                editProduct(parseInt(id));
+                break;
+            case 'delete-product':
+                confirmDeleteProduct(parseInt(id));
+                break;
+
+            // --- SHOWROOM ---
+            case 'edit-showroom':
+                editShowroom(parseInt(id));
+                break;
+            case 'delete-showroom':
+                confirmDeleteShowroom(parseInt(id));
+                break;
+
+            // --- MESSAGES ---
+            case 'view-message':
+                viewMessage(id); // UUID string, don't parse
+                break;
+            case 'delete-message':
+                confirmDeleteMessage(id); // UUID string, don't parse
+                break;
+        }
+    });
+    
+    console.log('✅ Global event listeners initialized');
+}
+
 // ==================== NAVIGATION ====================
 
 function initNavigation() {
@@ -163,10 +234,10 @@ async function loadNewsTable() {
                             <td>${formatDate(article.published_at)}</td>
                             <td>${article.is_featured ? '<span class="badge badge-success">Oui</span>' : '<span class="badge badge-warning">Non</span>'}</td>
                             <td class="actions">
-                                <button class="btn-icon edit" onclick="editNews(${article.id})" title="Modifier">
+                                <button class="btn-icon edit" data-action="edit-news" data-id="${article.id}" title="Modifier">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn-icon delete" onclick="confirmDeleteNews(${article.id})" title="Supprimer">
+                                <button class="btn-icon delete" data-action="delete-news" data-id="${article.id}" title="Supprimer">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -181,7 +252,7 @@ async function loadNewsTable() {
             <p class="loading" style="color: #dc2626;">
                 Erreur de chargement: ${error.message}
                 <br><br>
-                <button class="btn btn-secondary" onclick="loadNewsTable()">
+                <button class="btn btn-secondary" data-action="reload-news">
                     <i class="fas fa-redo"></i> Réessayer
                 </button>
             </p>
@@ -381,13 +452,13 @@ async function loadJobsTable() {
                             <td><span class="badge badge-info">${escapeHtml(job.contract_type) || '-'}</span></td>
                             <td>${job.is_active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>'}</td>
                             <td class="actions">
-                                <button class="btn-icon toggle" onclick="toggleJob(${job.id}, ${!job.is_active})" title="${job.is_active ? 'Désactiver' : 'Activer'}">
+                                <button class="btn-icon toggle" data-action="toggle-job" data-id="${job.id}" data-active="${job.is_active}" title="${job.is_active ? 'Désactiver' : 'Activer'}">
                                     <i class="fas ${job.is_active ? 'fa-eye-slash' : 'fa-eye'}"></i>
                                 </button>
-                                <button class="btn-icon edit" onclick="editJob(${job.id})" title="Modifier">
+                                <button class="btn-icon edit" data-action="edit-job" data-id="${job.id}" title="Modifier">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn-icon delete" onclick="confirmDeleteJob(${job.id})" title="Supprimer">
+                                <button class="btn-icon delete" data-action="delete-job" data-id="${job.id}" title="Supprimer">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -601,10 +672,10 @@ async function loadProductsTable() {
                             <td>${escapeHtml(product.badge) || '-'}</td>
                             <td>${product.is_featured ? '<span class="badge badge-success">Oui</span>' : '<span class="badge badge-warning">Non</span>'}</td>
                             <td class="actions">
-                                <button class="btn-icon edit" onclick="editProduct(${product.id})" title="Modifier">
+                                <button class="btn-icon edit" data-action="edit-product" data-id="${product.id}" title="Modifier">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn-icon delete" onclick="confirmDeleteProduct(${product.id})" title="Supprimer">
+                                <button class="btn-icon delete" data-action="delete-product" data-id="${product.id}" title="Supprimer">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -771,10 +842,10 @@ async function loadShowroomTable() {
                             <td><span class="badge badge-info">${escapeHtml(item.category) || '-'}</span></td>
                             <td>${item.sort_order || 0}</td>
                             <td class="actions">
-                                <button class="btn-icon edit" onclick="editShowroom(${item.id})" title="Modifier">
+                                <button class="btn-icon edit" data-action="edit-showroom" data-id="${item.id}" title="Modifier">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn-icon delete" onclick="confirmDeleteShowroom(${item.id})" title="Supprimer">
+                                <button class="btn-icon delete" data-action="delete-showroom" data-id="${item.id}" title="Supprimer">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -948,10 +1019,10 @@ async function loadMessagesTable() {
                             <td>${escapeHtml(msg.email)}</td>
                             <td>${msg.status === 'unread' ? '<span class="badge badge-warning">Non lu</span>' : '<span class="badge badge-success">Lu</span>'}</td>
                             <td class="actions">
-                                <button class="btn-icon edit" onclick="viewMessage('${msg.id}')" title="Voir">
+                                <button class="btn-icon edit" data-action="view-message" data-id="${msg.id}" title="Voir">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                <button class="btn-icon delete" onclick="confirmDeleteMessage('${msg.id}')" title="Supprimer">
+                                <button class="btn-icon delete" data-action="delete-message" data-id="${msg.id}" title="Supprimer">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -1245,47 +1316,23 @@ async function testSupabaseConnection() {
 }
 
 // ==================== GLOBAL EXPORTS ====================
-// Export functions to window immediately for onclick handlers
+// Minimal exports - event delegation handles most button clicks now
 function exportToWindow() {
-    window.switchSection = switchSection;
-    // News
+    // Modal functions (used by HTML buttons outside tables)
     window.openNewsModal = openNewsModal;
     window.closeNewsModal = closeNewsModal;
-    window.editNews = editNews;
-    window.confirmDeleteNews = confirmDeleteNews;
-    window.deleteNews = deleteNews;
-    window.loadNewsTable = loadNewsTable;
-    // Jobs
     window.openJobModal = openJobModal;
     window.closeJobModal = closeJobModal;
-    window.editJob = editJob;
-    window.toggleJob = toggleJob;
-    window.confirmDeleteJob = confirmDeleteJob;
-    window.deleteJob = deleteJob;
-    window.loadJobsTable = loadJobsTable;
-    // Products
     window.openProductModal = openProductModal;
     window.closeProductModal = closeProductModal;
-    window.editProduct = editProduct;
-    window.confirmDeleteProduct = confirmDeleteProduct;
-    window.deleteProduct = deleteProduct;
-    window.loadProductsTable = loadProductsTable;
-    // Showroom
     window.openShowroomModal = openShowroomModal;
     window.closeShowroomModal = closeShowroomModal;
-    window.editShowroom = editShowroom;
-    window.confirmDeleteShowroom = confirmDeleteShowroom;
-    window.deleteShowroom = deleteShowroom;
-    window.loadShowroomTable = loadShowroomTable;
-    // Messages
-    window.viewMessage = viewMessage;
-    window.confirmDeleteMessage = confirmDeleteMessage;
-    window.deleteMessage = deleteMessage;
     window.closeMessageModal = closeMessageModal;
-    window.loadMessagesTable = loadMessagesTable;
-    // Confirm modal
     window.closeConfirmModal = closeConfirmModal;
-    window.handleConfirmDelete = handleConfirmDelete;
+    
+    // Navigation (used by sidebar links)
+    window.switchSection = switchSection;
+    
     // Utilities
     window.showToast = showToast;
     
@@ -1390,6 +1437,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize navigation
     initNavigation();
+    
+    // Initialize global event delegation (handles all button clicks)
+    initGlobalEventListeners();
 
     // Initialize event listeners
     initEventListeners();
