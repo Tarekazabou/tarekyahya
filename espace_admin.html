@@ -2403,6 +2403,43 @@
             console.groupEnd();
         }
 
+        // ==================== GLOBAL EXPORTS ====================
+
+        // Ensure inline onclick handlers can access functions
+        Object.assign(window, {
+            switchSection,
+            // News
+            openNewsModal,
+            closeNewsModal,
+            editNews,
+            confirmDeleteNews,
+            // Jobs
+            openJobModal,
+            closeJobModal,
+            editJob,
+            confirmDeleteJob,
+            // Products
+            openProductModal,
+            closeProductModal,
+            editProduct,
+            confirmDeleteProduct,
+            // Showroom
+            openShowroomModal,
+            closeShowroomModal,
+            editShowroom,
+            confirmDeleteShowroom,
+            // Messages
+            confirmDeleteMessage
+        });
+
+        // Global error handler to surface issues in UI
+        window.addEventListener('error', (event) => {
+            console.error('💥 Uncaught error:', event.error || event.message);
+            try {
+                showToast('Erreur: ' + (event.error?.message || event.message), 'error');
+            } catch (_) {}
+        });
+
         // ==================== INIT ====================
 
         document.addEventListener('DOMContentLoaded', async () => {
