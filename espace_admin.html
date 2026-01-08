@@ -1336,7 +1336,7 @@
 
         async function editNews(id) {
             try {
-                const { data: news, error } = await supabase
+                const { data: news, error } = await supabaseClient
                     .from('news')
                     .select('*');
 
