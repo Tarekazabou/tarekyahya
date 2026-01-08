@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -22,6 +23,16 @@
     <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/admin.css">
+
+    <!-- Inline styles for tabs (minimal) -->
+    <style>
+        .admin-tabs { display: flex; gap: .5rem; margin: .5rem 0 1rem; }
+        .tab-button { padding: .5rem 1rem; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; color: #334155; cursor: pointer; }
+        .tab-button.active { background: var(--primary-color, #2563eb); color: #fff; border-color: var(--primary-color, #2563eb); }
+        .editor-panel { margin-bottom: 1rem; }
+        .editor-panel .admin-card { margin-bottom: 0; }
+        .editor-panel .form-actions { display: flex; gap: .75rem; }
+    </style>
 
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -300,6 +311,64 @@
                     </div>
                 </div>
 
+                <!-- Sub-tabs -->
+                <div class="admin-tabs">
+                    <button class="tab-button active" id="news-tab-list" onclick="switchSubtab('news','list')"><i class="fas fa-list"></i> Liste</button>
+                    <button class="tab-button" id="news-tab-edit" onclick="switchSubtab('news','edit')"><i class="fas fa-edit"></i> Éditer</button>
+                </div>
+
+                <!-- Inline Editor Panel -->
+                <div class="editor-panel" id="news-editor" style="display: none;">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h2><i class="fas fa-pen"></i> Éditer l'Actualité</h2>
+                        </div>
+                        <form id="news-form">
+                            <input type="hidden" id="news-id">
+                            <div class="form-group">
+                                <label for="news-title">Titre *</label>
+                                <input type="text" id="news-title" required placeholder="Titre de l'actualité">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="news-category">Catégorie</label>
+                                    <select id="news-category">
+                                        <option value="Collection">Collection</option>
+                                        <option value="Événement">Événement</option>
+                                        <option value="Développement Durable">Développement Durable</option>
+                                        <option value="Partenariat">Partenariat</option>
+                                        <option value="Innovation">Innovation</option>
+                                        <option value="Récompense">Récompense</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="news-date">Date de publication</label>
+                                    <input type="date" id="news-date">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="news-excerpt">Résumé</label>
+                                <textarea id="news-excerpt" placeholder="Bref résumé de l'actualité"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="news-content">Contenu *</label>
+                                <textarea id="news-content" required placeholder="Contenu complet de l'actualité" style="min-height: 150px;"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="news-featured"> Mettre en avant sur la page d'accueil
+                                </label>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" onclick="closeNewsModal()">Annuler</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Enregistrer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
                 <div class="admin-card">
                     <div class="admin-card-header">
                         <h2><i class="fas fa-list"></i> Liste des Actualités</h2>
@@ -322,6 +391,61 @@
                         <button class="btn btn-primary" onclick="openJobModal()">
                             <i class="fas fa-plus"></i> Nouvelle Offre
                         </button>
+                    </div>
+                </div>
+
+                <div class="admin-tabs">
+                    <button class="tab-button active" id="jobs-tab-list" onclick="switchSubtab('jobs','list')"><i class="fas fa-list"></i> Liste</button>
+                    <button class="tab-button" id="jobs-tab-edit" onclick="switchSubtab('jobs','edit')"><i class="fas fa-edit"></i> Éditer</button>
+                </div>
+
+                <div class="editor-panel" id="jobs-editor" style="display: none;">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h2><i class="fas fa-pen"></i> Éditer l'Offre</h2>
+                        </div>
+                        <form id="job-form">
+                            <input type="hidden" id="job-id">
+                            <div class="form-group">
+                                <label for="job-title">Titre du Poste *</label>
+                                <input type="text" id="job-title" required placeholder="Ex: Responsable Commercial">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="job-location">Localisation</label>
+                                    <input type="text" id="job-location" placeholder="Ex: Paris">
+                                </div>
+                                <div class="form-group">
+                                    <label for="job-contract">Type de Contrat</label>
+                                    <select id="job-contract">
+                                        <option value="CDI">CDI</option>
+                                        <option value="CDD">CDD</option>
+                                        <option value="Stage">Stage</option>
+                                        <option value="Alternance">Alternance</option>
+                                        <option value="Freelance">Freelance</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="job-experience">Expérience Requise</label>
+                                <input type="text" id="job-experience" placeholder="Ex: 3+ ans d'expérience">
+                            </div>
+                            <div class="form-group">
+                                <label for="job-description">Description du Poste *</label>
+                                <textarea id="job-description" required placeholder="Description détaillée du poste" style="min-height: 150px;"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="job-active" checked> Offre active (visible sur le site)
+                                </label>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" onclick="closeJobModal()">Annuler</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Enregistrer
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
@@ -350,6 +474,68 @@
                     </div>
                 </div>
 
+                <div class="admin-tabs">
+                    <button class="tab-button active" id="products-tab-list" onclick="switchSubtab('products','list')"><i class="fas fa-list"></i> Liste</button>
+                    <button class="tab-button" id="products-tab-edit" onclick="switchSubtab('products','edit')"><i class="fas fa-edit"></i> Éditer</button>
+                </div>
+
+                <div class="editor-panel" id="products-editor" style="display: none;">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h2><i class="fas fa-pen"></i> Éditer le Produit</h2>
+                        </div>
+                        <form id="product-form">
+                            <input type="hidden" id="product-id">
+                            <div class="form-group">
+                                <label for="product-name">Nom du Produit *</label>
+                                <input type="text" id="product-name" required placeholder="Nom du produit">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="product-category">Catégorie *</label>
+                                    <select id="product-category" required>
+                                        <option value="homme">Homme</option>
+                                        <option value="femme">Femme</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="product-badge">Badge</label>
+                                    <input type="text" id="product-badge" placeholder="Ex: Nouveau, Promo">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="product-icon">Icône Font Awesome</label>
+                                    <input type="text" id="product-icon" placeholder="Ex: fa-tshirt" value="fa-tshirt">
+                                </div>
+                                <div class="form-group">
+                                    <label for="product-sort">Ordre d'affichage</label>
+                                    <input type="number" id="product-sort" placeholder="0" value="0">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="product-gradient">Gradient (couleur)</label>
+                                <input type="text" id="product-gradient" placeholder="linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)" value="linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)">
+                            </div>
+                            <div class="form-group">
+                                <label for="product-description">Description *</label>
+                                <textarea id="product-description" required placeholder="Description du produit" style="min-height: 100px;"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="product-featured"> Mettre en avant sur la page d'accueil
+                                </label>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Annuler</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Enregistrer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
                 <div class="admin-card">
                     <div class="admin-card-header">
                         <h2><i class="fas fa-list"></i> Liste des Produits</h2>
@@ -372,6 +558,60 @@
                         <button class="btn btn-primary" onclick="openShowroomModal()">
                             <i class="fas fa-plus"></i> Nouvel Élément
                         </button>
+                    </div>
+                </div>
+
+                <div class="admin-tabs">
+                    <button class="tab-button active" id="showroom-tab-list" onclick="switchSubtab('showroom','list')"><i class="fas fa-list"></i> Liste</button>
+                    <button class="tab-button" id="showroom-tab-edit" onclick="switchSubtab('showroom','edit')"><i class="fas fa-edit"></i> Éditer</button>
+                </div>
+
+                <div class="editor-panel" id="showroom-editor" style="display: none;">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h2><i class="fas fa-pen"></i> Éditer l'Élément</h2>
+                        </div>
+                        <form id="showroom-form">
+                            <input type="hidden" id="showroom-id">
+                            <div class="form-group">
+                                <label for="showroom-title">Titre *</label>
+                                <input type="text" id="showroom-title" required placeholder="Titre de l'élément">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="showroom-category">Catégorie</label>
+                                    <select id="showroom-category">
+                                        <option value="collection">Collection</option>
+                                        <option value="realisation">Réalisation</option>
+                                        <option value="evenement">Événement</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="showroom-sort">Ordre d'affichage</label>
+                                    <input type="number" id="showroom-sort" placeholder="0" value="0">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="showroom-icon">Icône Font Awesome</label>
+                                    <input type="text" id="showroom-icon" placeholder="Ex: fa-image" value="fa-image">
+                                </div>
+                                <div class="form-group">
+                                    <label for="showroom-gradient">Gradient (couleur)</label>
+                                    <input type="text" id="showroom-gradient" placeholder="linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)" value="linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="showroom-description">Description</label>
+                                <textarea id="showroom-description" placeholder="Description de l'élément"></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" onclick="closeShowroomModal()">Annuler</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Enregistrer
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
@@ -419,233 +659,6 @@
                 </div>
             </section>
         </main>
-    </div>
-
-    <!-- News Modal -->
-    <div class="modal-overlay" id="news-modal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="news-modal-title">Nouvelle Actualité</h3>
-                <button class="modal-close" onclick="closeNewsModal()">&times;</button>
-            </div>
-
-            <!-- Section 2b: Trafic & Ventes -->
-            <div class="admin-card" style="margin-bottom: 1.5rem;">
-                <div class="admin-card-header">
-                    <h2><i class="fas fa-chart-area"></i> Trafic & Ventes (30 derniers jours)</h2>
-                </div>
-                <div style="height: 320px;">
-                    <canvas id="traffic-sales-chart" aria-label="Graphique trafic et ventes"></canvas>
-                </div>
-            </div>
-            <form id="news-form">
-                <input type="hidden" id="news-id">
-                <div class="form-group">
-                    <label for="news-title">Titre *</label>
-                    <input type="text" id="news-title" required placeholder="Titre de l'actualité">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="news-category">Catégorie</label>
-                        <select id="news-category">
-                            <option value="Collection">Collection</option>
-                            <option value="Événement">Événement</option>
-                            <option value="Développement Durable">Développement Durable</option>
-                            <option value="Partenariat">Partenariat</option>
-                            <option value="Innovation">Innovation</option>
-                            <option value="Récompense">Récompense</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="news-date">Date de publication</label>
-                        <input type="date" id="news-date">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="news-excerpt">Résumé</label>
-                    <textarea id="news-excerpt" placeholder="Bref résumé de l'actualité"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="news-content">Contenu *</label>
-                    <textarea id="news-content" required placeholder="Contenu complet de l'actualité"
-                        style="min-height: 150px;"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="news-featured"> Mettre en avant sur la page d'accueil
-                    </label>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeNewsModal()">Annuler</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Enregistrer
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Job Modal -->
-    <div class="modal-overlay" id="job-modal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="job-modal-title">Nouvelle Offre d'Emploi</h3>
-                <button class="modal-close" onclick="closeJobModal()">&times;</button>
-            </div>
-            <form id="job-form">
-                <input type="hidden" id="job-id">
-                <div class="form-group">
-                    <label for="job-title">Titre du Poste *</label>
-                    <input type="text" id="job-title" required placeholder="Ex: Responsable Commercial">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="job-location">Localisation</label>
-                        <input type="text" id="job-location" placeholder="Ex: Paris">
-                    </div>
-                    <div class="form-group">
-                        <label for="job-contract">Type de Contrat</label>
-                        <select id="job-contract">
-                            <option value="CDI">CDI</option>
-                            <option value="CDD">CDD</option>
-                            <option value="Stage">Stage</option>
-                            <option value="Alternance">Alternance</option>
-                            <option value="Freelance">Freelance</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="job-experience">Expérience Requise</label>
-                    <input type="text" id="job-experience" placeholder="Ex: 3+ ans d'expérience">
-                </div>
-                <div class="form-group">
-                    <label for="job-description">Description du Poste *</label>
-                    <textarea id="job-description" required placeholder="Description détaillée du poste"
-                        style="min-height: 150px;"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="job-active" checked> Offre active (visible sur le site)
-                    </label>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeJobModal()">Annuler</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Enregistrer
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Product Modal -->
-    <div class="modal-overlay" id="product-modal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="product-modal-title">Nouveau Produit</h3>
-                <button class="modal-close" onclick="closeProductModal()">&times;</button>
-            </div>
-            <form id="product-form">
-                <input type="hidden" id="product-id">
-                <div class="form-group">
-                    <label for="product-name">Nom du Produit *</label>
-                    <input type="text" id="product-name" required placeholder="Nom du produit">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="product-category">Catégorie *</label>
-                        <select id="product-category" required>
-                            <option value="homme">Homme</option>
-                            <option value="femme">Femme</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="product-badge">Badge</label>
-                        <input type="text" id="product-badge" placeholder="Ex: Nouveau, Promo">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="product-icon">Icône Font Awesome</label>
-                        <input type="text" id="product-icon" placeholder="Ex: fa-tshirt" value="fa-tshirt">
-                    </div>
-                    <div class="form-group">
-                        <label for="product-sort">Ordre d'affichage</label>
-                        <input type="number" id="product-sort" placeholder="0" value="0">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="product-gradient">Gradient (couleur)</label>
-                    <input type="text" id="product-gradient" placeholder="linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)" value="linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)">
-                </div>
-                <div class="form-group">
-                    <label for="product-description">Description *</label>
-                    <textarea id="product-description" required placeholder="Description du produit" style="min-height: 100px;"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="product-featured"> Mettre en avant sur la page d'accueil
-                    </label>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Annuler</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Enregistrer
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Showroom Modal -->
-    <div class="modal-overlay" id="showroom-modal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="showroom-modal-title">Nouvel Élément Showroom</h3>
-                <button class="modal-close" onclick="closeShowroomModal()">&times;</button>
-            </div>
-            <form id="showroom-form">
-                <input type="hidden" id="showroom-id">
-                <div class="form-group">
-                    <label for="showroom-title">Titre *</label>
-                    <input type="text" id="showroom-title" required placeholder="Titre de l'élément">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="showroom-category">Catégorie</label>
-                        <select id="showroom-category">
-                            <option value="collection">Collection</option>
-                            <option value="realisation">Réalisation</option>
-                            <option value="evenement">Événement</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="showroom-sort">Ordre d'affichage</label>
-                        <input type="number" id="showroom-sort" placeholder="0" value="0">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="showroom-icon">Icône Font Awesome</label>
-                        <input type="text" id="showroom-icon" placeholder="Ex: fa-image" value="fa-image">
-                    </div>
-                    <div class="form-group">
-                        <label for="showroom-gradient">Gradient (couleur)</label>
-                        <input type="text" id="showroom-gradient" placeholder="linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)" value="linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="showroom-description">Description</label>
-                    <textarea id="showroom-description" placeholder="Description de l'élément"></textarea>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeShowroomModal()">Annuler</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Enregistrer
-                    </button>
-                </div>
-            </form>
-        </div>
     </div>
 
     <!-- Message Detail Modal -->

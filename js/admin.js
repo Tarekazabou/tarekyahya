@@ -346,11 +346,14 @@ async function loadNewsTable() {
 
 function openNewsModal(newsData = null) {
     console.log('🟢 openNewsModal called', { newsData });
-    document.getElementById('news-modal').classList.add('active');
+
+
+    // Switch to Éditer tab and reset/populate the inline editor
+    switchSubtab('news', 'edit');
     document.getElementById('news-form').reset();
     document.getElementById('news-id').value = '';
-    document.getElementById('news-modal-title').textContent = 'Nouvelle Actualité';
-    document.getElementById('news-date').value = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('news-date');
+    if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
 
     if (newsData) {
         document.getElementById('news-id').value = newsData.id;
@@ -359,14 +362,14 @@ function openNewsModal(newsData = null) {
         document.getElementById('news-date').value = newsData.published_at;
         document.getElementById('news-excerpt').value = newsData.excerpt || '';
         document.getElementById('news-content').value = newsData.content || '';
-        document.getElementById('news-featured').checked = newsData.is_featured;
-        document.getElementById('news-modal-title').textContent = 'Modifier l\'Actualité';
+        document.getElementById('news-featured').checked = !!newsData.is_featured;
     }
 }
 
 function closeNewsModal() {
     console.log('🔴 closeNewsModal called');
-    document.getElementById('news-modal').classList.remove('active');
+    // Hide inline editor and return to list
+    switchSubtab('news', 'list');
 }
 
 async function editNews(id) {
@@ -617,10 +620,9 @@ async function loadJobsTable() {
 
 function openJobModal(jobData = null) {
     console.log('🟢 openJobModal called', { jobData });
-    document.getElementById('job-modal').classList.add('active');
+    switchSubtab('jobs', 'edit');
     document.getElementById('job-form').reset();
     document.getElementById('job-id').value = '';
-    document.getElementById('job-modal-title').textContent = 'Nouvelle Offre d\'Emploi';
     document.getElementById('job-active').checked = true;
 
     if (jobData) {
@@ -630,14 +632,13 @@ function openJobModal(jobData = null) {
         document.getElementById('job-contract').value = jobData.contract_type || 'CDI';
         document.getElementById('job-experience').value = jobData.experience || '';
         document.getElementById('job-description').value = jobData.description || '';
-        document.getElementById('job-active').checked = jobData.is_active;
-        document.getElementById('job-modal-title').textContent = 'Modifier l\'Offre';
+        document.getElementById('job-active').checked = !!jobData.is_active;
     }
 }
 
 function closeJobModal() {
     console.log('🔴 closeJobModal called');
-    document.getElementById('job-modal').classList.remove('active');
+    switchSubtab('jobs', 'list');
 }
 
 async function editJob(id) {
@@ -857,10 +858,9 @@ async function loadProductsTable() {
 }
 
 function openProductModal(productData = null) {
-    document.getElementById('product-modal').classList.add('active');
+    switchSubtab('products', 'edit');
     document.getElementById('product-form').reset();
     document.getElementById('product-id').value = '';
-    document.getElementById('product-modal-title').textContent = 'Nouveau Produit';
 
     if (productData) {
         document.getElementById('product-id').value = productData.id;
@@ -871,13 +871,12 @@ function openProductModal(productData = null) {
         document.getElementById('product-sort').value = productData.sort_order || 0;
         document.getElementById('product-gradient').value = productData.gradient || '';
         document.getElementById('product-description').value = productData.description || '';
-        document.getElementById('product-featured').checked = productData.is_featured;
-        document.getElementById('product-modal-title').textContent = 'Modifier le Produit';
+        document.getElementById('product-featured').checked = !!productData.is_featured;
     }
 }
 
 function closeProductModal() {
-    document.getElementById('product-modal').classList.remove('active');
+    switchSubtab('products', 'list');
 }
 
 async function editProduct(id) {
@@ -1027,10 +1026,9 @@ async function loadShowroomTable() {
 }
 
 function openShowroomModal(itemData = null) {
-    document.getElementById('showroom-modal').classList.add('active');
     document.getElementById('showroom-form').reset();
     document.getElementById('showroom-id').value = '';
-    document.getElementById('showroom-modal-title').textContent = 'Nouvel Élément Showroom';
+    switchSubtab('showroom', 'edit');
 
     if (itemData) {
         document.getElementById('showroom-id').value = itemData.id;
@@ -1040,12 +1038,11 @@ function openShowroomModal(itemData = null) {
         document.getElementById('showroom-icon').value = itemData.icon || 'fa-image';
         document.getElementById('showroom-gradient').value = itemData.gradient || '';
         document.getElementById('showroom-description').value = itemData.description || '';
-        document.getElementById('showroom-modal-title').textContent = 'Modifier l\'Élément';
     }
 }
 
 function closeShowroomModal() {
-    document.getElementById('showroom-modal').classList.remove('active');
+    switchSubtab('showroom', 'list');
 }
 
 async function editShowroom(id) {
@@ -1362,6 +1359,22 @@ async function handleConfirmDelete() {
     }
 }
 
+// ==================== SUB-TABS (INLINE EDITORS) ====================
+function switchSubtab(section, tab) {
+    // Toggle tab buttons
+    const listTab = document.getElementById(`${section}-tab-list`);
+    const editTab = document.getElementById(`${section}-tab-edit`);
+    if (listTab && editTab) {
+        listTab.classList.toggle('active', tab === 'list');
+        editTab.classList.toggle('active', tab === 'edit');
+    }
+    // Show/hide editor panel
+    const editor = document.getElementById(`${section}-editor`);
+    if (editor) {
+        editor.style.display = tab === 'edit' ? '' : 'none';
+    }
+}
+
 // ==================== UTILITIES ====================
 
 function formatDate(dateStr) {
@@ -1525,7 +1538,7 @@ async function testSupabaseConnection() {
             console.log('6. Write permission: ✅');
             await supabaseClient.from('news').delete().eq('title', '__TEST__');
         } else {
-            console.log('6. Write permission: ❌');
+            console.log('6. Write permission: ���');
             console.error('Insert error:', insertError);
         }
 
