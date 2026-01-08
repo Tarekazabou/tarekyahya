@@ -1210,6 +1210,16 @@
             if (sectionName === 'messages') loadMessagesTable();
         }
 
+        // ==================== DEBUGGING HELPER ====================
+
+        function debugLog(operation, data) {
+          console.group(`🔍 ${operation}`);
+          console.log('Data:', data);
+          console.log('User:', currentUser);
+          console.log('Timestamp:', new Date().toISOString());
+          console.groupEnd();
+        }
+
         // ==================== TOAST NOTIFICATIONS ====================
 
         function showToast(message, type = 'success') {
@@ -1234,8 +1244,18 @@
             const container = document.getElementById('news-table-container');
             container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>';
 
+            console.log('📰 Loading news table...');
+
             try {
-                const news = await DataService.getNews();
+                const { data: news, error } = await supabase
+                    .from('news')
+                    .select('*')
+                    .order('published_at', { ascending: false });
+
+                if (error) throw error;
+
+                console.log(`✅ Loaded ${news.length} news items`);
+
                 document.getElementById('news-count-badge').textContent = `${news.length} articles`;
                 document.getElementById('stat-news-count').textContent = news.length;
 
@@ -1248,6 +1268,7 @@
                     <table class="admin-table">
                         <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Titre</th>
                                 <th>Catégorie</th>
                                 <th>Date</th>
@@ -1258,6 +1279,7 @@
                         <tbody>
                             ${news.map(article => `
                                 <tr>
+                                    <td><small>${article.id}</small></td>
                                     <td><strong>${escapeHtml(article.title)}</strong></td>
                                     <td><span class="badge badge-info">${escapeHtml(article.category) || '-'}</span></td>
                                     <td>${formatDate(article.published_at)}</td>
@@ -1276,8 +1298,16 @@
                     </table>
                 `;
             } catch (error) {
-                container.innerHTML = '<p style="text-align: center; color: #dc2626; padding: 2rem;">Erreur de chargement</p>';
-                console.error(error);
+                console.error('❌ Error loading news:', error);
+                container.innerHTML = `
+                    <p style="text-align: center; color: #dc2626; padding: 2rem;">
+                        Erreur de chargement: ${error.message}
+                        <br><br>
+                        <button class="btn btn-secondary" onclick="loadNewsTable()">
+                            <i class="fas fa-redo"></i> Réessayer
+                        </button>
+                    </p>
+                `;
             }
         }
 
@@ -1306,7 +1336,12 @@
 
         async function editNews(id) {
             try {
-                const news = await DataService.getNews();
+                const { data: news, error } = await supabase
+                    .from('news')
+                    .select('*');
+
+                if (error) throw error;
+
                 const article = news.find(n => n.id === id);
                 if (article) {
                     openNewsModal(article);
@@ -1325,41 +1360,113 @@
             document.getElementById('confirm-modal').classList.add('active');
         }
 
+        // Fixed Delete News
+        async function deleteNews(id) {
+            console.log('🗑️ Deleting news ID:', id);
+
+            try {
+                const result = await supabase
+                    .from('news')
+                    .delete()
+                    .eq('id', id)
+                    .select();
+
+                if (result.error) throw result.error;
+
+                console.log('✅ News deleted:', result.data);
+                showToast('Actualité supprimée avec succès');
+
+                await loadNewsTable();
+                await loadDashboardStats();
+
+            } catch (error) {
+                console.error('❌ Delete error:', error);
+
+                let errorMsg = 'Erreur lors de la suppression';
+                if (error.code === '42501') {
+                    errorMsg = 'Permissions insuffisantes pour supprimer';
+                } else if (error.message) {
+                    errorMsg = error.message;
+                }
+
+                showToast(errorMsg, 'error');
+            }
+        }
+
         document.getElementById('news-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // CSRF validation
-            if (!validateCsrf()) {
-                showToast('Session invalide. Veuillez rafraîchir la page.', 'error');
-                return;
-            }
+            console.log('📝 News form submitted');
 
             const newsData = {
-                title: sanitizeInput(document.getElementById('news-title').value),
+                title: document.getElementById('news-title').value.trim(),
                 category: document.getElementById('news-category').value,
                 published_at: document.getElementById('news-date').value,
-                excerpt: sanitizeInput(document.getElementById('news-excerpt').value),
-                content: sanitizeInput(document.getElementById('news-content').value),
+                excerpt: document.getElementById('news-excerpt').value.trim(),
+                content: document.getElementById('news-content').value.trim(),
                 is_featured: document.getElementById('news-featured').checked
             };
 
             const id = document.getElementById('news-id').value;
 
+            debugLog('News Submit', { id, newsData });
+
+            // Validation
+            if (!newsData.title || !newsData.content) {
+                showToast('Le titre et le contenu sont obligatoires', 'error');
+                return;
+            }
+
             try {
+                let result;
+
                 if (id) {
-                    await rateLimitedRequest(() => DataService.updateNews(id, newsData));
+                    // Update existing
+                    console.log('🔄 Updating news ID:', id);
+                    result = await supabase
+                        .from('news')
+                        .update(newsData)
+                        .eq('id', id)
+                        .select()
+                        .single();
+
+                    if (result.error) throw result.error;
+
                     showToast('Actualité mise à jour avec succès');
+                    console.log('✅ News updated:', result.data);
                 } else {
-                    await rateLimitedRequest(() => DataService.createNews(newsData));
+                    // Create new
+                    console.log('➕ Creating new news');
+                    result = await supabase
+                        .from('news')
+                        .insert([newsData])
+                        .select()
+                        .single();
+
+                    if (result.error) throw result.error;
+
                     showToast('Actualité créée avec succès');
+                    console.log('✅ News created:', result.data);
                 }
+
                 closeNewsModal();
-                loadNewsTable();
-                loadDashboardStats();
+                await loadNewsTable();
+                await loadDashboardStats();
+
             } catch (error) {
-                if (error.message !== 'Rate limit exceeded') {
-                    showToast('Erreur: ' + error.message, 'error');
+                console.error('❌ News error:', error);
+
+                // Detailed error messages
+                let errorMsg = 'Erreur lors de l\'enregistrement';
+                if (error.code === '23505') {
+                    errorMsg = 'Une actualité avec ce titre existe déjà';
+                } else if (error.code === '42501') {
+                    errorMsg = 'Permissions insuffisantes. Vérifiez vos droits d\'accès.';
+                } else if (error.message) {
+                    errorMsg = error.message;
                 }
+
+                showToast(errorMsg, 'error');
             }
         });
 
@@ -1446,7 +1553,12 @@
 
         async function editJob(id) {
             try {
-                const jobs = await DataService.getAllJobs();
+                const { data: jobs, error } = await supabase
+                    .from('jobs')
+                    .select('*');
+
+                if (error) throw error;
+
                 const job = jobs.find(j => j.id === id);
                 if (job) {
                     openJobModal(job);
@@ -1479,6 +1591,39 @@
             document.getElementById('confirm-modal').classList.add('active');
         }
 
+        // Fixed Delete Job
+        async function deleteJob(id) {
+            console.log('🗑️ Deleting job ID:', id);
+
+            try {
+                const result = await supabase
+                    .from('jobs')
+                    .delete()
+                    .eq('id', id)
+                    .select();
+
+                if (result.error) throw result.error;
+
+                console.log('✅ Job deleted:', result.data);
+                showToast('Offre supprimée avec succès');
+
+                await loadJobsTable();
+                await loadDashboardStats();
+
+            } catch (error) {
+                console.error('❌ Delete error:', error);
+
+                let errorMsg = 'Erreur lors de la suppression';
+                if (error.code === '42501') {
+                    errorMsg = 'Permissions insuffisantes pour supprimer';
+                } else if (error.message) {
+                    errorMsg = error.message;
+                }
+
+                showToast(errorMsg, 'error');
+            }
+        }
+
         function closeConfirmModal() {
             document.getElementById('confirm-modal').classList.remove('active');
             deleteNewsId = null;
@@ -1490,80 +1635,101 @@
         }
 
         document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
-            // CSRF validation
-            if (!validateCsrf()) {
-                showToast('Session invalide. Veuillez rafraîchir la page.', 'error');
-                return;
-            }
+            console.log('🗑️ Confirm delete clicked', { deleteType, deleteNewsId, deleteJobId, deleteProductId });
 
             try {
                 if (deleteType === 'news' && deleteNewsId) {
-                    await rateLimitedRequest(() => DataService.deleteNews(deleteNewsId));
-                    showToast('Actualité supprimée');
-                    loadNewsTable();
-                    loadDashboardStats();
+                    await deleteNews(deleteNewsId);
                 } else if (deleteType === 'job' && deleteJobId) {
-                    await rateLimitedRequest(() => DataService.deleteJob(deleteJobId));
-                    showToast('Offre supprimée');
-                    loadJobsTable();
-                    loadDashboardStats();
+                    await deleteJob(deleteJobId);
                 } else if (deleteType === 'product' && deleteProductId) {
-                    await rateLimitedRequest(() => DataService.deleteProduct(deleteProductId));
-                    showToast('Produit supprimé');
-                    loadProductsTable();
-                    loadDashboardStats();
+                    await deleteProduct(deleteProductId);
                 } else if (deleteType === 'showroom' && deleteShowroomId) {
-                    await rateLimitedRequest(() => DataService.deleteShowroomItem(deleteShowroomId));
-                    showToast('Élément supprimé');
-                    loadShowroomTable();
+                    await deleteShowroom(deleteShowroomId);
                 } else if (deleteType === 'message' && deleteMessageId) {
-                    await rateLimitedRequest(() => DataService.deleteMessage(deleteMessageId));
-                    showToast('Message supprimé');
-                    loadMessagesTable();
+                    await deleteMessage(deleteMessageId);
+                } else {
+                    console.error('❌ No valid delete target');
+                    showToast('Erreur: aucun élément à supprimer', 'error');
                 }
+
                 closeConfirmModal();
+
             } catch (error) {
-                if (error.message !== 'Rate limit exceeded') {
-                    showToast('Erreur: ' + error.message, 'error');
-                }
+                console.error('❌ Delete failed:', error);
+                showToast('Erreur lors de la suppression: ' + error.message, 'error');
             }
         });
 
         document.getElementById('job-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // CSRF validation
-            if (!validateCsrf()) {
-                showToast('Session invalide. Veuillez rafraîchir la page.', 'error');
-                return;
-            }
+            console.log('📝 Job form submitted');
 
             const jobData = {
-                title: sanitizeInput(document.getElementById('job-title').value),
-                location: sanitizeInput(document.getElementById('job-location').value),
+                title: document.getElementById('job-title').value.trim(),
+                location: document.getElementById('job-location').value.trim(),
                 contract_type: document.getElementById('job-contract').value,
-                experience: sanitizeInput(document.getElementById('job-experience').value),
-                description: sanitizeInput(document.getElementById('job-description').value),
+                experience: document.getElementById('job-experience').value.trim(),
+                description: document.getElementById('job-description').value.trim(),
                 is_active: document.getElementById('job-active').checked
             };
 
             const id = document.getElementById('job-id').value;
 
+            debugLog('Job Submit', { id, jobData });
+
+            // Validation
+            if (!jobData.title || !jobData.description) {
+                showToast('Le titre et la description sont obligatoires', 'error');
+                return;
+            }
+
             try {
+                let result;
+
                 if (id) {
-                    await rateLimitedRequest(() => DataService.updateJob(id, jobData));
+                    console.log('🔄 Updating job ID:', id);
+                    result = await supabase
+                        .from('jobs')
+                        .update(jobData)
+                        .eq('id', id)
+                        .select()
+                        .single();
+
+                    if (result.error) throw result.error;
+
                     showToast('Offre mise à jour avec succès');
+                    console.log('✅ Job updated:', result.data);
                 } else {
-                    await rateLimitedRequest(() => DataService.createJob(jobData));
+                    console.log('➕ Creating new job');
+                    result = await supabase
+                        .from('jobs')
+                        .insert([jobData])
+                        .select()
+                        .single();
+
+                    if (result.error) throw result.error;
+
                     showToast('Offre créée avec succès');
+                    console.log('✅ Job created:', result.data);
                 }
+
                 closeJobModal();
-                loadJobsTable();
-                loadDashboardStats();
+                await loadJobsTable();
+                await loadDashboardStats();
+
             } catch (error) {
-                if (error.message !== 'Rate limit exceeded') {
-                    showToast('Erreur: ' + error.message, 'error');
+                console.error('❌ Job error:', error);
+
+                let errorMsg = 'Erreur lors de l\'enregistrement';
+                if (error.code === '42501') {
+                    errorMsg = 'Permissions insuffisantes. Vérifiez vos droits d\'accès.';
+                } else if (error.message) {
+                    errorMsg = error.message;
                 }
+
+                showToast(errorMsg, 'error');
             }
         });
 
@@ -1645,7 +1811,12 @@
 
         async function editProduct(id) {
             try {
-                const products = await DataService.getProducts();
+                const { data: products, error } = await supabase
+                    .from('products')
+                    .select('*');
+
+                if (error) throw error;
+
                 const product = products.find(p => p.id === id);
                 if (product) {
                     openProductModal(product);
@@ -1662,6 +1833,39 @@
             deleteProductId = id;
             deleteType = 'product';
             document.getElementById('confirm-modal').classList.add('active');
+        }
+
+        // Fixed Delete Product
+        async function deleteProduct(id) {
+            console.log('🗑️ Deleting product ID:', id);
+
+            try {
+                const result = await supabase
+                    .from('products')
+                    .delete()
+                    .eq('id', id)
+                    .select();
+
+                if (result.error) throw result.error;
+
+                console.log('✅ Product deleted:', result.data);
+                showToast('Produit supprimé avec succès');
+
+                await loadProductsTable();
+                await loadDashboardStats();
+
+            } catch (error) {
+                console.error('❌ Delete error:', error);
+
+                let errorMsg = 'Erreur lors de la suppression';
+                if (error.code === '42501') {
+                    errorMsg = 'Permissions insuffisantes pour supprimer';
+                } else if (error.message) {
+                    errorMsg = error.message;
+                }
+
+                showToast(errorMsg, 'error');
+            }
         }
 
         document.getElementById('product-form').addEventListener('submit', async (e) => {
@@ -1778,7 +1982,12 @@
 
         async function editShowroom(id) {
             try {
-                const items = await DataService.getShowroomItems();
+                const { data: items, error } = await supabase
+                    .from('showroom')
+                    .select('*');
+
+                if (error) throw error;
+
                 const item = items.find(i => i.id === id);
                 if (item) {
                     openShowroomModal(item);
@@ -1795,6 +2004,38 @@
             deleteShowroomId = id;
             deleteType = 'showroom';
             document.getElementById('confirm-modal').classList.add('active');
+        }
+
+        // Fixed Delete Showroom
+        async function deleteShowroom(id) {
+            console.log('🗑️ Deleting showroom item ID:', id);
+
+            try {
+                const result = await supabase
+                    .from('showroom')
+                    .delete()
+                    .eq('id', id)
+                    .select();
+
+                if (result.error) throw result.error;
+
+                console.log('✅ Showroom item deleted:', result.data);
+                showToast('Élément supprimé avec succès');
+
+                await loadShowroomTable();
+
+            } catch (error) {
+                console.error('❌ Delete error:', error);
+
+                let errorMsg = 'Erreur lors de la suppression';
+                if (error.code === '42501') {
+                    errorMsg = 'Permissions insuffisantes pour supprimer';
+                } else if (error.message) {
+                    errorMsg = error.message;
+                }
+
+                showToast(errorMsg, 'error');
+            }
         }
 
         document.getElementById('showroom-form').addEventListener('submit', async (e) => {
@@ -1988,6 +2229,38 @@
             document.getElementById('confirm-modal').classList.add('active');
         }
 
+        // Fixed Delete Message
+        async function deleteMessage(id) {
+            console.log('🗑️ Deleting message ID:', id);
+
+            try {
+                const result = await supabase
+                    .from('messages')
+                    .delete()
+                    .eq('id', id)
+                    .select();
+
+                if (result.error) throw result.error;
+
+                console.log('✅ Message deleted:', result.data);
+                showToast('Message supprimé avec succès');
+
+                await loadMessagesTable();
+
+            } catch (error) {
+                console.error('❌ Delete error:', error);
+
+                let errorMsg = 'Erreur lors de la suppression';
+                if (error.code === '42501') {
+                    errorMsg = 'Permissions insuffisantes pour supprimer';
+                } else if (error.message) {
+                    errorMsg = error.message;
+                }
+
+                showToast(errorMsg, 'error');
+            }
+        }
+
         // ==================== UTILITIES ====================
 
         function formatDate(dateStr) {
@@ -2060,23 +2333,99 @@
             }
         }
 
+        // ==================== DIAGNOSTIC FUNCTION ====================
+
+        // Add this function to test your Supabase connection
+        async function testSupabaseConnection() {
+            console.group('🔍 Supabase Connection Test');
+
+            try {
+                // Test 1: Check if supabase client exists
+                console.log('1. Supabase client:', typeof supabase !== 'undefined' ? '✅' : '❌');
+
+                // Test 2: Check authentication
+                const { data: { session }, error: authError } = await supabase.auth.getSession();
+                console.log('2. Auth session:', session ? '✅' : '❌', session?.user?.email);
+                if (authError) console.error('Auth error:', authError);
+
+                // Test 3: Try to read from news table
+                const { data: newsData, error: newsError } = await supabase
+                    .from('news')
+                    .select('count');
+                console.log('3. Read news:', newsError ? '❌' : '✅');
+                if (newsError) console.error('News read error:', newsError);
+
+                // Test 4: Try to read from jobs table
+                const { data: jobsData, error: jobsError } = await supabase
+                    .from('jobs')
+                    .select('count');
+                console.log('4. Read jobs:', jobsError ? '❌' : '✅');
+                if (jobsError) console.error('Jobs read error:', jobsError);
+
+                // Test 5: Check table permissions
+                console.log('5. Testing write permissions...');
+
+                // Try a test insert (will rollback)
+                const testData = {
+                    title: '__TEST__',
+                    content: 'test',
+                    published_at: new Date().toISOString().split('T')[0]
+                };
+
+                const { data: insertTest, error: insertError } = await supabase
+                    .from('news')
+                    .insert([testData])
+                    .select();
+
+                if (!insertError && insertTest) {
+                    console.log('6. Write permission: ✅');
+                    // Delete the test record
+                    await supabase.from('news').delete().eq('title', '__TEST__');
+                } else {
+                    console.log('6. Write permission: ❌');
+                    console.error('Insert error:', insertError);
+                }
+
+            } catch (error) {
+                console.error('Test failed:', error);
+            }
+
+            console.groupEnd();
+        }
+
         // ==================== INIT ====================
 
         document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Admin panel initializing...');
+
             // Check authentication first
             const isLoggedIn = await checkAuth();
-            if (!isLoggedIn) return;
+            if (!isLoggedIn) {
+                console.log('❌ Not logged in, redirecting...');
+                return;
+            }
+
+            console.log('✅ User authenticated');
+
+            // Run diagnostic
+            await testSupabaseConnection();
 
             // Set current date
-            document.getElementById('current-date').textContent = new Date().toLocaleDateString('fr-FR', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            });
+            const dateEl = document.getElementById('current-date');
+            if (dateEl) {
+                dateEl.textContent = new Date().toLocaleDateString('fr-FR', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                });
+            }
 
             // Load dashboard stats
+            console.log('📊 Loading dashboard stats...');
             await loadDashboardStats();
+
+            console.log('✅ Admin panel ready');
         });
     </script>
 </body>
