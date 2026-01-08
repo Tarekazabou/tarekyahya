@@ -5,23 +5,25 @@
    With Accessibility Enhancements
    ================================================ */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+
 /* ------------------------------------------------
    CSS Variables & Base Styles
    ------------------------------------------------ */
 :root {
-    /* Primary Colors - Blue Theme */
-    --primary-color: #1e3a8a;
-    --primary-dark: #1e2d5c;
-    --primary-light: #3b82f6;
-    --secondary-color: #0ea5e9;
+    /* Primary Colors - Luxe Theme */
+    --primary-color: #c6a36a;
+    --primary-dark: #8c6b2f;
+    --primary-light: #f1e3c1;
+    --secondary-color: #1f2430;
     
     /* Neutral Colors */
     --white: #ffffff;
-    --light-gray: #f8fafc;
-    --gray: #94a3b8;
-    --dark-gray: #475569;
-    --dark: #1e293b;
-    --black: #0f172a;
+    --light-gray: #f7f3eb;
+    --gray: #9a9184;
+    --dark-gray: #2e323c;
+    --dark: #14161d;
+    --black: #0b0c10;
     
     /* Accent Colors */
     --success: #22c55e;
@@ -33,8 +35,8 @@
     --focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.5);
     
     /* Typography */
-    --font-primary: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    --font-secondary: 'Open Sans', Arial, sans-serif;
+    --font-primary: 'Inter', 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-secondary: 'Playfair Display', 'Inter', 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     
     /* Spacing */
     --spacing-xs: 0.25rem;
@@ -144,7 +146,7 @@ html {
 body {
     font-family: var(--font-primary);
     color: var(--dark);
-    background-color: var(--white);
+    background-color: #fdfbf7;
     line-height: 1.6;
     overflow-x: hidden;
 }
@@ -178,6 +180,7 @@ button, input, textarea, select {
    Typography
    ------------------------------------------------ */
 h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-secondary);
     font-weight: 600;
     line-height: 1.3;
     color: var(--dark);
@@ -362,12 +365,12 @@ p {
 .logo-text {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #1e3a8a; /* Darker professional blue for "prima" */
+    color: var(--primary-color); /* Luxe gold for "prima" */
     
 }
 
 .logo-text span {
-    color: #020f33; /* Darker professional blue for "Vet" */
+    color: var(--secondary-color); /* Luxe slate for "Vet" */
 }
 
 .nav {
@@ -449,7 +452,7 @@ p {
     min-height: 100vh;
     display: flex;
     align-items: center;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    background: radial-gradient(circle at 20% 20%, rgba(198, 163, 106, 0.25), transparent 38%), radial-gradient(circle at 80% 0%, rgba(241, 227, 193, 0.2), transparent 32%), linear-gradient(135deg, #0d111a 0%, var(--secondary-color) 50%, #0a0c12 100%);
     padding-top: 80px;
     overflow: hidden;
 }
@@ -1278,7 +1281,7 @@ p {
 .footer-logo {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #93c5fd; /* Light blue for "Prima" in footer */
+    color: var(--primary-light); /* Light gold for "Prima" in footer */
     margin-bottom: var(--spacing-md);
 }
 
