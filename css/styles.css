@@ -11,19 +11,19 @@
    CSS Variables & Base Styles
    ------------------------------------------------ */
 :root {
-    /* Primary Colors - Luxe Theme */
-    --primary-color: #c6a36a;
-    --primary-dark: #8c6b2f;
-    --primary-light: #f1e3c1;
-    --secondary-color: #1f2430;
+    /* Primary Colors - Luxe Blue Theme */
+    --primary-color: #0b1f44;
+    --primary-dark: #060f24;
+    --primary-light: #3b7cff;
+    --secondary-color: #0d6efd;
     
     /* Neutral Colors */
     --white: #ffffff;
-    --light-gray: #f7f3eb;
-    --gray: #9a9184;
-    --dark-gray: #2e323c;
-    --dark: #14161d;
-    --black: #0b0c10;
+    --light-gray: #f1f4fb;
+    --gray: #8b95a7;
+    --dark-gray: #2d3442;
+    --dark: #111827;
+    --black: #0b0f19;
     
     /* Accent Colors */
     --success: #22c55e;
@@ -146,7 +146,7 @@ html {
 body {
     font-family: var(--font-primary);
     color: var(--dark);
-    background-color: #fdfbf7;
+    background-color: #f6f8ff;
     line-height: 1.6;
     overflow-x: hidden;
 }
@@ -365,12 +365,12 @@ p {
 .logo-text {
     font-size: 1.75rem;
     font-weight: 700;
-    color: var(--primary-color); /* Luxe gold for "prima" */
+    color: var(--primary-light); /* Luxe blue accent for "prima" */
     
 }
 
 .logo-text span {
-    color: var(--secondary-color); /* Luxe slate for "Vet" */
+    color: var(--white); /* Crisp white for "Vet" */
 }
 
 .nav {
@@ -452,7 +452,7 @@ p {
     min-height: 100vh;
     display: flex;
     align-items: center;
-    background: radial-gradient(circle at 20% 20%, rgba(198, 163, 106, 0.25), transparent 38%), radial-gradient(circle at 80% 0%, rgba(241, 227, 193, 0.2), transparent 32%), linear-gradient(135deg, #0d111a 0%, var(--secondary-color) 50%, #0a0c12 100%);
+    background: radial-gradient(circle at 20% 20%, rgba(59, 124, 255, 0.18), transparent 38%), radial-gradient(circle at 80% 0%, rgba(11, 31, 68, 0.35), transparent 32%), linear-gradient(135deg, #070e1c 0%, #0b1f44 50%, #09162f 100%);
     padding-top: 80px;
     overflow: hidden;
 }

@@ -34,13 +34,13 @@ const Sanitizer = {
      * Validate and sanitize CSS gradient (only allow safe patterns)
      */
     sanitizeGradient(gradient) {
-        if (!gradient) return 'linear-gradient(135deg, #0d111a 0%, #c6a36a 100%)';
+        if (!gradient) return 'linear-gradient(135deg, #0b1f44 0%, #3b7cff 100%)';
         // Only allow linear-gradient with hex colors and percentages
         const safePattern = /^linear-gradient\(\s*\d+deg\s*,\s*(#[a-fA-F0-9]{3,6}\s+\d+%\s*,?\s*)+\)$/;
         if (safePattern.test(gradient)) {
             return gradient;
         }
-        return 'linear-gradient(135deg, #0d111a 0%, #c6a36a 100%)';
+        return 'linear-gradient(135deg, #0b1f44 0%, #3b7cff 100%)';
     },
 
     /**

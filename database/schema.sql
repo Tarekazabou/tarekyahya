@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS products (
     badge VARCHAR(50),
     image_url TEXT,
     icon VARCHAR(50) DEFAULT 'fa-tshirt',
-    gradient VARCHAR(100) DEFAULT 'linear-gradient(135deg, #0d111a 0%, #c6a36a 100%)',
+    gradient VARCHAR(100) DEFAULT 'linear-gradient(135deg, #0b1f44 0%, #3b7cff 100%)',
     is_featured BOOLEAN DEFAULT false,
     sort_order INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT NOW()
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS news (
     author VARCHAR(100) DEFAULT 'Admin',
     image_url TEXT,
     icon VARCHAR(50) DEFAULT 'fa-newspaper',
-    gradient VARCHAR(100) DEFAULT 'linear-gradient(135deg, #0d111a 0%, #c6a36a 100%)',
+    gradient VARCHAR(100) DEFAULT 'linear-gradient(135deg, #0b1f44 0%, #3b7cff 100%)',
     published_at DATE DEFAULT CURRENT_DATE,
     is_featured BOOLEAN DEFAULT false
 );
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS showroom_items (
     description TEXT,
     category VARCHAR(50),
     icon VARCHAR(50) DEFAULT 'fa-image',
-    gradient VARCHAR(100) DEFAULT 'linear-gradient(135deg, #0d111a 0%, #c6a36a 100%)',
+    gradient VARCHAR(100) DEFAULT 'linear-gradient(135deg, #0b1f44 0%, #3b7cff 100%)',
     sort_order INT DEFAULT 0
 );
 
@@ -227,7 +227,7 @@ VALUES (
 
 -- Products
 INSERT INTO products (name, description, category, badge, icon, gradient, is_featured, sort_order) VALUES
-('Chemises Classiques', 'Collection de chemises élégantes pour homme, disponibles en plusieurs couleurs et tailles.', 'homme', 'Nouveau', 'fa-tshirt', 'linear-gradient(135deg, #0d111a 0%, #c6a36a 100%)', true, 1),
+('Chemises Classiques', 'Collection de chemises élégantes pour homme, disponibles en plusieurs couleurs et tailles.', 'homme', 'Nouveau', 'fa-tshirt', 'linear-gradient(135deg, #0b1f44 0%, #3b7cff 100%)', true, 1),
 ('Costumes Business', 'Costumes professionnels de haute qualité pour une allure impeccable au bureau.', 'homme', NULL, 'fa-user-tie', 'linear-gradient(135deg, #1e293b 0%, #475569 100%)', true, 2),
 ('Polos Casual', 'Polos confortables pour un style décontracté mais soigné au quotidien.', 'homme', NULL, 'fa-vest', 'linear-gradient(135deg, #059669 0%, #10b981 100%)', false, 3),
 ('Blouses Élégantes', 'Collection de blouses féminines et raffinées pour toutes les occasions.', 'femme', 'Tendance', 'fa-tshirt', 'linear-gradient(135deg, #db2777 0%, #ec4899 100%)', true, 4),
@@ -242,7 +242,7 @@ INSERT INTO products (name, description, category, badge, icon, gradient, is_fea
 
 -- News
 INSERT INTO news (title, content, excerpt, category, author, icon, gradient, published_at, is_featured) VALUES
-('Lancement de la Collection Printemps 2025', 'Nous sommes ravis de vous présenter en avant-première notre nouvelle collection Printemps 2025. Des pièces uniques alliant élégance et confort, conçues avec des matériaux de première qualité.', 'Découvrez en avant-première notre nouvelle collection printemps avec des pièces uniques et tendances.', 'Collection', 'Admin', 'fa-newspaper', 'linear-gradient(135deg, #0d111a 0%, #c6a36a 100%)', '2024-12-15', true),
+('Lancement de la Collection Printemps 2025', 'Nous sommes ravis de vous présenter en avant-première notre nouvelle collection Printemps 2025. Des pièces uniques alliant élégance et confort, conçues avec des matériaux de première qualité.', 'Découvrez en avant-première notre nouvelle collection printemps avec des pièces uniques et tendances.', 'Collection', 'Admin', 'fa-newspaper', 'linear-gradient(135deg, #0b1f44 0%, #3b7cff 100%)', '2024-12-15', true),
 ('Primavet au Salon International du Textile 2025', 'Primavet sera présent au Salon International du Textile qui se tiendra à Paris du 15 au 18 janvier 2025. Venez nous rencontrer sur notre stand.', 'Primavet sera présent au salon international du textile. Venez nous rencontrer sur notre stand.', 'Événement', 'Admin', 'fa-calendar-check', 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)', '2024-12-10', true),
 ('Notre Engagement Éco-Responsable', 'Dans le cadre de notre politique de développement durable, nous lançons une nouvelle gamme de produits éco-responsables.', 'Notre nouvelle gamme éco-responsable utilise des matériaux durables et recyclés.', 'Développement Durable', 'Admin', 'fa-leaf', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)', '2024-12-05', true),
 ('Nouveau Partenariat avec des Marques Internationales', 'Primavet est fière d''annoncer un nouveau partenariat stratégique avec plusieurs marques internationales.', 'Cette collaboration nous permettra d''étendre notre présence à l''international.', 'Partenariat', 'Admin', 'fa-handshake', 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)', '2024-11-28', false),
@@ -259,7 +259,7 @@ INSERT INTO jobs (title, location, contract_type, experience, description, is_ac
 
 -- Showroom Items
 INSERT INTO showroom_items (title, description, category, icon, gradient, sort_order) VALUES
-('Collection Printemps 2024', 'Nouvelle collection de vêtements légers et colorés', 'collection', 'fa-tshirt', 'linear-gradient(135deg, #0d111a 0%, #c6a36a 100%)', 1),
+('Collection Printemps 2024', 'Nouvelle collection de vêtements légers et colorés', 'collection', 'fa-tshirt', 'linear-gradient(135deg, #0b1f44 0%, #3b7cff 100%)', 1),
 ('Collection Été 2024', 'Vêtements frais et confortables pour l''été', 'collection', 'fa-vest', 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)', 2),
 ('Collection Automne 2024', 'Tons chauds et matières douces', 'collection', 'fa-user-tie', 'linear-gradient(135deg, #dc2626 0%, #f87171 100%)', 3),
 ('Collection Hiver 2024', 'Vêtements chauds et élégants', 'collection', 'fa-mitten', 'linear-gradient(135deg, #1e293b 0%, #475569 100%)', 4),
