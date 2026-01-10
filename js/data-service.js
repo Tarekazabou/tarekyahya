@@ -790,6 +790,245 @@ const DataService = {
         }
 
         return true;
+    },
+
+    // ==================== VISITOR TRACKING ====================
+
+    /**
+     * Get visitor statistics for dashboard
+     */
+    async getVisitorStats() {
+        return this.getCached('visitorStats', async () => {
+            try {
+                // Get today's date and dates for comparison
+                const today = new Date().toISOString().split('T')[0];
+                const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+                // Get total page views
+                const { count: totalViews, error: viewsError } = await supabaseClient
+                    .from('page_views')
+                    .select('*', { count: 'exact', head: true });
+
+                // Get unique visitors (distinct visitor_id)
+                const { data: uniqueData, error: uniqueError } = await supabaseClient
+                    .from('page_views')
+                    .select('visitor_id');
+
+                const uniqueVisitors = uniqueData ? [...new Set(uniqueData.map(v => v.visitor_id))].length : 0;
+
+                // Get today's views
+                const { count: todayViews, error: todayError } = await supabaseClient
+                    .from('page_views')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('created_at', today);
+
+                // Get last 7 days views
+                const { count: weekViews, error: weekError } = await supabaseClient
+                    .from('page_views')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('created_at', sevenDaysAgo);
+
+                // Get last 30 days views
+                const { count: monthViews, error: monthError } = await supabaseClient
+                    .from('page_views')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('created_at', thirtyDaysAgo);
+
+                // Get new visitors count
+                const { data: newVisitorsData } = await supabaseClient
+                    .from('page_views')
+                    .select('visitor_id')
+                    .eq('is_new_visitor', true);
+
+                const newVisitors = newVisitorsData ? [...new Set(newVisitorsData.map(v => v.visitor_id))].length : 0;
+
+                // Get mobile vs desktop
+                const { count: mobileCount } = await supabaseClient
+                    .from('page_views')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('is_mobile', true);
+
+                return {
+                    totalViews: totalViews || 0,
+                    uniqueVisitors: uniqueVisitors,
+                    todayViews: todayViews || 0,
+                    weekViews: weekViews || 0,
+                    monthViews: monthViews || 0,
+                    newVisitors: newVisitors,
+                    returningVisitors: uniqueVisitors - newVisitors,
+                    mobileVisitors: mobileCount || 0,
+                    desktopVisitors: (totalViews || 0) - (mobileCount || 0)
+                };
+            } catch (error) {
+                console.error('Error fetching visitor stats:', error);
+                return {
+                    totalViews: 0,
+                    uniqueVisitors: 0,
+                    todayViews: 0,
+                    weekViews: 0,
+                    monthViews: 0,
+                    newVisitors: 0,
+                    returningVisitors: 0,
+                    mobileVisitors: 0,
+                    desktopVisitors: 0
+                };
+            }
+        });
+    },
+
+    /**
+     * Get page views grouped by page
+     */
+    async getTopPages(limit = 10) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('page_views')
+                .select('page_url, page_title');
+
+            if (error) throw error;
+
+            // Group by page_url and count
+            const pageCounts = {};
+            data.forEach(view => {
+                const url = view.page_url;
+                if (!pageCounts[url]) {
+                    pageCounts[url] = { url, title: view.page_title, count: 0 };
+                }
+                pageCounts[url].count++;
+            });
+
+            // Sort by count and return top pages
+            return Object.values(pageCounts)
+                .sort((a, b) => b.count - a.count)
+                .slice(0, limit);
+        } catch (error) {
+            console.error('Error fetching top pages:', error);
+            return [];
+        }
+    },
+
+    /**
+     * Get page views grouped by day for chart
+     */
+    async getViewsByDay(days = 30) {
+        try {
+            const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+            const { data, error } = await supabaseClient
+                .from('page_views')
+                .select('created_at')
+                .gte('created_at', startDate)
+                .order('created_at', { ascending: true });
+
+            if (error) throw error;
+
+            // Group by day
+            const dayCounts = {};
+            data.forEach(view => {
+                const day = view.created_at.split('T')[0];
+                dayCounts[day] = (dayCounts[day] || 0) + 1;
+            });
+
+            // Fill in missing days with 0
+            const result = [];
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+                const dayStr = date.toISOString().split('T')[0];
+                result.push({
+                    date: dayStr,
+                    views: dayCounts[dayStr] || 0
+                });
+            }
+
+            return result;
+        } catch (error) {
+            console.error('Error fetching views by day:', error);
+            return [];
+        }
+    },
+
+    /**
+     * Get referrer statistics
+     */
+    async getTopReferrers(limit = 10) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('page_views')
+                .select('referrer')
+                .not('referrer', 'is', null)
+                .not('referrer', 'eq', '');
+
+            if (error) throw error;
+
+            // Group by referrer and count
+            const referrerCounts = {};
+            data.forEach(view => {
+                const ref = view.referrer || 'Direct';
+                // Extract domain from referrer
+                let domain = 'Direct';
+                try {
+                    if (ref && ref !== 'Direct') {
+                        domain = new URL(ref).hostname;
+                    }
+                } catch {
+                    domain = ref;
+                }
+                referrerCounts[domain] = (referrerCounts[domain] || 0) + 1;
+            });
+
+            // Sort by count and return top referrers
+            return Object.entries(referrerCounts)
+                .map(([source, count]) => ({ source, count }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, limit);
+        } catch (error) {
+            console.error('Error fetching top referrers:', error);
+            return [];
+        }
+    },
+
+    /**
+     * Get device statistics
+     */
+    async getDeviceStats() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('page_views')
+                .select('is_mobile, screen_width, screen_height');
+
+            if (error) throw error;
+
+            let mobile = 0;
+            let desktop = 0;
+            let tablet = 0;
+
+            data.forEach(view => {
+                if (view.is_mobile) {
+                    if (view.screen_width >= 768) {
+                        tablet++;
+                    } else {
+                        mobile++;
+                    }
+                } else {
+                    desktop++;
+                }
+            });
+
+            const total = mobile + desktop + tablet;
+            return {
+                mobile: { count: mobile, percent: total > 0 ? Math.round((mobile / total) * 100) : 0 },
+                desktop: { count: desktop, percent: total > 0 ? Math.round((desktop / total) * 100) : 0 },
+                tablet: { count: tablet, percent: total > 0 ? Math.round((tablet / total) * 100) : 0 }
+            };
+        } catch (error) {
+            console.error('Error fetching device stats:', error);
+            return {
+                mobile: { count: 0, percent: 0 },
+                desktop: { count: 0, percent: 0 },
+                tablet: { count: 0, percent: 0 }
+            };
+        }
     }
 };
 

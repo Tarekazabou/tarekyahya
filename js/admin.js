@@ -1416,85 +1416,293 @@ function escapeHtml(str) {
 
 async function loadDashboardStats() {
     try {
-        const [news, products, clients, jobsCount] = await Promise.all([
+        // Fetch all data in parallel
+        const [news, products, clients, jobs, messages, showroom, activityStats, commercialStats, visitorStats] = await Promise.all([
             DataService.getNews(),
             DataService.getProducts(),
-            DataService.getClients(),
-            DataService.getJobsCount()
+            DataService.getClients().catch(() => []),
+            DataService.getAllJobs().catch(() => []),
+            DataService.getMessages().catch(() => []),
+            DataService.getShowroomItems().catch(() => []),
+            DataService.getStats('activity').catch(() => []),
+            DataService.getStats('commercial').catch(() => []),
+            DataService.getVisitorStats().catch(() => null)
         ]);
 
-        const el1 = document.getElementById('stat-news-count');
-        if (el1) el1.textContent = news.length;
-        
-        const el2 = document.getElementById('stat-products-count');
-        if (el2) el2.textContent = products.length;
-        
-        const el3 = document.getElementById('stat-products-total');
-        if (el3) el3.textContent = products.length;
-        
-        const el4 = document.getElementById('stat-clients-count');
-        if (el4) el4.textContent = clients.length;
-        
-        const el5 = document.getElementById('stat-jobs-count');
-        if (el5) el5.textContent = jobsCount;
+        // Helper function to safely update element
+        const updateEl = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        };
+
+        // Helper function to format number with separator
+        const formatNumber = (num) => {
+            return new Intl.NumberFormat('fr-FR').format(num);
+        };
+
+        // Helper function to update change indicator
+        const updateChange = (id, trend, direction) => {
+            const el = document.getElementById(id);
+            if (el && trend) {
+                const icon = direction === 'up' ? 'fa-arrow-up' : (direction === 'down' ? 'fa-arrow-down' : 'fa-minus');
+                const color = direction === 'up' ? '#22c55e' : (direction === 'down' ? '#ef4444' : '#64748b');
+                el.innerHTML = `<i class="fas ${icon}" style="color: ${color}"></i> ${trend}`;
+            }
+        };
+
+        // === Quick Stats Row ===
+        updateEl('stat-news-count', news.length);
+        updateEl('stat-products-count', products.length);
+        updateEl('stat-products-total', products.length);
+        updateEl('stat-jobs-count', jobs.length);
+        updateEl('stat-messages-count', messages.length);
+        updateEl('stat-showroom-count', showroom.length);
+
+        // === Real Visitor Stats from page_views table ===
+        if (visitorStats && visitorStats.totalViews > 0) {
+            // Use real tracked data
+            updateEl('stat-visitors-total', formatNumber(visitorStats.uniqueVisitors));
+            
+            // Calculate change (compare today vs average)
+            const avgDaily = visitorStats.monthViews / 30;
+            const todayChange = avgDaily > 0 ? Math.round(((visitorStats.todayViews - avgDaily) / avgDaily) * 100) : 0;
+            const changeDirection = todayChange >= 0 ? 'up' : 'down';
+            updateChange('stat-visitors-change', `${todayChange >= 0 ? '+' : ''}${todayChange}%`, changeDirection);
+
+            // Update page views card (replacing clients)
+            updateEl('stat-page-views-total', formatNumber(visitorStats.totalViews));
+            
+            // Calculate page views change
+            const avgPageViews = visitorStats.weekViews / 7;
+            const todayPageViewsChange = avgPageViews > 0 ? Math.round(((visitorStats.todayViews - avgPageViews) / avgPageViews) * 100) : 0;
+            const pageViewsDirection = todayPageViewsChange >= 0 ? 'up' : 'down';
+            updateChange('stat-page-views-change', `${todayPageViewsChange >= 0 ? '+' : ''}${todayPageViewsChange}%`, pageViewsDirection);
+        } else {
+            // Fallback to stats table
+            const visitorsData = activityStats.find(s => s.key === 'total_visitors');
+            if (visitorsData) {
+                updateEl('stat-visitors-total', formatNumber(visitorsData.value));
+                updateChange('stat-visitors-change', visitorsData.trend, visitorsData.trend_direction);
+            }
+
+            // For page views, use 0 or fallback
+            updateEl('stat-page-views-total', '0');
+        }
+
+        // === Activity Stats from DB ===
+        const ordersData = activityStats.find(s => s.key === 'total_orders');
+        const conversionData = activityStats.find(s => s.key === 'conversion_rate');
+
+        if (ordersData) {
+            updateEl('stat-orders-total', formatNumber(ordersData.value));
+            updateChange('stat-orders-change', ordersData.trend, ordersData.trend_direction);
+        }
+
+        // Calculate real conversion rate if we have visitor data and orders
+        if (visitorStats && visitorStats.uniqueVisitors > 0 && ordersData) {
+            const orders = parseInt(ordersData.value) || 0;
+            const realConversion = ((orders / visitorStats.uniqueVisitors) * 100).toFixed(2);
+            updateEl('stat-conversion-rate', `${realConversion}%`);
+            updateChange('stat-conversion-change', 'Visiteurs → Commandes', 'up');
+        } else if (conversionData) {
+            updateEl('stat-conversion-rate', conversionData.value);
+            updateChange('stat-conversion-change', conversionData.trend, conversionData.trend_direction);
+        }
+
+        // === Commercial Stats from DB ===
+        const totalRevenue = commercialStats.find(s => s.key === 'total_revenue');
+        const monthlyRevenue = commercialStats.find(s => s.key === 'monthly_revenue');
+        const salesGrowth = commercialStats.find(s => s.key === 'sales_growth');
+
+        if (totalRevenue) {
+            updateEl('stat-revenue-total', `€ ${formatNumber(totalRevenue.value)}`);
+            const changeEl = document.getElementById('stat-revenue-total-change');
+            if (changeEl && totalRevenue.trend) {
+                const icon = totalRevenue.trend_direction === 'up' ? 'fa-arrow-up' : 'fa-arrow-down';
+                const color = totalRevenue.trend_direction === 'up' ? '#22c55e' : '#ef4444';
+                changeEl.style.color = color;
+                changeEl.innerHTML = `<i class="fas ${icon}"></i> ${totalRevenue.trend} vs année dernière`;
+            }
+        }
+
+        if (monthlyRevenue) {
+            updateEl('stat-revenue-month', `€ ${formatNumber(monthlyRevenue.value)}`);
+            const changeEl = document.getElementById('stat-revenue-month-change');
+            if (changeEl && monthlyRevenue.trend) {
+                const icon = monthlyRevenue.trend_direction === 'up' ? 'fa-arrow-up' : 'fa-arrow-down';
+                const color = monthlyRevenue.trend_direction === 'up' ? '#22c55e' : '#ef4444';
+                changeEl.style.color = color;
+                changeEl.innerHTML = `<i class="fas ${icon}"></i> ${monthlyRevenue.trend} vs mois dernier`;
+            }
+        }
+
+        if (salesGrowth) {
+            updateEl('stat-growth-rate', salesGrowth.value);
+            const trendEl = document.getElementById('stat-growth-trend');
+            if (trendEl) {
+                const icon = salesGrowth.trend_direction === 'up' ? 'fa-arrow-up' : 'fa-arrow-down';
+                const color = salesGrowth.trend_direction === 'up' ? '#22c55e' : '#ef4444';
+                const trendText = salesGrowth.trend_direction === 'up' ? 'Tendance positive' : 'Tendance négative';
+                trendEl.style.color = color;
+                trendEl.innerHTML = `<i class="fas ${icon}"></i> ${trendText}`;
+            }
+        }
+
+        // === Top Selling Products ===
+        await loadTopSellingProducts(products);
+
+        // === Low Rotation Products ===
+        await loadLowRotationProducts(products);
 
         renderTrafficSalesChart();
     } catch (error) {
         console.error('Error loading stats:', error);
+        // Show error state in stats
+        document.querySelectorAll('[id^="stat-"]').forEach(el => {
+            if (el.textContent === '-' || el.textContent === '--%') {
+                el.textContent = 'N/A';
+            }
+        });
         renderTrafficSalesChart(); // still render with mock data
     }
 }
 
+/**
+ * Load top selling products into the dashboard
+ */
+async function loadTopSellingProducts(products) {
+    const container = document.getElementById('top-selling-products');
+    if (!container) return;
+
+    try {
+        // Get products stats or use featured/sorted products as proxy for "top selling"
+        const topProducts = products
+            .filter(p => p.is_featured)
+            .slice(0, 4);
+
+        if (topProducts.length === 0) {
+            // Fallback: just show first 4 products
+            topProducts.push(...products.slice(0, 4));
+        }
+
+        if (topProducts.length === 0) {
+            container.innerHTML = '<p style="color: #64748b; text-align: center; padding: 1rem;">Aucun produit disponible</p>';
+            return;
+        }
+
+        container.innerHTML = topProducts.map((product, index) => `
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; ${index < topProducts.length - 1 ? 'border-bottom: 1px solid #e2e8f0;' : ''}">
+                <span style="color: #374151;">${escapeHtml(product.name)}</span>
+                <span class="badge badge-success">${product.badge || 'Populaire'}</span>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading top products:', error);
+        container.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 1rem;">Erreur de chargement</p>';
+    }
+}
+
+/**
+ * Load low rotation products into the dashboard
+ */
+async function loadLowRotationProducts(products) {
+    const container = document.getElementById('low-rotation-products');
+    if (!container) return;
+
+    try {
+        // Get products that are not featured as proxy for "low rotation"
+        const lowRotationProducts = products
+            .filter(p => !p.is_featured)
+            .slice(-4)
+            .reverse();
+
+        if (lowRotationProducts.length === 0) {
+            container.innerHTML = '<p style="color: #64748b; text-align: center; padding: 1rem;">Aucun produit à faible rotation</p>';
+            return;
+        }
+
+        container.innerHTML = lowRotationProducts.map((product, index) => `
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; ${index < lowRotationProducts.length - 1 ? 'border-bottom: 1px solid #e2e8f0;' : ''}">
+                <span style="color: #374151;">${escapeHtml(product.name)}</span>
+                <span class="badge badge-warning">À surveiller</span>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading low rotation products:', error);
+        container.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 1rem;">Erreur de chargement</p>';
+    }
+}
+
 let trafficChart = null;
-function renderTrafficSalesChart() {
+async function renderTrafficSalesChart() {
     const ctx = document.getElementById('traffic-sales-chart');
     if (!ctx || typeof Chart === 'undefined') return;
 
-    const labels = Array.from({ length: 10 }).map((_, idx) => {
-        const d = new Date();
-        d.setDate(d.getDate() - (9 - idx));
-        return d.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' });
-    });
-
-    const views = labels.map((_, i) => 800 + Math.round(Math.sin(i) * 120) + i * 25);
-    const sales = labels.map((_, i) => 40 + Math.round(Math.cos(i) * 8) + i * 2);
-
-    if (trafficChart) trafficChart.destroy();
-
-    trafficChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [
-                {
-                    label: 'Vues',
-                    data: views,
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.15)',
-                    tension: 0.35,
-                    fill: true
-                },
-                {
-                    label: 'Ventes',
-                    data: sales,
-                    borderColor: '#22c55e',
-                    backgroundColor: 'rgba(34, 197, 94, 0.15)',
-                    tension: 0.35,
-                    fill: true
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'top' }
-            },
-            scales: {
-                y: { beginAtZero: true }
-            }
+    try {
+        // Try to get real visitor data
+        const viewsByDay = await DataService.getViewsByDay(10).catch(() => null);
+        
+        let labels, views;
+        
+        if (viewsByDay && viewsByDay.length > 0 && viewsByDay.some(d => d.views > 0)) {
+            // Use real data
+            labels = viewsByDay.map(d => {
+                const date = new Date(d.date);
+                return date.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' });
+            });
+            views = viewsByDay.map(d => d.views);
+        } else {
+            // Fallback to mock data
+            labels = Array.from({ length: 10 }).map((_, idx) => {
+                const d = new Date();
+                d.setDate(d.getDate() - (9 - idx));
+                return d.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' });
+            });
+            views = labels.map((_, i) => 800 + Math.round(Math.sin(i) * 120) + i * 25);
         }
-    });
+
+        // Mock sales data (could be connected to real orders later)
+        const sales = labels.map((_, i) => 40 + Math.round(Math.cos(i) * 8) + i * 2);
+
+        if (trafficChart) trafficChart.destroy();
+
+        trafficChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Vues',
+                        data: views,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                        tension: 0.35,
+                        fill: true
+                    },
+                    {
+                        label: 'Ventes',
+                        data: sales,
+                        borderColor: '#22c55e',
+                        backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                        tension: 0.35,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error rendering chart:', error);
+    }
 }
 
 // ==================== DIAGNOSTIC FUNCTION ====================

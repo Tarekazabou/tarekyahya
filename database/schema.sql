@@ -3,6 +3,43 @@
 -- Run this SQL in your Supabase SQL Editor
 -- =====================================================
 
+-- Page Views / Visitor Tracking
+CREATE TABLE IF NOT EXISTS page_views (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    visitor_id TEXT NOT NULL,
+    page_url TEXT NOT NULL,
+    page_path TEXT,
+    page_title TEXT,
+    referrer TEXT,
+    user_agent TEXT,
+    screen_width INT,
+    screen_height INT,
+    language TEXT,
+    country TEXT,
+    city TEXT,
+    is_mobile BOOLEAN DEFAULT false,
+    is_new_visitor BOOLEAN DEFAULT true,
+    session_id TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Daily Visitor Statistics (aggregated)
+CREATE TABLE IF NOT EXISTS visitor_stats (
+    id SERIAL PRIMARY KEY,
+    date DATE UNIQUE NOT NULL DEFAULT CURRENT_DATE,
+    total_views INT DEFAULT 0,
+    unique_visitors INT DEFAULT 0,
+    new_visitors INT DEFAULT 0,
+    returning_visitors INT DEFAULT 0,
+    mobile_visitors INT DEFAULT 0,
+    desktop_visitors INT DEFAULT 0,
+    avg_session_duration INT DEFAULT 0,
+    bounce_rate DECIMAL(5,2) DEFAULT 0,
+    top_pages JSONB DEFAULT '[]',
+    top_referrers JSONB DEFAULT '[]',
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Site Configuration
 CREATE TABLE IF NOT EXISTS site_config (
     id SERIAL PRIMARY KEY,
@@ -124,6 +161,8 @@ ALTER TABLE showroom_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE stats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE page_views ENABLE ROW LEVEL SECURITY;
+ALTER TABLE visitor_stats ENABLE ROW LEVEL SECURITY;
 
 -- ===========================================
 -- HELPER FUNCTION: Check if user is admin
@@ -209,6 +248,21 @@ CREATE POLICY "Admin update site_config" ON site_config FOR UPDATE USING (is_adm
 CREATE POLICY "Admin update stats" ON stats FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin insert stats" ON stats FOR INSERT WITH CHECK (is_admin());
 CREATE POLICY "Admin delete stats" ON stats FOR DELETE USING (is_admin());
+
+-- ===========================================
+-- PAGE VIEWS - Public insert (tracking), Admin read
+-- ===========================================
+CREATE POLICY "Public insert page_views" ON page_views FOR INSERT WITH CHECK (true);
+CREATE POLICY "Admin read page_views" ON page_views FOR SELECT USING (is_admin());
+CREATE POLICY "Admin delete page_views" ON page_views FOR DELETE USING (is_admin());
+
+-- ===========================================
+-- VISITOR STATS - Admin only
+-- ===========================================
+CREATE POLICY "Admin read visitor_stats" ON visitor_stats FOR SELECT USING (is_admin());
+CREATE POLICY "Admin insert visitor_stats" ON visitor_stats FOR INSERT WITH CHECK (is_admin());
+CREATE POLICY "Admin update visitor_stats" ON visitor_stats FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin delete visitor_stats" ON visitor_stats FOR DELETE USING (is_admin());
 
 -- =====================================================
 -- INITIAL DATA

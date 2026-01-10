@@ -27,23 +27,49 @@ const config = getConfig();
 
 let supabaseClient = null;
 
-if (typeof supabase !== 'undefined') {
-    // Initialize Supabase Client with additional security options
-    supabaseClient = supabase.createClient(config.url, config.anonKey, {
-        auth: {
-            autoRefreshToken: true,
-            persistSession: true,
-            detectSessionInUrl: true
-        },
-        global: {
-            headers: {
-                'X-Client-Info': 'primavet-web'
+// Initialize Supabase with retry logic
+const initSupabase = async () => {
+    // Try to access the Supabase SDK (from UMD build it's on window.supabase)
+    const maxRetries = 50; // 5 seconds total
+    let retries = 0;
+    
+    while (retries < maxRetries) {
+        const supabaseSDK = window.supabase;
+        
+        if (supabaseSDK && supabaseSDK.createClient) {
+            try {
+                // Initialize Supabase Client
+                supabaseClient = supabaseSDK.createClient(config.url, config.anonKey, {
+                    auth: {
+                        autoRefreshToken: true,
+                        persistSession: true,
+                        detectSessionInUrl: true
+                    },
+                    global: {
+                        headers: {
+                            'X-Client-Info': 'primavet-web'
+                        }
+                    }
+                });
+                console.log('✅ Supabase client initialized successfully');
+                return true;
+            } catch (error) {
+                console.error('❌ Error initializing Supabase client:', error);
+                return false;
             }
         }
-    });
-} else {
-    console.warn('Supabase SDK non chargé, bascule en mode démo local.');
-}
+        
+        // Wait 100ms before retry
+        await new Promise(resolve => setTimeout(resolve, 100));
+        retries++;
+    }
+    
+    console.error('❌ Supabase SDK failed to load after 5 seconds - check your internet connection and console for errors');
+    return false;
+};
+
+// Start initialization
+initSupabase();
 
 // Session management utilities
 const AuthManager = {
