@@ -130,6 +130,24 @@ CREATE TABLE IF NOT EXISTS clients (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Orders / Quotes
+CREATE TABLE IF NOT EXISTS orders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_number VARCHAR(50) UNIQUE NOT NULL,
+    client_id INT REFERENCES clients(id),
+    client_name VARCHAR(200) NOT NULL,
+    client_email VARCHAR(200),
+    client_phone VARCHAR(50),
+    client_company VARCHAR(200),
+    product_interest TEXT,
+    quantity INT,
+    message TEXT,
+    status VARCHAR(50) DEFAULT 'pending', -- pending, confirmed, in_progress, completed, cancelled
+    total_amount DECIMAL(10,2),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Messages (Form Submissions)
 CREATE TABLE IF NOT EXISTS messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -1417,7 +1417,7 @@ function escapeHtml(str) {
 async function loadDashboardStats() {
     try {
         // Fetch all data in parallel
-        const [news, products, clients, jobs, messages, showroom, activityStats, commercialStats, visitorStats] = await Promise.all([
+        const [news, products, clients, jobs, messages, showroom, activityStats, commercialStats, visitorStats, orderStats] = await Promise.all([
             DataService.getNews(),
             DataService.getProducts(),
             DataService.getClients().catch(() => []),
@@ -1426,7 +1426,8 @@ async function loadDashboardStats() {
             DataService.getShowroomItems().catch(() => []),
             DataService.getStats('activity').catch(() => []),
             DataService.getStats('commercial').catch(() => []),
-            DataService.getVisitorStats().catch(() => null)
+            DataService.getDetailedVisitorStats().catch(() => null),  // Use detailed visitor stats
+            DataService.getOrderStats().catch(() => null)  // Add order stats
         ]);
 
         // Helper function to safely update element
@@ -1459,24 +1460,32 @@ async function loadDashboardStats() {
         updateEl('stat-showroom-count', showroom.length);
 
         // === Real Visitor Stats from page_views table ===
-        if (visitorStats && visitorStats.totalViews > 0) {
-            // Use real tracked data
-            updateEl('stat-visitors-total', formatNumber(visitorStats.uniqueVisitors));
+        if (visitorStats && visitorStats.totalPageViews > 0) {
+            // Main KPI cards (top row)
+            updateEl('stat-visitors-total', formatNumber(visitorStats.totalVisitors));
             
             // Calculate change (compare today vs average)
-            const avgDaily = visitorStats.monthViews / 30;
-            const todayChange = avgDaily > 0 ? Math.round(((visitorStats.todayViews - avgDaily) / avgDaily) * 100) : 0;
+            const avgDaily = visitorStats.totalVisitors / 30;
+            const todayChange = avgDaily > 0 ? Math.round(((visitorStats.visitorsToday - avgDaily) / avgDaily) * 100) : 0;
             const changeDirection = todayChange >= 0 ? 'up' : 'down';
             updateChange('stat-visitors-change', `${todayChange >= 0 ? '+' : ''}${todayChange}%`, changeDirection);
 
             // Update page views card (replacing clients)
-            updateEl('stat-page-views-total', formatNumber(visitorStats.totalViews));
+            updateEl('stat-page-views-total', formatNumber(visitorStats.totalPageViews));
             
             // Calculate page views change
-            const avgPageViews = visitorStats.weekViews / 7;
-            const todayPageViewsChange = avgPageViews > 0 ? Math.round(((visitorStats.todayViews - avgPageViews) / avgPageViews) * 100) : 0;
+            const avgPageViews = visitorStats.totalPageViews / 30;
+            const todayPageViewsChange = avgPageViews > 0 ? Math.round(((visitorStats.totalPageViews - avgPageViews) / avgPageViews) * 100) : 0;
             const pageViewsDirection = todayPageViewsChange >= 0 ? 'up' : 'down';
             updateChange('stat-page-views-change', `${todayPageViewsChange >= 0 ? '+' : ''}${todayPageViewsChange}%`, pageViewsDirection);
+
+            // Detailed visitor stats section (new section)
+            updateEl('stat-total-visitors', formatNumber(visitorStats.totalVisitors));
+            updateEl('stat-visitors-today', formatNumber(visitorStats.visitorsToday));
+            updateEl('stat-new-visitors', formatNumber(visitorStats.newVisitors));
+            updateEl('stat-total-sessions', formatNumber(visitorStats.totalSessions));
+            updateEl('stat-total-pageviews', formatNumber(visitorStats.totalPageViews));
+            updateEl('stat-avg-pages-per-session', visitorStats.avgPagesPerSession);
         } else {
             // Fallback to stats table
             const visitorsData = activityStats.find(s => s.key === 'total_visitors');
@@ -1487,66 +1496,151 @@ async function loadDashboardStats() {
 
             // For page views, use 0 or fallback
             updateEl('stat-page-views-total', '0');
+            
+            // Detailed stats fallback
+            updateEl('stat-total-visitors', '0');
+            updateEl('stat-visitors-today', '0');
+            updateEl('stat-new-visitors', '0');
+            updateEl('stat-total-sessions', '0');
+            updateEl('stat-total-pageviews', '0');
+            updateEl('stat-avg-pages-per-session', '0');
         }
+// from here
+// ===============================
+// Activity Stats — Orders
+// ===============================
+if (orderStats && typeof orderStats.totalOrders === 'number') {
+  updateEl('stat-orders-total', formatNumber(orderStats.totalOrders));
 
-        // === Activity Stats from DB ===
-        const ordersData = activityStats.find(s => s.key === 'total_orders');
-        const conversionData = activityStats.find(s => s.key === 'conversion_rate');
+  if (orderStats.totalOrders > 0) {
+    updateChange(
+      'stat-orders-change',
+      orderStats.trendLabel ?? '—',
+      orderStats.trendDirection ?? 'stable'
+    );
+  } else {
+    updateChange('stat-orders-change', '0%', 'stable');
+  }
+} else if (Array.isArray(activityStats)) {
+  const ordersData = activityStats.find(s => s.key === 'total_orders');
+  if (ordersData) {
+    updateEl('stat-orders-total', formatNumber(ordersData.value));
+    updateChange(
+      'stat-orders-change',
+      ordersData.trend ?? '0%',
+      ordersData.trend_direction ?? 'stable'
+    );
+  } else {
+    updateEl('stat-orders-total', '0');
+    updateChange('stat-orders-change', '0%', 'stable');
+  }
+}
 
-        if (ordersData) {
-            updateEl('stat-orders-total', formatNumber(ordersData.value));
-            updateChange('stat-orders-change', ordersData.trend, ordersData.trend_direction);
-        }
+// ===============================
+// Conversion Rate
+// ===============================
+const conversionData = Array.isArray(activityStats)
+  ? activityStats.find(s => s.key === 'conversion_rate')
+  : null;
 
-        // Calculate real conversion rate if we have visitor data and orders
-        if (visitorStats && visitorStats.uniqueVisitors > 0 && ordersData) {
-            const orders = parseInt(ordersData.value) || 0;
-            const realConversion = ((orders / visitorStats.uniqueVisitors) * 100).toFixed(2);
-            updateEl('stat-conversion-rate', `${realConversion}%`);
-            updateChange('stat-conversion-change', 'Visiteurs → Commandes', 'up');
-        } else if (conversionData) {
-            updateEl('stat-conversion-rate', conversionData.value);
-            updateChange('stat-conversion-change', conversionData.trend, conversionData.trend_direction);
-        }
+if (
+  visitorStats?.totalVisitors > 0 &&
+  orderStats?.totalOrders > 0
+) {
+  const conversion = (
+    (orderStats.totalOrders / visitorStats.totalVisitors) * 100
+  ).toFixed(2);
 
-        // === Commercial Stats from DB ===
-        const totalRevenue = commercialStats.find(s => s.key === 'total_revenue');
-        const monthlyRevenue = commercialStats.find(s => s.key === 'monthly_revenue');
-        const salesGrowth = commercialStats.find(s => s.key === 'sales_growth');
+  updateEl('stat-conversion-rate', `${conversion}%`);
+  updateChange('stat-conversion-change', 'Visiteurs → Commandes', 'up');
+} else if (conversionData) {
+  updateEl('stat-conversion-rate', conversionData.value);
+  updateChange(
+    'stat-conversion-change',
+    conversionData.trend ?? '0%',
+    conversionData.trend_direction ?? 'stable'
+  );
+} else {
+  updateEl('stat-conversion-rate', '0%');
+  updateChange('stat-conversion-change', '—', 'stable');
+}
 
-        if (totalRevenue) {
-            updateEl('stat-revenue-total', `€ ${formatNumber(totalRevenue.value)}`);
-            const changeEl = document.getElementById('stat-revenue-total-change');
-            if (changeEl && totalRevenue.trend) {
-                const icon = totalRevenue.trend_direction === 'up' ? 'fa-arrow-up' : 'fa-arrow-down';
-                const color = totalRevenue.trend_direction === 'up' ? '#22c55e' : '#ef4444';
-                changeEl.style.color = color;
-                changeEl.innerHTML = `<i class="fas ${icon}"></i> ${totalRevenue.trend} vs année dernière`;
-            }
-        }
+// ===============================
+// Commercial Stats — Revenue
+// ===============================
+const getTrendUI = (percent) => ({
+  icon: percent >= 0 ? 'fa-arrow-up' : 'fa-arrow-down',
+  color: percent >= 0 ? '#22c55e' : '#ef4444',
+  label: percent >= 0 ? 'Tendance positive' : 'Tendance négative',
+});
 
-        if (monthlyRevenue) {
-            updateEl('stat-revenue-month', `€ ${formatNumber(monthlyRevenue.value)}`);
-            const changeEl = document.getElementById('stat-revenue-month-change');
-            if (changeEl && monthlyRevenue.trend) {
-                const icon = monthlyRevenue.trend_direction === 'up' ? 'fa-arrow-up' : 'fa-arrow-down';
-                const color = monthlyRevenue.trend_direction === 'up' ? '#22c55e' : '#ef4444';
-                changeEl.style.color = color;
-                changeEl.innerHTML = `<i class="fas ${icon}"></i> ${monthlyRevenue.trend} vs mois dernier`;
-            }
-        }
+if (orderStats && typeof orderStats.totalRevenue === 'number') {
+  // ---- Total Revenue ----
+  updateEl(
+    'stat-revenue-total',
+    `€ ${formatNumber(Math.round(orderStats.totalRevenue))}`
+  );
 
-        if (salesGrowth) {
-            updateEl('stat-growth-rate', salesGrowth.value);
-            const trendEl = document.getElementById('stat-growth-trend');
-            if (trendEl) {
-                const icon = salesGrowth.trend_direction === 'up' ? 'fa-arrow-up' : 'fa-arrow-down';
-                const color = salesGrowth.trend_direction === 'up' ? '#22c55e' : '#ef4444';
-                const trendText = salesGrowth.trend_direction === 'up' ? 'Tendance positive' : 'Tendance négative';
-                trendEl.style.color = color;
-                trendEl.innerHTML = `<i class="fas ${icon}"></i> ${trendText}`;
-            }
-        }
+  const totalChangeEl = document.getElementById('stat-revenue-total-change');
+  if (totalChangeEl) {
+    if (orderStats.totalRevenue > 0) {
+      const { icon, color } = getTrendUI(orderStats.revenueTrendPercent);
+      totalChangeEl.style.color = color;
+      totalChangeEl.innerHTML =
+        `<i class="fas ${icon}"></i> ${orderStats.revenueTrendLabel} vs mois dernier`;
+    } else {
+      totalChangeEl.style.color = '#64748b';
+      totalChangeEl.innerHTML =
+        `<i class="fas fa-minus"></i> Pas de données`;
+    }
+  }
+
+  // ---- Monthly Revenue ----
+  updateEl(
+    'stat-revenue-month',
+    `€ ${formatNumber(Math.round(orderStats.currentMonthRevenue ?? 0))}`
+  );
+
+  const monthChangeEl = document.getElementById('stat-revenue-month-change');
+  if (monthChangeEl) {
+    if (
+      orderStats.currentMonthRevenue > 0 ||
+      orderStats.previousMonthRevenue > 0
+    ) {
+      const { icon, color } = getTrendUI(orderStats.revenueTrendPercent);
+      monthChangeEl.style.color = color;
+      monthChangeEl.innerHTML =
+        `<i class="fas ${icon}"></i> ${orderStats.revenueTrendLabel} vs mois dernier`;
+    } else {
+      monthChangeEl.style.color = '#64748b';
+      monthChangeEl.innerHTML =
+        `<i class="fas fa-minus"></i> Pas de données`;
+    }
+  }
+
+  // ---- Sales Growth ----
+  updateEl(
+    'stat-growth-rate',
+    orderStats.totalRevenue > 0
+      ? orderStats.revenueTrendLabel
+      : '0%'
+  );
+
+  const trendEl = document.getElementById('stat-growth-trend');
+  if (trendEl) {
+    if (orderStats.totalRevenue > 0) {
+      const { icon, color, label } =
+        getTrendUI(orderStats.revenueTrendPercent);
+      trendEl.style.color = color;
+      trendEl.innerHTML =
+        `<i class="fas ${icon}"></i> ${label}`;
+    } else {
+      trendEl.style.color = '#64748b';
+      trendEl.innerHTML =
+        `<i class="fas fa-minus"></i> Ajoutez des commandes`;
+    }
+  }
+}
 
         // === Top Selling Products ===
         await loadTopSellingProducts(products);

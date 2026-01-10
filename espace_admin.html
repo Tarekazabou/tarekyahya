@@ -147,6 +147,46 @@
                 </div>
             </div>
 
+            <!-- Section: Visitor Analytics Details -->
+            <div class="admin-card" style="margin-bottom: 1.5rem;">
+                <div class="admin-card-header">
+                    <h2><i class="fas fa-chart-line"></i> Statistiques Visiteurs Détaillées</h2>
+                </div>
+                <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem;">
+                    <div class="kpi-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                        <i class="fas fa-users" style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #3b82f6;"></i>
+                        <h3 id="stat-total-visitors" style="font-size: 1.75rem; margin: 0.5rem 0; color: #1e293b;">-</h3>
+                        <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Total Visiteurs</p>
+                    </div>
+                    <div class="kpi-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                        <i class="fas fa-calendar-day" style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #22c55e;"></i>
+                        <h3 id="stat-visitors-today" style="font-size: 1.75rem; margin: 0.5rem 0; color: #1e293b;">-</h3>
+                        <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Visiteurs Aujourd'hui</p>
+                    </div>
+                    <div class="kpi-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                        <i class="fas fa-user-plus" style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #f59e0b;"></i>
+                        <h3 id="stat-new-visitors" style="font-size: 1.75rem; margin: 0.5rem 0; color: #1e293b;">-</h3>
+                        <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Nouveaux Visiteurs</p>
+                    </div>
+                    <div class="kpi-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                        <i class="fas fa-clock" style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #8b5cf6;"></i>
+                        <h3 id="stat-total-sessions" style="font-size: 1.75rem; margin: 0.5rem 0; color: #1e293b;">-</h3>
+                        <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Sessions</p>
+                    </div>
+                    <div class="kpi-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                        <i class="fas fa-file-alt" style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #ef4444;"></i>
+                        <h3 id="stat-total-pageviews" style="font-size: 1.75rem; margin: 0.5rem 0; color: #1e293b;">-</h3>
+                        <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Pages Vues</p>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px; text-align: center;">
+                    <p style="margin: 0; color: #64748b; font-size: 0.9rem;">
+                        <i class="fas fa-chart-bar"></i> 
+                        Moyenne de <strong id="stat-avg-pages-per-session">-</strong> pages par session
+                    </p>
+                </div>
+            </div>
+
             <!-- Section 2: Performance Commerciale -->
             <div class="admin-card" style="margin-bottom: 1.5rem;">
                     <div class="admin-card-header">

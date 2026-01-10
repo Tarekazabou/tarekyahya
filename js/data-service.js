@@ -795,6 +795,70 @@ const DataService = {
     // ==================== VISITOR TRACKING ====================
 
     /**
+     * Get detailed visitor statistics using exact SQL queries
+     */
+    async getDetailedVisitorStats() {
+        try {
+            // Total unique visitors: count(distinct visitor_id)
+            const { data: allVisitors, error: visitorsError } = await supabaseClient
+                .from('page_views')
+                .select('visitor_id');
+            
+            const totalVisitors = allVisitors ? [...new Set(allVisitors.map(v => v.visitor_id))].length : 0;
+
+            // Visitors today: count(distinct visitor_id) where created_at >= current_date
+            const today = new Date().toISOString().split('T')[0];
+            const { data: todayVisitorsData } = await supabaseClient
+                .from('page_views')
+                .select('visitor_id')
+                .gte('created_at', today);
+            
+            const visitorsToday = todayVisitorsData ? [...new Set(todayVisitorsData.map(v => v.visitor_id))].length : 0;
+
+            // New visitors: count(distinct visitor_id) where is_new_visitor = true
+            const { data: newVisitorsData } = await supabaseClient
+                .from('page_views')
+                .select('visitor_id')
+                .eq('is_new_visitor', true);
+            
+            const newVisitors = newVisitorsData ? [...new Set(newVisitorsData.map(v => v.visitor_id))].length : 0;
+
+            // Sessions: count(distinct session_id)
+            const { data: allSessions } = await supabaseClient
+                .from('page_views')
+                .select('session_id');
+            
+            const totalSessions = allSessions ? [...new Set(allSessions.filter(s => s.session_id).map(s => s.session_id))].length : 0;
+
+            // Page views: count(*)
+            const { count: totalPageViews } = await supabaseClient
+                .from('page_views')
+                .select('*', { count: 'exact', head: true });
+
+            return {
+                totalVisitors,
+                visitorsToday,
+                newVisitors,
+                returningVisitors: totalVisitors - newVisitors,
+                totalSessions,
+                totalPageViews: totalPageViews || 0,
+                avgPagesPerSession: totalSessions > 0 ? (totalPageViews / totalSessions).toFixed(2) : 0
+            };
+        } catch (error) {
+            console.error('Error fetching detailed visitor stats:', error);
+            return {
+                totalVisitors: 0,
+                visitorsToday: 0,
+                newVisitors: 0,
+                returningVisitors: 0,
+                totalSessions: 0,
+                totalPageViews: 0,
+                avgPagesPerSession: 0
+            };
+        }
+    },
+
+    /**
      * Get visitor statistics for dashboard
      */
     async getVisitorStats() {
@@ -1027,6 +1091,126 @@ const DataService = {
                 mobile: { count: 0, percent: 0 },
                 desktop: { count: 0, percent: 0 },
                 tablet: { count: 0, percent: 0 }
+            };
+        }
+    },
+
+    // ==================== ORDERS STATISTICS ====================
+
+    /**
+     * Get order statistics with proper trend calculation
+     */
+    async getOrderStats() {
+        try {
+            // Get total orders count
+            const { count: totalOrders, error: countError } = await supabaseClient
+                .from('orders')
+                .select('*', { count: 'exact', head: true });
+
+            if (countError) {
+                console.warn('Orders count query error:', countError.message);
+            }
+
+            // Get current month orders
+            const currentMonth = new Date();
+            const currentMonthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).toISOString();
+            
+            const { count: currentMonthOrders, error: currentError } = await supabaseClient
+                .from('orders')
+                .select('*', { count: 'exact', head: true })
+                .gte('created_at', currentMonthStart);
+
+            if (currentError) {
+                console.warn('Current month orders query error:', currentError.message);
+            }
+
+            // Get previous month orders for trend
+            const previousMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
+            const previousMonthStart = previousMonth.toISOString();
+            const previousMonthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).toISOString();
+            
+            const { count: previousMonthOrders, error: prevError } = await supabaseClient
+                .from('orders')
+                .select('*', { count: 'exact', head: true })
+                .gte('created_at', previousMonthStart)
+                .lt('created_at', previousMonthEnd);
+
+            if (prevError) {
+                console.warn('Previous month orders query error:', prevError.message);
+            }
+
+            // Calculate trend percentage
+            let trendPercent = 0;
+            let trendDirection = 'stable';
+            
+            if (previousMonthOrders > 0) {
+                trendPercent = Math.round(((currentMonthOrders - previousMonthOrders) / previousMonthOrders) * 100);
+                trendDirection = trendPercent > 0 ? 'up' : trendPercent < 0 ? 'down' : 'stable';
+            } else if (currentMonthOrders > 0) {
+                trendPercent = 100;
+                trendDirection = 'up';
+            }
+
+            // Get total revenue
+            const { data: ordersData } = await supabaseClient
+                .from('orders')
+                .select('total_amount, created_at');
+
+            let totalRevenue = 0;
+            let currentMonthRevenue = 0;
+            let previousMonthRevenue = 0;
+
+            if (ordersData) {
+                ordersData.forEach(order => {
+                    const amount = parseFloat(order.total_amount) || 0;
+                    totalRevenue += amount;
+
+                    if (order.created_at >= currentMonthStart) {
+                        currentMonthRevenue += amount;
+                    }
+                    if (order.created_at >= previousMonthStart && order.created_at < previousMonthEnd) {
+                        previousMonthRevenue += amount;
+                    }
+                });
+            }
+
+            // Calculate revenue trend
+            let revenueTrendPercent = 0;
+            if (previousMonthRevenue > 0) {
+                revenueTrendPercent = Math.round(((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) * 100);
+            } else if (currentMonthRevenue > 0) {
+                revenueTrendPercent = 100;
+            }
+
+            return {
+                totalOrders: totalOrders || 0,
+                currentMonthOrders: currentMonthOrders || 0,
+                previousMonthOrders: previousMonthOrders || 0,
+                trendPercent: trendPercent,
+                trendDirection: trendDirection,
+                trendLabel: `${trendPercent > 0 ? '+' : ''}${trendPercent}%`,
+                totalRevenue: totalRevenue,
+                currentMonthRevenue: currentMonthRevenue,
+                previousMonthRevenue: previousMonthRevenue,
+                revenueTrendPercent: revenueTrendPercent,
+                revenueTrendLabel: `${revenueTrendPercent > 0 ? '+' : ''}${revenueTrendPercent}%`,
+                averageOrderValue: totalOrders > 0 ? (totalRevenue / totalOrders).toFixed(2) : 0
+            };
+        } catch (error) {
+            console.error('Error fetching order stats:', error);
+            return {
+                totalOrders: 0,
+                currentMonthOrders: 0,
+                previousMonthOrders: 0,
+                trendPercent: 0,
+                trendDirection: 'stable',
+                trendLabel: '0%',
+                totalRevenue: 0,
+                currentMonthRevenue: 0,
+                previousMonthRevenue: 0,
+                revenueTrendPercent: 0,
+                revenueTrendLabel: '0%',
+                averageOrderValue: 0
             };
         }
     }
