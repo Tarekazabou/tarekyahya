@@ -11,6 +11,7 @@ let deleteJobId = null;
 let deleteProductId = null;
 let deleteShowroomId = null;
 let deleteMessageId = null;
+let deleteOrderId = null;
 let deleteType = null;
 
 // Offline/local fallback storage for demo mode
@@ -170,6 +171,14 @@ function initGlobalEventListeners() {
             case 'delete-message':
                 confirmDeleteMessage(id); // UUID string, don't parse
                 break;
+
+            // --- ORDERS ---
+            case 'view-order':
+                viewOrder(id); // UUID string, don't parse
+                break;
+            case 'delete-order':
+                confirmDeleteOrder(id); // UUID string, don't parse
+                break;
         }
     });
     
@@ -206,6 +215,7 @@ function switchSection(sectionName) {
     if (sectionName === 'jobs') loadJobsTable();
     if (sectionName === 'products') loadProductsTable();
     if (sectionName === 'showroom') loadShowroomTable();
+    if (sectionName === 'orders') loadOrdersTable();
     if (sectionName === 'messages') loadMessagesTable();
 }
 
@@ -1321,6 +1331,232 @@ async function deleteMessage(id) {
 }
 
 // ==================== CONFIRM DELETE MODAL ====================
+  
+
+// ==================== ORDERS MANAGEMENT ====================
+
+async function loadOrdersTable() {
+    const container = document.getElementById('orders-table-container');
+    if (!container) return;
+    container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>';
+
+    try {
+        const { data: orders, error } = await supabaseClient
+            .from('orders')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        document.getElementById('orders-count-badge').textContent = `${orders?.length || 0} commandes`;
+
+        if (!orders || orders.length === 0) {
+            container.innerHTML = '<p class="loading">Aucune commande pour le moment.</p>';
+            return;
+        }
+
+        const statusLabels = {
+            'pending': { text: 'En attente', color: 'warning' },
+            'confirmed': { text: 'Confirmée', color: 'success' },
+            'shipped': { text: 'Expédiée', color: 'info' },
+            'delivered': { text: 'Livrée', color: 'success' },
+            'cancelled': { text: 'Annulée', color: 'danger' }
+        };
+
+        container.innerHTML = `
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Numéro</th>
+                        <th>Client</th>
+                        <th>Email</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${orders.map(order => {
+                        const status = statusLabels[order.status] || { text: order.status || 'Inconnu', color: 'secondary' };
+                        return `
+                        <tr>
+                            <td><strong>${escapeHtml(order.order_number)}</strong></td>
+                            <td>${escapeHtml(order.client_name)}</td>
+                            <td>${escapeHtml(order.client_email || '-')}</td>
+                            <td>€ ${parseFloat(order.total_amount || 0).toFixed(2)}</td>
+                            <td><span class="badge badge-${status.color}">${status.text}</span></td>
+                            <td>${formatDate(order.created_at)}</td>
+                            <td class="actions">
+                                <button class="btn-icon edit" data-action="view-order" data-id="${order.id}" title="Voir">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-icon delete" data-action="delete-order" data-id="${order.id}" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (error) {
+        container.innerHTML = '<p class="loading" style="color: #dc2626;">Erreur de chargement</p>';
+        console.error(error);
+    }
+}
+
+async function viewOrder(id) {
+    try {
+        const { data: order, error } = await supabaseClient
+            .from('orders')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+
+        const statusLabels = {
+            'pending': 'En attente',
+            'confirmed': 'Confirmée',
+            'shipped': 'Expédiée',
+            'delivered': 'Livrée',
+            'cancelled': 'Annulée'
+        };
+
+        let content = `
+            <div class="message-detail-row">
+                <strong>Numéro de commande:</strong> ${escapeHtml(order.order_number)}
+            </div>
+            <div class="message-detail-row">
+                <strong>Client:</strong> ${escapeHtml(order.client_name)}
+            </div>
+            <div class="message-detail-row">
+                <strong>Email:</strong> ${escapeHtml(order.client_email || '-')}
+            </div>
+            <div class="message-detail-row">
+                <strong>Téléphone:</strong> ${escapeHtml(order.client_phone || '-')}
+            </div>
+            <div class="message-detail-row">
+                <strong>Entreprise:</strong> ${escapeHtml(order.client_company || '-')}
+            </div>
+            <div class="message-detail-row">
+                <strong>Produit intéressé:</strong> ${escapeHtml(order.product_interest || '-')}
+            </div>
+            <div class="message-detail-row">
+                <strong>Quantité:</strong> ${order.quantity || '-'}
+            </div>
+            <div class="message-detail-row">
+                <strong>Montant total:</strong> € ${parseFloat(order.total_amount || 0).toFixed(2)}
+            </div>
+            <div class="message-detail-row">
+                <strong>Statut:</strong> ${statusLabels[order.status] || order.status}
+            </div>
+            <div class="message-detail-row">
+                <strong>Message:</strong>
+                <p class="message-content-box">${escapeHtml(order.message) || 'Pas de message'}</p>
+            </div>
+            <div class="message-footer">
+                <small class="text-muted">Créée le ${formatDate(order.created_at)}</small>
+            </div>
+        `;
+
+        document.getElementById('message-modal-title').textContent = 'Détail de la Commande';
+        document.getElementById('message-detail-content').innerHTML = content;
+        document.getElementById('message-modal').classList.add('active');
+
+    } catch (error) {
+        console.error('Error loading order:', error);
+        showToast('Erreur lors du chargement de la commande', 'error');
+    }
+}
+
+function confirmDeleteOrder(id) {
+    deleteOrderId = id;
+    deleteType = 'order';
+    document.getElementById('confirm-modal').classList.add('active');
+}
+
+async function deleteOrder(id) {
+    console.log('🗑️ Deleting order ID:', id);
+
+    try {
+        const result = await supabaseClient
+            .from('orders')
+            .delete()
+            .eq('id', id)
+            .select();
+
+        if (result.error) throw result.error;
+
+        console.log('✅ Order deleted:', result.data);
+        showToast('Commande supprimée avec succès');
+        await loadOrdersTable();
+        await loadDashboardStats();
+
+    } catch (error) {
+        console.error('❌ Delete error:', error);
+
+        let errorMsg = 'Erreur lors de la suppression';
+        if (error.code === '42501') {
+            errorMsg = 'Permissions insuffisantes pour supprimer';
+        } else if (error.message) {
+            errorMsg = error.message;
+        }
+
+        showToast(errorMsg, 'error');
+    }
+}
+
+function exportOrdersToCSV() {
+    try {
+        supabaseClient
+            .from('orders')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .then(({ data: orders, error }) => {
+                if (error) throw error;
+
+                if (!orders || orders.length === 0) {
+                    showToast('Aucune commande à exporter', 'warning');
+                    return;
+                }
+
+                const headers = ['Numéro', 'Client', 'Email', 'Téléphone', 'Entreprise', 'Produit', 'Quantité', 'Montant', 'Statut', 'Date', 'Message'];
+                const csv = [
+                    headers.join(','),
+                    ...orders.map(order => [
+                        `"${order.order_number}"`,
+                        `"${order.client_name}"`,
+                        `"${order.client_email || ''}"`,
+                        `"${order.client_phone || ''}"`,
+                        `"${order.client_company || ''}"`,
+                        `"${order.product_interest || ''}"`,
+                        order.quantity || '',
+                        order.total_amount || 0,
+                        order.status || '',
+                        `"${new Date(order.created_at).toLocaleDateString('fr-FR')}"`,
+                        `"${(order.message || '').replace(/"/g, '""')}"`
+                    ].join(','))
+                ].join('\n');
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `commandes-${new Date().toISOString().split('T')[0]}.csv`);
+                link.click();
+
+                showToast('Commandes exportées avec succès');
+            });
+    } catch (error) {
+        console.error('Export error:', error);
+        showToast('Erreur lors de l\'export', 'error');
+    }
+}
+
+// ==================== CONFIRM DELETE MODAL ====================
 
 function closeConfirmModal() {
     document.getElementById('confirm-modal').classList.remove('active');
@@ -1329,6 +1565,7 @@ function closeConfirmModal() {
     deleteProductId = null;
     deleteShowroomId = null;
     deleteMessageId = null;
+    deleteOrderId = null;
     deleteType = null;
 }
 
@@ -1346,6 +1583,8 @@ async function handleConfirmDelete() {
             await deleteShowroom(deleteShowroomId);
         } else if (deleteType === 'message' && deleteMessageId) {
             await deleteMessage(deleteMessageId);
+        } else if (deleteType === 'order' && deleteOrderId) {
+            await deleteOrder(deleteOrderId);
         } else {
             console.error('❌ No valid delete target');
             showToast('Erreur: aucun élément à supprimer', 'error');

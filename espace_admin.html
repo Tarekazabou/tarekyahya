@@ -77,7 +77,11 @@
                     <span>Showroom</span>
                 </a>
 
-                <div class="nav-section">Messages</div>
+                <div class="nav-section">Commandes & Messages</div>
+                <a href="#" class="sidebar-link" data-section="orders">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Commandes</span>
+                </a>
                 <a href="#" class="sidebar-link" data-section="messages">
                     <i class="fas fa-envelope"></i>
                     <span>Messages</span>
@@ -641,6 +645,31 @@
                         <div class="loading">
                             <i class="fas fa-spinner fa-spin"></i>
                             Chargement du showroom...
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Orders Section -->
+            <section class="section" id="section-orders">
+                <div class="admin-header">
+                    <h1><i class="fas fa-shopping-cart"></i> Gestion des Commandes</h1>
+                    <div class="admin-header-actions">
+                        <button class="btn btn-secondary" onclick="exportOrdersToCSV()" style="background: #8b5cf6;">
+                            <i class="fas fa-download"></i> Exporter
+                        </button>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h2><i class="fas fa-list"></i> Liste des Commandes</h2>
+                        <span class="badge badge-info" id="orders-count-badge">0 commandes</span>
+                    </div>
+                    <div id="orders-table-container">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            Chargement des commandes...
                         </div>
                     </div>
                 </div>

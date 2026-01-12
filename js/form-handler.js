@@ -99,6 +99,34 @@ const FormHandler = {
     },
 
     /**
+     * Parse quantity selection (e.g., "11-50", "500+") to integer estimate
+     */
+    parseQuantityEstimate(qty) {
+        if (!qty) return null;
+        const s = String(qty).trim();
+        // Simple integer
+        if (/^\d+$/.test(s)) return parseInt(s, 10);
+        // Range like 11-50 → use upper bound
+        if (/^\d+\s*-\s*\d+$/.test(s)) {
+            const parts = s.split('-');
+            return parseInt(parts[1].trim(), 10);
+        }
+        // Plus like 500+ → use number part
+        if (/^\d+\s*\+$/.test(s)) {
+            return parseInt(s.replace('+', '').trim(), 10);
+        }
+        // Known options mapping
+        switch (s) {
+            case '1-10': return 10;
+            case '11-50': return 50;
+            case '51-100': return 100;
+            case '101-500': return 500;
+            case '500+': return 500;
+            default: return null;
+        }
+    },
+
+    /**
      * Validate file
      */
     validateFile(file, type = 'cv') {
@@ -212,6 +240,8 @@ const FormHandler = {
 
             // Collect and validate form data
             const formData = new FormData(form);
+            // Read request type explicitly from checked radio (more reliable than FormData on some browsers)
+            const selectedRequestType = form.querySelector('input[name="request_type"]:checked')?.value || null;
             
             // Validate required fields
             const name = this.sanitizeInput(formData.get('name'));
@@ -231,18 +261,54 @@ const FormHandler = {
             }
 
             const data = this.collectFormData(formData, formType);
+            // Ensure correct request_type is captured for quote forms
+            if (formType === 'quote') {
+                data.metadata = data.metadata || {};
+                if (selectedRequestType) {
+                    data.metadata.request_type = this.sanitizeInput(selectedRequestType);
+                }
+            }
 
             // Check rate limiter
             if (typeof RateLimiter !== 'undefined' && !RateLimiter.canMakeRequest('form_' + formType)) {
                 throw new Error('Trop de soumissions. Veuillez patienter.');
             }
 
-            // Send to Supabase
+            // Send to Supabase - first insert message
             const { error } = await supabaseClient
                 .from('messages')
                 .insert([data]);
 
             if (error) throw error;
+
+            // If it's a quote form with order request, also insert into orders table
+            if (formType === 'quote' && data.metadata?.request_type === 'commande') {
+                const orderNumber = `CMD-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+                const normalizedQty = this.parseQuantityEstimate(formData.get('quantity'));
+                const orderData = {
+                    order_number: orderNumber,
+                    client_name: data.name,
+                    client_email: data.email,
+                    client_phone: data.phone,
+                    client_company: this.sanitizeInput(formData.get('company')) || null,
+                    product_interest: this.sanitizeInput(formData.get('product')) || this.sanitizeInput(formData.get('category')) || data.product_interest,
+                    quantity: normalizedQty,
+                    message: data.message,
+                    total_amount: 0, // Will be set manually by admin
+                    status: 'pending',
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+
+                const { error: orderError } = await supabaseClient
+                    .from('orders')
+                    .insert([orderData]);
+
+                if (orderError) {
+                    console.warn('Order insertion warning (message was saved):', orderError);
+                    // Don't throw - message was already saved
+                }
+            }
 
             // Show success
             this.showSuccess(form, this.getSuccessMessage(formType));
