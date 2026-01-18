@@ -644,6 +644,14 @@ body.admin-body {
     .quick-actions-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+
+    .kanban-board {
+        flex-direction: column;
+    }
+
+    .kanban-column {
+        min-width: 100%;
+    }
 }
 
 @media (max-width: 768px) {
@@ -667,4 +675,278 @@ body.admin-body {
     .admin-main {
         padding: 1rem;
     }
+}
+
+/* ==================== KANBAN BOARD ==================== */
+.kanban-board {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    min-height: 600px;
+}
+
+.kanban-column {
+    flex: 1;
+    min-width: 280px;
+    max-width: 320px;
+    background: #f8fafc;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.kanban-column-header {
+    padding: 1rem;
+    border-radius: 12px 12px 0 0;
+    color: white;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.kanban-count {
+    background: rgba(255, 255, 255, 0.3);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+.kanban-cards {
+    flex: 1;
+    padding: 0.75rem;
+    overflow-y: auto;
+    min-height: 200px;
+}
+
+.kanban-loading {
+    text-align: center;
+    padding: 2rem;
+    color: #64748b;
+}
+
+/* Lead Cards */
+.lead-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-left: 4px solid #e2e8f0;
+}
+
+.lead-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.lead-card.dragging {
+    opacity: 0.5;
+    transform: rotate(3deg);
+}
+
+.lead-card.vip {
+    border-left-color: #f59e0b;
+}
+
+.lead-card.wholesale {
+    border-left-color: #8b5cf6;
+}
+
+.lead-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.lead-card-name {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 0.95rem;
+}
+
+.lead-card-tags {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+}
+
+.lead-tag {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    background: #e2e8f0;
+    color: #64748b;
+}
+
+.lead-tag.vip {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.lead-tag.wholesale {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.lead-card-product {
+    color: #64748b;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.lead-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    padding-top: 0.5rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.lead-card-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.lead-card-actions button {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.lead-card-actions button:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+.lead-card-actions button.whatsapp:hover {
+    background: #25D366;
+    color: white;
+}
+
+/* Drag over states */
+.kanban-column.drag-over .kanban-cards {
+    background: rgba(59, 130, 246, 0.1);
+    border: 2px dashed #3b82f6;
+    border-radius: 8px;
+}
+
+/* Status-specific card styles */
+.kanban-column[data-status="won"] .lead-card {
+    border-left-color: #22c55e;
+    background: linear-gradient(135deg, #f0fdf4 0%, white 100%);
+}
+
+.kanban-column[data-status="lost"] .lead-card {
+    border-left-color: #ef4444;
+    background: linear-gradient(135deg, #fef2f2 0%, white 100%);
+    opacity: 0.8;
+}
+
+/* Sale amount badge */
+.lead-sale-amount {
+    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+/* ==================== SALES LEDGER ==================== */
+.sales-ledger-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.sales-ledger-table th,
+.sales-ledger-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.sales-ledger-table th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #64748b;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sales-ledger-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.sale-amount-cell {
+    font-weight: 600;
+    color: #22c55e;
+}
+
+/* ==================== MODAL ENHANCEMENTS ==================== */
+.modal-overlay#win-wizard-modal .modal {
+    border-top: 4px solid #22c55e;
+}
+
+.modal-overlay#lead-detail-modal .modal {
+    max-width: 600px;
+}
+
+.lead-detail-row {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    gap: 1rem;
+}
+
+.lead-detail-row:last-child {
+    border-bottom: none;
+}
+
+.lead-detail-label {
+    font-weight: 500;
+    color: #64748b;
+    min-width: 120px;
+}
+
+.lead-detail-value {
+    color: #1e293b;
+    flex: 1;
+}
+
+/* Button small variant */
+.btn-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+}
+
+/* Empty state */
+.kanban-empty {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #94a3b8;
+}
+
+.kanban-empty i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    display: block;
 }

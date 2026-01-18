@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS clients (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Orders / Quotes
+-- Orders / Quotes (Now: Lead Management System)
 CREATE TABLE IF NOT EXISTS orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_number VARCHAR(50) UNIQUE NOT NULL,
@@ -142,11 +142,24 @@ CREATE TABLE IF NOT EXISTS orders (
     product_interest TEXT,
     quantity INT,
     message TEXT,
+    -- Lead Management Fields (NEW)
+    lead_status VARCHAR(50) DEFAULT 'new', -- new, contacted, negotiating, won, lost
+    lead_tags TEXT[] DEFAULT '{}', -- ['vip', 'wholesale', 'urgent', etc.]
+    final_sale_price DECIMAL(10,3), -- Recorded when status = 'won' (TND with 3 decimals)
+    sale_notes TEXT, -- Notes about the sale (delivery, payment, etc.)
+    salesperson VARCHAR(100), -- Who closed the deal
+    closed_at TIMESTAMP, -- When deal was won/lost
+    -- Legacy field (kept for backwards compatibility)
     status VARCHAR(50) DEFAULT 'pending', -- pending, confirmed, in_progress, completed, cancelled
     total_amount DECIMAL(10,2),
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Index for faster lead pipeline queries
+CREATE INDEX IF NOT EXISTS idx_orders_lead_status ON orders(lead_status);
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_closed_at ON orders(closed_at DESC);
 
 -- Messages (Form Submissions)
 CREATE TABLE IF NOT EXISTS messages (

@@ -77,11 +77,17 @@
                     <span>Showroom</span>
                 </a>
 
-                <div class="nav-section">Commandes & Messages</div>
-                <a href="#" class="sidebar-link" data-section="orders">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span>Commandes</span>
+                <div class="nav-section">Pipeline Commercial</div>
+                <a href="#" class="sidebar-link" data-section="pipeline">
+                    <i class="fas fa-columns"></i>
+                    <span>Pipeline (Kanban)</span>
                 </a>
+                <a href="#" class="sidebar-link" data-section="sales-ledger">
+                    <i class="fas fa-book"></i>
+                    <span>Registre des Ventes</span>
+                </a>
+
+                <div class="nav-section">Messages</div>
                 <a href="#" class="sidebar-link" data-section="messages">
                     <i class="fas fa-envelope"></i>
                     <span>Messages</span>
@@ -110,91 +116,59 @@
                     </div>
                 </div>
 
-                <!-- Section 1: Activité Générale -->
+                <!-- Section 1: Pipeline Metrics (Lead Management Focus) -->
                 <div class="admin-card" style="margin-bottom: 1.5rem;">
                     <div class="admin-card-header">
-                        <h2><i class="fas fa-chart-bar"></i> Activité Générale</h2>
+                        <h2><i class="fas fa-funnel-dollar"></i> Pipeline Commercial</h2>
+                        <span class="badge badge-info">Capture → Nurture → Record</span>
                     </div>
                     <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                        <!-- Fresh Leads -->
                         <div class="kpi-card" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
-                            <i class="fas fa-eye" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.9;"></i>
-                            <h3 id="stat-visitors-total" style="font-size: 2rem; margin: 0.5rem 0;">-</h3>
-                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Nombre total de visiteurs</p>
-                            <span id="stat-visitors-change" style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.2); border-radius: 4px; font-size: 0.75rem;">
-                                <i class="fas fa-minus"></i> --%
+                            <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.9;"></i>
+                            <h3 id="stat-fresh-leads" style="font-size: 2rem; margin: 0.5rem 0;">-</h3>
+                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">🆕 Nouveaux Leads</p>
+                            <span id="stat-fresh-leads-change" style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.2); border-radius: 4px; font-size: 0.75rem;">
+                                Cette semaine
                             </span>
                         </div>
+                        <!-- Response Rate -->
                         <div class="kpi-card" style="background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
-                            <i class="fas fa-chart-bar" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.9;"></i>
-                            <h3 id="stat-page-views-total" style="font-size: 2rem; margin: 0.5rem 0;">-</h3>
-                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Nombre total de pages vues</p>
-                            <span id="stat-page-views-change" style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.2); border-radius: 4px; font-size: 0.75rem;">
-                                <i class="fas fa-minus"></i> --%
+                            <i class="fas fa-phone-alt" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.9;"></i>
+                            <h3 id="stat-response-rate" style="font-size: 2rem; margin: 0.5rem 0;">--%</h3>
+                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">📞 Taux de Réponse</p>
+                            <span id="stat-response-rate-change" style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.2); border-radius: 4px; font-size: 0.75rem;">
+                                Leads contactés
                             </span>
                         </div>
+                        <!-- Pipeline Health (Negotiating) -->
                         <div class="kpi-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
-                            <i class="fas fa-shopping-cart" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.9;"></i>
-                            <h3 id="stat-orders-total" style="font-size: 2rem; margin: 0.5rem 0;">-</h3>
-                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Nombre total de commandes</p>
-                            <span id="stat-orders-change" style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.2); border-radius: 4px; font-size: 0.75rem;">
-                                <i class="fas fa-minus"></i> --%
+                            <i class="fas fa-handshake" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.9;"></i>
+                            <h3 id="stat-pipeline-health" style="font-size: 2rem; margin: 0.5rem 0;">-</h3>
+                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">⏳ En Négociation</p>
+                            <span id="stat-pipeline-value" style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.2); border-radius: 4px; font-size: 0.75rem;">
+                                Deals potentiels
                             </span>
                         </div>
+                        <!-- Conversion Rate -->
                         <div class="kpi-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
-                            <i class="fas fa-percentage" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.9;"></i>
-                            <h3 id="stat-conversion-rate" style="font-size: 2rem; margin: 0.5rem 0;">--%</h3>
-                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Taux de conversion visiteurs → clients</p>
-                            <span id="stat-conversion-change" style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.2); border-radius: 4px; font-size: 0.75rem;">
-                                <i class="fas fa-minus"></i> --%
+                            <i class="fas fa-trophy" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.9;"></i>
+                            <h3 id="stat-win-rate" style="font-size: 2rem; margin: 0.5rem 0;">--%</h3>
+                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">✅ Taux de Conversion</p>
+                            <span id="stat-deals-won" style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.2); border-radius: 4px; font-size: 0.75rem;">
+                                Leads → Ventes
                             </span>
                         </div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Section: Visitor Analytics Details -->
-            <div class="admin-card" style="margin-bottom: 1.5rem;">
-                <div class="admin-card-header">
-                    <h2><i class="fas fa-chart-line"></i> Statistiques Visiteurs Détaillées</h2>
-                </div>
-                <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem;">
-                    <div class="kpi-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
-                        <i class="fas fa-users" style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #3b82f6;"></i>
-                        <h3 id="stat-total-visitors" style="font-size: 1.75rem; margin: 0.5rem 0; color: #1e293b;">-</h3>
-                        <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Total Visiteurs</p>
-                    </div>
-                    <div class="kpi-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
-                        <i class="fas fa-calendar-day" style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #22c55e;"></i>
-                        <h3 id="stat-visitors-today" style="font-size: 1.75rem; margin: 0.5rem 0; color: #1e293b;">-</h3>
-                        <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Visiteurs Aujourd'hui</p>
-                    </div>
-                    <div class="kpi-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
-                        <i class="fas fa-user-plus" style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #f59e0b;"></i>
-                        <h3 id="stat-new-visitors" style="font-size: 1.75rem; margin: 0.5rem 0; color: #1e293b;">-</h3>
-                        <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Nouveaux Visiteurs</p>
-                    </div>
-                    <div class="kpi-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
-                        <i class="fas fa-clock" style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #8b5cf6;"></i>
-                        <h3 id="stat-total-sessions" style="font-size: 1.75rem; margin: 0.5rem 0; color: #1e293b;">-</h3>
-                        <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Sessions</p>
-                    </div>
-                    <div class="kpi-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
-                        <i class="fas fa-file-alt" style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #ef4444;"></i>
-                        <h3 id="stat-total-pageviews" style="font-size: 1.75rem; margin: 0.5rem 0; color: #1e293b;">-</h3>
-                        <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Pages Vues</p>
-                    </div>
-                </div>
-                <div style="margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px; text-align: center;">
-                    <p style="margin: 0; color: #64748b; font-size: 0.9rem;">
-                        <i class="fas fa-chart-bar"></i> 
-                        Moyenne de <strong id="stat-avg-pages-per-session">-</strong> pages par session
-                    </p>
-                </div>
-            </div>
-
-            <!-- Section 2: Performance Commerciale -->
-            <div class="admin-card" style="margin-bottom: 1.5rem;">
+                <!-- Section 2: Sales Summary (Recorded Revenue) -->
+                <div class="admin-card" style="margin-bottom: 1.5rem;">
                     <div class="admin-card-header">
-                        <h2><i class="fas fa-euro-sign"></i> Performance Commerciale</h2>
+                        <h2><i class="fas fa-euro-sign"></i> Ventes Enregistrées</h2>
+                        <a href="#" class="btn btn-primary btn-sm" onclick="switchSection('sales-ledger'); return false;">
+                            <i class="fas fa-book"></i> Voir Registre
+                        </a>
                     </div>
                     <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
                         <div class="kpi-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
@@ -204,70 +178,85 @@
                                 </div>
                                 <div style="text-align: left;">
                                     <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Chiffre d'affaires total</p>
-                                    <h3 id="stat-revenue-total" style="font-size: 1.75rem; margin: 0; color: #1e293b;">€ --</h3>
-                                    <span id="stat-revenue-total-change" style="color: #64748b; font-size: 0.8rem;"><i class="fas fa-minus"></i> --% vs année dernière</span>
+                                    <h3 id="stat-revenue-total" style="font-size: 1.75rem; margin: 0; color: #1e293b;">TND --</h3>
+                                    <span id="stat-revenue-total-change" style="color: #64748b; font-size: 0.8rem;"><i class="fas fa-minus"></i> Ventes confirmées</span>
                                 </div>
                             </div>
                         </div>
                         <div class="kpi-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
                                 <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-calendar-alt" style="font-size: 1.5rem; color: white;"></i>
+                                    <i class="fas fa-calculator" style="font-size: 1.5rem; color: white;"></i>
                                 </div>
                                 <div style="text-align: left;">
-                                    <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Chiffre d'affaires du mois</p>
-                                    <h3 id="stat-revenue-month" style="font-size: 1.75rem; margin: 0; color: #1e293b;">€ --</h3>
-                                    <span id="stat-revenue-month-change" style="color: #64748b; font-size: 0.8rem;"><i class="fas fa-minus"></i> --% vs mois dernier</span>
+                                    <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Panier Moyen</p>
+                                    <h3 id="stat-avg-deal" style="font-size: 1.75rem; margin: 0; color: #1e293b;">TND --</h3>
+                                    <span id="stat-avg-deal-change" style="color: #64748b; font-size: 0.8rem;"><i class="fas fa-minus"></i> Par vente conclue</span>
                                 </div>
                             </div>
                         </div>
                         <div class="kpi-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
                                 <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-chart-line" style="font-size: 1.5rem; color: white;"></i>
+                                    <i class="fas fa-calendar-check" style="font-size: 1.5rem; color: white;"></i>
                                 </div>
                                 <div style="text-align: left;">
-                                    <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Taux de croissance des ventes</p>
-                                    <h3 id="stat-growth-rate" style="font-size: 1.75rem; margin: 0; color: #1e293b;">--%</h3>
-                                    <span id="stat-growth-trend" style="color: #64748b; font-size: 0.8rem;"><i class="fas fa-minus"></i> --</span>
+                                    <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Ventes ce mois</p>
+                                    <h3 id="stat-sales-month" style="font-size: 1.75rem; margin: 0; color: #1e293b;">-</h3>
+                                    <span id="stat-sales-month-change" style="color: #64748b; font-size: 0.8rem;"><i class="fas fa-minus"></i> Deals conclus</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section 3: Produits -->
+                <!-- Section 3: Top Requested Products -->
                 <div class="admin-card" style="margin-bottom: 1.5rem;">
                     <div class="admin-card-header">
-                        <h2><i class="fas fa-box"></i> Produits</h2>
+                        <h2><i class="fas fa-fire"></i> Produits les Plus Demandés</h2>
+                        <span class="badge badge-warning">Données des demandes de devis</span>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
-                        <!-- Total Products -->
-                        <div style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
-                            <i class="fas fa-cubes" style="font-size: 2.5rem; margin-bottom: 0.5rem;"></i>
-                            <h3 id="stat-products-total" style="font-size: 2.5rem; margin: 0.5rem 0;">-</h3>
-                            <p style="margin: 0; font-size: 1rem;">Nombre total de produits</p>
-                        </div>
-                        
-                        <!-- Top Selling Products -->
+                        <!-- Top Requested -->
                         <div style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0;">
                             <h4 style="color: #1e293b; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                                <i class="fas fa-trophy" style="color: #f59e0b;"></i> Produits les plus vendus
+                                <i class="fas fa-star" style="color: #f59e0b;"></i> Top Demandes
                             </h4>
-                            <div id="top-selling-products">
+                            <div id="top-requested-products">
                                 <div class="loading" style="padding: 1rem; text-align: center; color: #64748b;">
                                     <i class="fas fa-spinner fa-spin"></i> Chargement...
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Low Rotation Products -->
+                        <!-- Lead Sources -->
                         <div style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0;">
                             <h4 style="color: #1e293b; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                                <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> Produits à faible rotation
+                                <i class="fas fa-tags" style="color: #8b5cf6;"></i> Tags Clients
                             </h4>
-                            <div id="low-rotation-products">
-                                <div class="loading" style="padding: 1rem; text-align: center; color: #64748b;">
+                            <div id="lead-tags-summary">
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #e2e8f0;">
+                                    <span style="color: #374151;">🌟 VIP / High Potential</span>
+                                    <span class="badge badge-success" id="tag-vip-count">0</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #e2e8f0;">
+                                    <span style="color: #374151;">🏢 Grossiste</span>
+                                    <span class="badge badge-info" id="tag-wholesale-count">0</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0;">
+                                    <span style="color: #374151;">👤 Particulier</span>
+                                    <span class="badge badge-warning" id="tag-individual-count">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Wins -->
+                        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 1.5rem; border-radius: 12px; color: white;">
+                            <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-check-circle"></i> Dernières Ventes
+                            </h4>
+                            <div id="recent-wins">
+                                <div style="padding: 1rem; text-align: center; opacity: 0.8;">
                                     <i class="fas fa-spinner fa-spin"></i> Chargement...
                                 </div>
                             </div>
@@ -293,9 +282,110 @@
                         <p style="color: #64748b;">Messages</p>
                     </div>
                     <div class="admin-card" style="text-align: center;">
-                        <i class="fas fa-images" style="font-size: 2rem; color: #ec4899; margin-bottom: 0.5rem;"></i>
-                        <h3 id="stat-showroom-count" style="font-size: 2rem; color: var(--dark);">-</h3>
-                        <p style="color: #64748b;">Showroom Items</p>
+                        <i class="fas fa-file-invoice" style="font-size: 2rem; color: #f59e0b; margin-bottom: 0.5rem;"></i>
+                        <h3 id="stat-total-leads" style="font-size: 2rem; color: var(--dark);">-</h3>
+                        <p style="color: #64748b;">Total Leads</p>
+                    </div>
+                </div>
+
+                <!-- Activité Générale (Visitor Stats) -->
+                <div class="admin-card" style="margin-bottom: 1.5rem;">
+                    <div class="admin-card-header">
+                        <h2><i class="fas fa-chart-bar"></i> Activité Générale</h2>
+                    </div>
+                    <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                        <!-- Total Visitors -->
+                        <div class="kpi-card" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
+                            <i class="fas fa-eye" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.9;"></i>
+                            <h3 id="stat-total-visitors" style="font-size: 2.5rem; margin: 0.5rem 0; font-weight: 600;">-</h3>
+                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Nombre total de visiteurs</p>
+                            <span id="stat-visitors-change" style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.75rem; background: rgba(255,255,255,0.25); border-radius: 20px; font-size: 0.8rem; font-weight: 500;">
+                                <i class="fas fa-arrow-up"></i> --%
+                            </span>
+                        </div>
+                        <!-- Total Page Views -->
+                        <div class="kpi-card" style="background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
+                            <i class="fas fa-file-alt" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.9;"></i>
+                            <h3 id="stat-total-pageviews" style="font-size: 2.5rem; margin: 0.5rem 0; font-weight: 600;">-</h3>
+                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Nombre total de pages vues</p>
+                            <span id="stat-pageviews-change" style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.75rem; background: rgba(255,255,255,0.25); border-radius: 20px; font-size: 0.8rem; font-weight: 500;">
+                                <i class="fas fa-arrow-up"></i> --%
+                            </span>
+                        </div>
+                        <!-- Total Orders -->
+                        <div class="kpi-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
+                            <i class="fas fa-shopping-cart" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.9;"></i>
+                            <h3 id="stat-total-orders" style="font-size: 2.5rem; margin: 0.5rem 0; font-weight: 600;">-</h3>
+                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Nombre total de commandes</p>
+                            <span id="stat-orders-change" style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.75rem; background: rgba(255,255,255,0.25); border-radius: 20px; font-size: 0.8rem; font-weight: 500;">
+                                <i class="fas fa-minus"></i> 0%
+                            </span>
+                        </div>
+                        <!-- Conversion Rate -->
+                        <div class="kpi-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
+                            <i class="fas fa-percent" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.9;"></i>
+                            <h3 id="stat-conversion-rate" style="font-size: 2.5rem; margin: 0.5rem 0; font-weight: 600;">--%</h3>
+                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Taux de conversion visiteurs → clients</p>
+                            <span style="display: inline-block; margin-top: 0.5rem; padding: 0.25rem 0.75rem; background: rgba(255,255,255,0.25); border-radius: 20px; font-size: 0.8rem; font-weight: 500;">
+                                <i class="fas fa-users"></i> Visiteurs → Commandes
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistiques Visiteurs Détaillées -->
+                <div class="admin-card" style="margin-bottom: 1.5rem;">
+                    <div class="admin-card-header">
+                        <h2><i class="fas fa-chart-line"></i> Statistiques Visiteurs Détaillées</h2>
+                    </div>
+                    <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 1rem;">
+                        <!-- Total Visiteurs -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                            <div style="width: 50px; height: 50px; margin: 0 auto 0.75rem; background: #eff6ff; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-users" style="font-size: 1.5rem; color: #3b82f6;"></i>
+                            </div>
+                            <h3 id="stat-detail-visitors" style="font-size: 2rem; margin: 0; color: #1e293b; font-weight: 600;">-</h3>
+                            <p style="margin: 0.5rem 0 0; color: #64748b; font-size: 0.85rem;">Total Visiteurs</p>
+                        </div>
+                        <!-- Visiteurs Aujourd'hui -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                            <div style="width: 50px; height: 50px; margin: 0 auto 0.75rem; background: #ecfdf5; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-calendar-day" style="font-size: 1.5rem; color: #22c55e;"></i>
+                            </div>
+                            <h3 id="stat-detail-today" style="font-size: 2rem; margin: 0; color: #1e293b; font-weight: 600;">-</h3>
+                            <p style="margin: 0.5rem 0 0; color: #64748b; font-size: 0.85rem;">Visiteurs Aujourd'hui</p>
+                        </div>
+                        <!-- Nouveaux Visiteurs -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                            <div style="width: 50px; height: 50px; margin: 0 auto 0.75rem; background: #fff7ed; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user-plus" style="font-size: 1.5rem; color: #f59e0b;"></i>
+                            </div>
+                            <h3 id="stat-detail-new" style="font-size: 2rem; margin: 0; color: #1e293b; font-weight: 600;">-</h3>
+                            <p style="margin: 0.5rem 0 0; color: #64748b; font-size: 0.85rem;">Nouveaux Visiteurs</p>
+                        </div>
+                        <!-- Sessions -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                            <div style="width: 50px; height: 50px; margin: 0 auto 0.75rem; background: #f5f3ff; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-clock" style="font-size: 1.5rem; color: #8b5cf6;"></i>
+                            </div>
+                            <h3 id="stat-detail-sessions" style="font-size: 2rem; margin: 0; color: #1e293b; font-weight: 600;">-</h3>
+                            <p style="margin: 0.5rem 0 0; color: #64748b; font-size: 0.85rem;">Sessions</p>
+                        </div>
+                        <!-- Pages Vues -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                            <div style="width: 50px; height: 50px; margin: 0 auto 0.75rem; background: #fef2f2; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-file-alt" style="font-size: 1.5rem; color: #ef4444;"></i>
+                            </div>
+                            <h3 id="stat-detail-pages" style="font-size: 2rem; margin: 0; color: #1e293b; font-weight: 600;">-</h3>
+                            <p style="margin: 0.5rem 0 0; color: #64748b; font-size: 0.85rem;">Pages Vues</p>
+                        </div>
+                    </div>
+                    <!-- Pages per Session -->
+                    <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <i class="fas fa-chart-bar" style="color: #3b82f6; margin-right: 0.5rem;"></i>
+                        <span style="color: #64748b;">Moyenne de </span>
+                        <span id="stat-pages-per-session" style="color: #3b82f6; font-weight: 600;">-</span>
+                        <span style="color: #64748b;"> pages par session</span>
                     </div>
                 </div>
 
@@ -305,18 +395,155 @@
                         <h2><i class="fas fa-bolt"></i> Actions Rapides</h2>
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
-                        <button id="quick-add-news" class="btn btn-primary" onclick="switchSection('news'); openNewsModal();">
+                        <button class="btn btn-primary" onclick="switchSection('pipeline');">
+                            <i class="fas fa-columns"></i> Voir Pipeline
+                        </button>
+                        <button class="btn btn-primary" onclick="switchSection('sales-ledger');">
+                            <i class="fas fa-book"></i> Registre Ventes
+                        </button>
+                        <button id="quick-add-news" class="btn btn-secondary" onclick="switchSection('news'); openNewsModal();">
                             <i class="fas fa-plus"></i> Nouvelle Actualité
                         </button>
-                        <button id="quick-add-job" class="btn btn-primary" onclick="switchSection('jobs'); openJobModal();">
+                        <button id="quick-add-job" class="btn btn-secondary" onclick="switchSection('jobs'); openJobModal();">
                             <i class="fas fa-plus"></i> Nouvelle Offre
                         </button>
-                        <a href="products.html" class="btn btn-secondary">
-                            <i class="fas fa-box"></i> Voir Produits
-                        </a>
-                        <a href="news.html" class="btn btn-secondary">
-                            <i class="fas fa-eye"></i> Voir Actualités
-                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pipeline (Kanban) Section -->
+            <section class="section" id="section-pipeline">
+                <div class="admin-header">
+                    <h1><i class="fas fa-columns"></i> Pipeline Commercial</h1>
+                    <div class="admin-header-actions">
+                        <select id="pipeline-filter" onchange="loadPipeline()" style="padding: 0.5rem; border-radius: 8px; border: 1px solid #e2e8f0; margin-right: 0.5rem;">
+                            <option value="all">Tous les leads</option>
+                            <option value="vip">🌟 VIP uniquement</option>
+                            <option value="wholesale">🏢 Grossistes</option>
+                            <option value="this-week">📅 Cette semaine</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="exportPipelineToCSV()" style="background: #8b5cf6;">
+                            <i class="fas fa-download"></i> Exporter
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Kanban Board -->
+                <div class="kanban-board" id="kanban-board">
+                    <!-- Column: New -->
+                    <div class="kanban-column" data-status="new">
+                        <div class="kanban-column-header" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);">
+                            <span>🆕 Nouveaux</span>
+                            <span class="kanban-count" id="count-new">0</span>
+                        </div>
+                        <div class="kanban-cards" id="cards-new">
+                            <div class="kanban-loading"><i class="fas fa-spinner fa-spin"></i></div>
+                        </div>
+                    </div>
+
+                    <!-- Column: Contacted -->
+                    <div class="kanban-column" data-status="contacted">
+                        <div class="kanban-column-header" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);">
+                            <span>📞 Contactés</span>
+                            <span class="kanban-count" id="count-contacted">0</span>
+                        </div>
+                        <div class="kanban-cards" id="cards-contacted">
+                            <div class="kanban-loading"><i class="fas fa-spinner fa-spin"></i></div>
+                        </div>
+                    </div>
+
+                    <!-- Column: Negotiating -->
+                    <div class="kanban-column" data-status="negotiating">
+                        <div class="kanban-column-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                            <span>⏳ En Négociation</span>
+                            <span class="kanban-count" id="count-negotiating">0</span>
+                        </div>
+                        <div class="kanban-cards" id="cards-negotiating">
+                            <div class="kanban-loading"><i class="fas fa-spinner fa-spin"></i></div>
+                        </div>
+                    </div>
+
+                    <!-- Column: Won -->
+                    <div class="kanban-column" data-status="won">
+                        <div class="kanban-column-header" style="background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);">
+                            <span>✅ Gagnés</span>
+                            <span class="kanban-count" id="count-won">0</span>
+                        </div>
+                        <div class="kanban-cards" id="cards-won">
+                            <div class="kanban-loading"><i class="fas fa-spinner fa-spin"></i></div>
+                        </div>
+                    </div>
+
+                    <!-- Column: Lost -->
+                    <div class="kanban-column" data-status="lost">
+                        <div class="kanban-column-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                            <span>❌ Perdus</span>
+                            <span class="kanban-count" id="count-lost">0</span>
+                        </div>
+                        <div class="kanban-cards" id="cards-lost">
+                            <div class="kanban-loading"><i class="fas fa-spinner fa-spin"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sales Ledger Section -->
+            <section class="section" id="section-sales-ledger">
+                <div class="admin-header">
+                    <h1><i class="fas fa-book"></i> Registre des Ventes</h1>
+                    <div class="admin-header-actions">
+                        <select id="ledger-period" onchange="loadSalesLedger()" style="padding: 0.5rem; border-radius: 8px; border: 1px solid #e2e8f0; margin-right: 0.5rem;">
+                            <option value="all">Toutes les ventes</option>
+                            <option value="this-month">Ce mois</option>
+                            <option value="last-month">Mois dernier</option>
+                            <option value="this-year">Cette année</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="exportSalesLedgerToCSV()" style="background: #8b5cf6;">
+                            <i class="fas fa-download"></i> Exporter
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sales Analytics -->
+                <div class="admin-card" style="margin-bottom: 1.5rem;">
+                    <div class="admin-card-header">
+                        <h2><i class="fas fa-chart-pie"></i> Analytiques des Ventes</h2>
+                    </div>
+                    <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                        <div class="kpi-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
+                            <i class="fas fa-coins" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                            <h3 id="ledger-total-revenue" style="font-size: 1.75rem; margin: 0.5rem 0;">TND --</h3>
+                            <p style="margin: 0; font-size: 0.9rem;">Revenu Total</p>
+                        </div>
+                        <div class="kpi-card" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
+                            <i class="fas fa-receipt" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                            <h3 id="ledger-total-deals" style="font-size: 1.75rem; margin: 0.5rem 0;">-</h3>
+                            <p style="margin: 0; font-size: 0.9rem;">Ventes Conclues</p>
+                        </div>
+                        <div class="kpi-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
+                            <i class="fas fa-calculator" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                            <h3 id="ledger-avg-deal" style="font-size: 1.75rem; margin: 0.5rem 0;">TND --</h3>
+                            <p style="margin: 0; font-size: 0.9rem;">Panier Moyen</p>
+                        </div>
+                        <div class="kpi-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center;">
+                            <i class="fas fa-percentage" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                            <h3 id="ledger-conversion" style="font-size: 1.75rem; margin: 0.5rem 0;">--%</h3>
+                            <p style="margin: 0; font-size: 0.9rem;">Taux Conversion</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sales Table -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h2><i class="fas fa-list"></i> Historique des Ventes</h2>
+                        <span class="badge badge-success" id="sales-count-badge">0 ventes</span>
+                    </div>
+                    <div id="sales-ledger-container">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            Chargement du registre...
+                        </div>
                     </div>
                 </div>
             </section>
@@ -650,31 +877,6 @@
                 </div>
             </section>
 
-            <!-- Orders Section -->
-            <section class="section" id="section-orders">
-                <div class="admin-header">
-                    <h1><i class="fas fa-shopping-cart"></i> Gestion des Commandes</h1>
-                    <div class="admin-header-actions">
-                        <button class="btn btn-secondary" onclick="exportOrdersToCSV()" style="background: #8b5cf6;">
-                            <i class="fas fa-download"></i> Exporter
-                        </button>
-                    </div>
-                </div>
-
-                <div class="admin-card">
-                    <div class="admin-card-header">
-                        <h2><i class="fas fa-list"></i> Liste des Commandes</h2>
-                        <span class="badge badge-info" id="orders-count-badge">0 commandes</span>
-                    </div>
-                    <div id="orders-table-container">
-                        <div class="loading">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            Chargement des commandes...
-                        </div>
-                    </div>
-                </div>
-            </section>
-
             <!-- Messages Section -->
             <section class="section" id="section-messages">
                 <div class="admin-header">
@@ -705,6 +907,88 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- Win Wizard Modal (Sales Recorder) -->
+    <div class="modal-overlay" id="win-wizard-modal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); color: white; margin: -2rem -2rem 1.5rem; padding: 1.5rem 2rem; border-radius: 16px 16px 0 0;">
+                <h3 style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-trophy"></i> 🎉 Félicitations pour la vente !
+                </h3>
+                <button class="modal-close" onclick="closeWinWizard()" style="color: white;">&times;</button>
+            </div>
+            <p style="color: #64748b; margin-bottom: 1.5rem;">
+                Pour finaliser, veuillez entrer les détails de l'accord :
+            </p>
+            <form id="win-wizard-form">
+                <input type="hidden" id="win-lead-id">
+                <div class="form-group">
+                    <label for="win-client-name">Client</label>
+                    <input type="text" id="win-client-name" readonly style="background: #f1f5f9;">
+                </div>
+                <div class="form-group">
+                    <label for="win-products">Produits Demandés</label>
+                    <input type="text" id="win-products" readonly style="background: #f1f5f9;">
+                </div>
+                <div class="form-group">
+                    <label for="win-final-price">Montant Final Convenu (TND) *</label>
+                    <input type="number" id="win-final-price" placeholder="ex: 1250.000" step="0.001" required style="font-size: 1.25rem; font-weight: 600;">
+                </div>
+                <div class="form-group">
+                    <label for="win-salesperson">Vendeur / Commercial</label>
+                    <input type="text" id="win-salesperson" placeholder="Nom du commercial">
+                </div>
+                <div class="form-group">
+                    <label for="win-notes">Notes (Livraison, Paiement...)</label>
+                    <textarea id="win-notes" placeholder="ex: Payé par chèque, livraison Lundi" rows="3"></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+                    <button type="button" class="btn btn-secondary" onclick="closeWinWizard()">Annuler</button>
+                    <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);">
+                        <i class="fas fa-check"></i> Enregistrer la Vente
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lead Detail Modal -->
+    <div class="modal-overlay" id="lead-detail-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="lead-modal-title">Détail du Lead</h3>
+                <button class="modal-close" onclick="closeLeadModal()">&times;</button>
+            </div>
+            <div id="lead-detail-content">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="lead-modal-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+                <button class="btn btn-secondary btn-sm" onclick="changeLeadStatus('contacted')" id="btn-status-contacted">
+                    <i class="fas fa-phone"></i> Marquer Contacté
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="changeLeadStatus('negotiating')" id="btn-status-negotiating" style="background: #f59e0b; border-color: #f59e0b;">
+                    <i class="fas fa-handshake"></i> En Négociation
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="changeLeadStatus('won')" id="btn-status-won" style="background: #22c55e; border-color: #22c55e;">
+                    <i class="fas fa-trophy"></i> Gagné !
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="changeLeadStatus('lost')" id="btn-status-lost" style="background: #ef4444; border-color: #ef4444; color: white;">
+                    <i class="fas fa-times"></i> Perdu
+                </button>
+            </div>
+            <div class="lead-quick-actions" style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                <a href="#" id="lead-whatsapp-link" class="btn btn-secondary btn-sm" target="_blank" style="background: #25D366; border-color: #25D366; color: white;">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </a>
+                <a href="#" id="lead-email-link" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-envelope"></i> Email
+                </a>
+                <a href="#" id="lead-phone-link" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-phone"></i> Appeler
+                </a>
+            </div>
+        </div>
     </div>
 
     <!-- Message Detail Modal -->

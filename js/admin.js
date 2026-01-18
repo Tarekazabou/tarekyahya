@@ -215,7 +215,8 @@ function switchSection(sectionName) {
     if (sectionName === 'jobs') loadJobsTable();
     if (sectionName === 'products') loadProductsTable();
     if (sectionName === 'showroom') loadShowroomTable();
-    if (sectionName === 'orders') loadOrdersTable();
+    if (sectionName === 'pipeline') loadPipeline();
+    if (sectionName === 'sales-ledger') loadSalesLedger();
     if (sectionName === 'messages') loadMessagesTable();
 }
 
@@ -1574,6 +1575,624 @@ function closeConfirmModal() {
     deleteType = null;
 }
 
+// ==================== PIPELINE (KANBAN) MANAGEMENT ====================
+
+let currentLeadId = null;
+let allLeads = [];
+
+async function loadPipeline() {
+    const filter = document.getElementById('pipeline-filter')?.value || 'all';
+    
+    // Show loading state in all columns
+    ['new', 'contacted', 'negotiating', 'won', 'lost'].forEach(status => {
+        const container = document.getElementById(`cards-${status}`);
+        if (container) {
+            container.innerHTML = '<div class="kanban-loading"><i class="fas fa-spinner fa-spin"></i></div>';
+        }
+    });
+
+    try {
+        // Fetch all orders (leads) from database
+        let query = supabaseClient
+            .from('orders')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        const { data: leads, error } = await query;
+
+        if (error) throw error;
+
+        allLeads = leads || [];
+
+        // Apply filters
+        let filteredLeads = [...allLeads];
+        
+        if (filter === 'vip') {
+            filteredLeads = filteredLeads.filter(l => l.lead_tags?.includes('vip') || l.lead_tags?.includes('high_potential'));
+        } else if (filter === 'wholesale') {
+            filteredLeads = filteredLeads.filter(l => l.lead_tags?.includes('wholesale'));
+        } else if (filter === 'this-week') {
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            filteredLeads = filteredLeads.filter(l => new Date(l.created_at) >= oneWeekAgo);
+        }
+
+        // Group by lead_status (with fallback to 'new')
+        const grouped = {
+            new: [],
+            contacted: [],
+            negotiating: [],
+            won: [],
+            lost: []
+        };
+
+        filteredLeads.forEach(lead => {
+            const status = lead.lead_status || 'new';
+            if (grouped[status]) {
+                grouped[status].push(lead);
+            } else {
+                grouped.new.push(lead);
+            }
+        });
+
+        // Render each column
+        Object.keys(grouped).forEach(status => {
+            renderKanbanColumn(status, grouped[status]);
+        });
+
+        // Update counts
+        document.getElementById('count-new').textContent = grouped.new.length;
+        document.getElementById('count-contacted').textContent = grouped.contacted.length;
+        document.getElementById('count-negotiating').textContent = grouped.negotiating.length;
+        document.getElementById('count-won').textContent = grouped.won.length;
+        document.getElementById('count-lost').textContent = grouped.lost.length;
+
+        // Initialize drag and drop
+        initKanbanDragDrop();
+
+    } catch (error) {
+        console.error('Error loading pipeline:', error);
+        showToast('Erreur lors du chargement du pipeline', 'error');
+    }
+}
+
+function renderKanbanColumn(status, leads) {
+    const container = document.getElementById(`cards-${status}`);
+    if (!container) return;
+
+    if (leads.length === 0) {
+        container.innerHTML = `
+            <div class="kanban-empty">
+                <i class="fas fa-inbox"></i>
+                <p>Aucun lead</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = leads.map(lead => {
+        const tags = lead.lead_tags || [];
+        const isVip = tags.includes('vip') || tags.includes('high_potential');
+        const isWholesale = tags.includes('wholesale');
+        
+        return `
+            <div class="lead-card ${isVip ? 'vip' : ''} ${isWholesale ? 'wholesale' : ''}" 
+                 data-id="${lead.id}" 
+                 draggable="true">
+                <div class="lead-card-header">
+                    <span class="lead-card-name">${escapeHtml(lead.client_name)}</span>
+                    <div class="lead-card-tags">
+                        ${isVip ? '<span class="lead-tag vip">🌟 VIP</span>' : ''}
+                        ${isWholesale ? '<span class="lead-tag wholesale">🏢 Grossiste</span>' : ''}
+                    </div>
+                </div>
+                <div class="lead-card-product">
+                    <i class="fas fa-box"></i>
+                    ${escapeHtml(lead.product_interest || 'Non spécifié')}
+                    ${lead.quantity ? `<span style="color: #3b82f6;">(x${lead.quantity})</span>` : ''}
+                </div>
+                ${status === 'won' && lead.final_sale_price ? `
+                    <div style="margin-top: 0.5rem;">
+                        <span class="lead-sale-amount">TND ${formatNumber(lead.final_sale_price)}</span>
+                    </div>
+                ` : ''}
+                <div class="lead-card-footer">
+                    <span>${formatDate(lead.created_at)}</span>
+                    <div class="lead-card-actions">
+                        ${lead.client_phone ? `
+                            <button class="whatsapp" onclick="event.stopPropagation(); openWhatsApp('${lead.client_phone}')" title="WhatsApp">
+                                <i class="fab fa-whatsapp"></i>
+                            </button>
+                        ` : ''}
+                        <button onclick="event.stopPropagation(); viewLead('${lead.id}')" title="Voir détails">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Add click handlers
+    container.querySelectorAll('.lead-card').forEach(card => {
+        card.addEventListener('click', () => {
+            viewLead(card.dataset.id);
+        });
+    });
+}
+
+function initKanbanDragDrop() {
+    const cards = document.querySelectorAll('.lead-card');
+    const columns = document.querySelectorAll('.kanban-column');
+
+    cards.forEach(card => {
+        card.addEventListener('dragstart', (e) => {
+            card.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', card.dataset.id);
+        });
+
+        card.addEventListener('dragend', () => {
+            card.classList.remove('dragging');
+            columns.forEach(col => col.classList.remove('drag-over'));
+        });
+    });
+
+    columns.forEach(column => {
+        column.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            column.classList.add('drag-over');
+        });
+
+        column.addEventListener('dragleave', () => {
+            column.classList.remove('drag-over');
+        });
+
+        column.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            column.classList.remove('drag-over');
+            
+            const leadId = e.dataTransfer.getData('text/plain');
+            const newStatus = column.dataset.status;
+
+            // If dropping on 'won' column, show Win Wizard
+            if (newStatus === 'won') {
+                const lead = allLeads.find(l => l.id === leadId);
+                if (lead) {
+                    openWinWizard(lead);
+                }
+            } else {
+                await updateLeadStatus(leadId, newStatus);
+            }
+        });
+    });
+}
+
+async function viewLead(id) {
+    try {
+        const { data: lead, error } = await supabaseClient
+            .from('orders')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+
+        currentLeadId = id;
+
+        const statusLabels = {
+            'new': '🆕 Nouveau',
+            'contacted': '📞 Contacté',
+            'negotiating': '⏳ En Négociation',
+            'won': '✅ Gagné',
+            'lost': '❌ Perdu'
+        };
+
+        let content = `
+            <div class="lead-detail-row">
+                <span class="lead-detail-label">Statut:</span>
+                <span class="lead-detail-value"><strong>${statusLabels[lead.lead_status || 'new']}</strong></span>
+            </div>
+            <div class="lead-detail-row">
+                <span class="lead-detail-label">Client:</span>
+                <span class="lead-detail-value">${escapeHtml(lead.client_name)}</span>
+            </div>
+            <div class="lead-detail-row">
+                <span class="lead-detail-label">Email:</span>
+                <span class="lead-detail-value">${escapeHtml(lead.client_email || '-')}</span>
+            </div>
+            <div class="lead-detail-row">
+                <span class="lead-detail-label">Téléphone:</span>
+                <span class="lead-detail-value">${escapeHtml(lead.client_phone || '-')}</span>
+            </div>
+            <div class="lead-detail-row">
+                <span class="lead-detail-label">Entreprise:</span>
+                <span class="lead-detail-value">${escapeHtml(lead.client_company || '-')}</span>
+            </div>
+            <div class="lead-detail-row">
+                <span class="lead-detail-label">Produit:</span>
+                <span class="lead-detail-value">${escapeHtml(lead.product_interest || '-')}</span>
+            </div>
+            <div class="lead-detail-row">
+                <span class="lead-detail-label">Quantité:</span>
+                <span class="lead-detail-value">${lead.quantity || '-'}</span>
+            </div>
+            <div class="lead-detail-row">
+                <span class="lead-detail-label">Message:</span>
+                <span class="lead-detail-value">${escapeHtml(lead.message || 'Pas de message')}</span>
+            </div>
+        `;
+
+        if (lead.lead_status === 'won' && lead.final_sale_price) {
+            content += `
+                <div class="lead-detail-row" style="background: #f0fdf4; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                    <span class="lead-detail-label" style="color: #16a34a;">💰 Vente:</span>
+                    <span class="lead-detail-value" style="color: #16a34a; font-weight: 600;">TND ${formatNumber(lead.final_sale_price)}</span>
+                </div>
+                ${lead.sale_notes ? `
+                    <div class="lead-detail-row">
+                        <span class="lead-detail-label">Notes:</span>
+                        <span class="lead-detail-value">${escapeHtml(lead.sale_notes)}</span>
+                    </div>
+                ` : ''}
+                ${lead.salesperson ? `
+                    <div class="lead-detail-row">
+                        <span class="lead-detail-label">Vendeur:</span>
+                        <span class="lead-detail-value">${escapeHtml(lead.salesperson)}</span>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        content += `
+            <div class="lead-detail-row">
+                <span class="lead-detail-label">Créé le:</span>
+                <span class="lead-detail-value">${formatDate(lead.created_at)}</span>
+            </div>
+        `;
+
+        document.getElementById('lead-modal-title').textContent = `Lead: ${lead.client_name}`;
+        document.getElementById('lead-detail-content').innerHTML = content;
+
+        // Update quick action links
+        const phone = lead.client_phone?.replace(/[^0-9+]/g, '');
+        document.getElementById('lead-whatsapp-link').href = phone ? `https://wa.me/${phone.replace('+', '')}` : '#';
+        document.getElementById('lead-email-link').href = lead.client_email ? `mailto:${lead.client_email}` : '#';
+        document.getElementById('lead-phone-link').href = phone ? `tel:${phone}` : '#';
+
+        // Show/hide status buttons based on current status
+        const currentStatus = lead.lead_status || 'new';
+        document.getElementById('btn-status-contacted').style.display = currentStatus === 'new' ? '' : 'none';
+        document.getElementById('btn-status-negotiating').style.display = ['new', 'contacted'].includes(currentStatus) ? '' : 'none';
+        document.getElementById('btn-status-won').style.display = !['won', 'lost'].includes(currentStatus) ? '' : 'none';
+        document.getElementById('btn-status-lost').style.display = !['won', 'lost'].includes(currentStatus) ? '' : 'none';
+
+        document.getElementById('lead-detail-modal').classList.add('active');
+
+    } catch (error) {
+        console.error('Error loading lead:', error);
+        showToast('Erreur lors du chargement du lead', 'error');
+    }
+}
+
+function closeLeadModal() {
+    document.getElementById('lead-detail-modal').classList.remove('active');
+    currentLeadId = null;
+}
+
+async function changeLeadStatus(newStatus) {
+    if (!currentLeadId) return;
+
+    // If changing to 'won', show Win Wizard
+    if (newStatus === 'won') {
+        const lead = allLeads.find(l => l.id === currentLeadId);
+        closeLeadModal();
+        if (lead) {
+            openWinWizard(lead);
+        }
+        return;
+    }
+
+    await updateLeadStatus(currentLeadId, newStatus);
+    closeLeadModal();
+}
+
+async function updateLeadStatus(leadId, newStatus) {
+    try {
+        const updateData = {
+            lead_status: newStatus,
+            updated_at: new Date().toISOString()
+        };
+
+        if (newStatus === 'lost') {
+            updateData.closed_at = new Date().toISOString();
+        }
+
+        const { error } = await supabaseClient
+            .from('orders')
+            .update(updateData)
+            .eq('id', leadId);
+
+        if (error) throw error;
+
+        showToast(`Lead mis à jour: ${newStatus}`);
+        await loadPipeline();
+        await loadDashboardStats();
+
+    } catch (error) {
+        console.error('Error updating lead:', error);
+        showToast('Erreur lors de la mise à jour', 'error');
+    }
+}
+
+// ==================== WIN WIZARD ====================
+
+function openWinWizard(lead) {
+    document.getElementById('win-lead-id').value = lead.id;
+    document.getElementById('win-client-name').value = lead.client_name;
+    document.getElementById('win-products').value = lead.product_interest || 'Non spécifié';
+    document.getElementById('win-final-price').value = '';
+    document.getElementById('win-salesperson').value = '';
+    document.getElementById('win-notes').value = '';
+    
+    document.getElementById('win-wizard-modal').classList.add('active');
+}
+
+function closeWinWizard() {
+    document.getElementById('win-wizard-modal').classList.remove('active');
+}
+
+async function handleWinWizardSubmit(e) {
+    e.preventDefault();
+
+    const leadId = document.getElementById('win-lead-id').value;
+    const finalPrice = parseFloat(document.getElementById('win-final-price').value);
+    const salesperson = document.getElementById('win-salesperson').value.trim();
+    const notes = document.getElementById('win-notes').value.trim();
+
+    if (!finalPrice || finalPrice <= 0) {
+        showToast('Veuillez entrer un montant valide', 'error');
+        return;
+    }
+
+    try {
+        const { error } = await supabaseClient
+            .from('orders')
+            .update({
+                lead_status: 'won',
+                final_sale_price: finalPrice,
+                salesperson: salesperson || null,
+                sale_notes: notes || null,
+                closed_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', leadId);
+
+        if (error) throw error;
+
+        showToast('🎉 Vente enregistrée avec succès!');
+        closeWinWizard();
+        await loadPipeline();
+        await loadDashboardStats();
+
+    } catch (error) {
+        console.error('Error recording sale:', error);
+        showToast('Erreur lors de l\'enregistrement', 'error');
+    }
+}
+
+// ==================== SALES LEDGER ====================
+
+async function loadSalesLedger() {
+    const container = document.getElementById('sales-ledger-container');
+    if (!container) return;
+
+    container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>';
+
+    try {
+        const period = document.getElementById('ledger-period')?.value || 'all';
+        
+        let query = supabaseClient
+            .from('orders')
+            .select('*')
+            .eq('lead_status', 'won')
+            .not('final_sale_price', 'is', null)
+            .order('closed_at', { ascending: false });
+
+        // Apply period filter
+        if (period === 'this-month') {
+            const startOfMonth = new Date();
+            startOfMonth.setDate(1);
+            startOfMonth.setHours(0, 0, 0, 0);
+            query = query.gte('closed_at', startOfMonth.toISOString());
+        } else if (period === 'last-month') {
+            const startOfLastMonth = new Date();
+            startOfLastMonth.setMonth(startOfLastMonth.getMonth() - 1);
+            startOfLastMonth.setDate(1);
+            startOfLastMonth.setHours(0, 0, 0, 0);
+            const endOfLastMonth = new Date();
+            endOfLastMonth.setDate(0);
+            endOfLastMonth.setHours(23, 59, 59, 999);
+            query = query.gte('closed_at', startOfLastMonth.toISOString()).lte('closed_at', endOfLastMonth.toISOString());
+        } else if (period === 'this-year') {
+            const startOfYear = new Date();
+            startOfYear.setMonth(0, 1);
+            startOfYear.setHours(0, 0, 0, 0);
+            query = query.gte('closed_at', startOfYear.toISOString());
+        }
+
+        const { data: sales, error } = await query;
+
+        if (error) throw error;
+
+        // Calculate analytics
+        const totalRevenue = sales.reduce((sum, s) => sum + parseFloat(s.final_sale_price || 0), 0);
+        const totalDeals = sales.length;
+        const avgDeal = totalDeals > 0 ? totalRevenue / totalDeals : 0;
+
+        // Get total leads for conversion rate
+        const { count: totalLeads } = await supabaseClient
+            .from('orders')
+            .select('*', { count: 'exact', head: true });
+
+        const conversionRate = totalLeads > 0 ? (totalDeals / totalLeads * 100).toFixed(1) : 0;
+
+        // Update analytics cards
+        document.getElementById('ledger-total-revenue').textContent = `TND ${formatNumber(totalRevenue)}`;
+        document.getElementById('ledger-total-deals').textContent = totalDeals;
+        document.getElementById('ledger-avg-deal').textContent = `TND ${formatNumber(avgDeal)}`;
+        document.getElementById('ledger-conversion').textContent = `${conversionRate}%`;
+        document.getElementById('sales-count-badge').textContent = `${totalDeals} ventes`;
+
+        if (sales.length === 0) {
+            container.innerHTML = '<p class="loading">Aucune vente enregistrée.</p>';
+            return;
+        }
+
+        container.innerHTML = `
+            <table class="admin-table sales-ledger-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th>Produit</th>
+                        <th>Montant</th>
+                        <th>Vendeur</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${sales.map(sale => `
+                        <tr>
+                            <td>${formatDate(sale.closed_at)}</td>
+                            <td>
+                                <strong>${escapeHtml(sale.client_name)}</strong>
+                                ${sale.client_company ? `<br><small style="color: #64748b;">${escapeHtml(sale.client_company)}</small>` : ''}
+                            </td>
+                            <td>${escapeHtml(sale.product_interest || '-')}</td>
+                            <td class="sale-amount-cell">TND ${formatNumber(sale.final_sale_price)}</td>
+                            <td>${escapeHtml(sale.salesperson || '-')}</td>
+                            <td><small style="color: #64748b;">${escapeHtml(sale.sale_notes || '-')}</small></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+
+    } catch (error) {
+        console.error('Error loading sales ledger:', error);
+        container.innerHTML = '<p class="loading" style="color: #dc2626;">Erreur de chargement</p>';
+    }
+}
+
+function exportSalesLedgerToCSV() {
+    supabaseClient
+        .from('orders')
+        .select('*')
+        .eq('lead_status', 'won')
+        .not('final_sale_price', 'is', null)
+        .order('closed_at', { ascending: false })
+        .then(({ data: sales, error }) => {
+            if (error) throw error;
+
+            if (!sales || sales.length === 0) {
+                showToast('Aucune vente à exporter', 'warning');
+                return;
+            }
+
+            const headers = ['Date', 'Client', 'Entreprise', 'Email', 'Téléphone', 'Produit', 'Quantité', 'Montant (TND)', 'Vendeur', 'Notes'];
+            const csv = [
+                headers.join(','),
+                ...sales.map(sale => [
+                    `"${new Date(sale.closed_at).toLocaleDateString('fr-FR')}"`,
+                    `"${sale.client_name}"`,
+                    `"${sale.client_company || ''}"`,
+                    `"${sale.client_email || ''}"`,
+                    `"${sale.client_phone || ''}"`,
+                    `"${sale.product_interest || ''}"`,
+                    sale.quantity || '',
+                    sale.final_sale_price || 0,
+                    `"${sale.salesperson || ''}"`,
+                    `"${(sale.sale_notes || '').replace(/"/g, '""')}"`
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `registre-ventes-${new Date().toISOString().split('T')[0]}.csv`);
+            link.click();
+
+            showToast('Registre exporté avec succès');
+        })
+        .catch(error => {
+            console.error('Export error:', error);
+            showToast('Erreur lors de l\'export', 'error');
+        });
+}
+
+function exportPipelineToCSV() {
+    supabaseClient
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .then(({ data: leads, error }) => {
+            if (error) throw error;
+
+            if (!leads || leads.length === 0) {
+                showToast('Aucun lead à exporter', 'warning');
+                return;
+            }
+
+            const statusLabels = {
+                'new': 'Nouveau',
+                'contacted': 'Contacté',
+                'negotiating': 'En Négociation',
+                'won': 'Gagné',
+                'lost': 'Perdu'
+            };
+
+            const headers = ['Date', 'Statut', 'Client', 'Email', 'Téléphone', 'Entreprise', 'Produit', 'Quantité', 'Montant Vente', 'Message'];
+            const csv = [
+                headers.join(','),
+                ...leads.map(lead => [
+                    `"${new Date(lead.created_at).toLocaleDateString('fr-FR')}"`,
+                    `"${statusLabels[lead.lead_status || 'new']}"`,
+                    `"${lead.client_name}"`,
+                    `"${lead.client_email || ''}"`,
+                    `"${lead.client_phone || ''}"`,
+                    `"${lead.client_company || ''}"`,
+                    `"${lead.product_interest || ''}"`,
+                    lead.quantity || '',
+                    lead.final_sale_price || '',
+                    `"${(lead.message || '').replace(/"/g, '""')}"`
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `pipeline-${new Date().toISOString().split('T')[0]}.csv`);
+            link.click();
+
+            showToast('Pipeline exporté avec succès');
+        })
+        .catch(error => {
+            console.error('Export error:', error);
+            showToast('Erreur lors de l\'export', 'error');
+        });
+}
+
+function openWhatsApp(phone) {
+    const cleanPhone = phone.replace(/[^0-9+]/g, '').replace('+', '');
+    window.open(`https://wa.me/${cleanPhone}`, '_blank');
+}
+
+function formatNumber(num) {
+    return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 3 }).format(num);
+}
+
 async function handleConfirmDelete() {
     console.log('🗑️ Confirm delete clicked', { deleteType, deleteNewsId, deleteJobId, deleteProductId });
 
@@ -1661,17 +2280,16 @@ function escapeHtml(str) {
 async function loadDashboardStats() {
     try {
         // Fetch all data in parallel
-        const [news, products, clients, jobs, messages, showroom, activityStats, commercialStats, visitorStats, orderStats] = await Promise.all([
+        const [news, products, jobs, messages, showroom, pipelineData, visitorStats, orderStats, detailedVisitorStats] = await Promise.all([
             DataService.getNews(),
             DataService.getProducts(),
-            DataService.getClients().catch(() => []),
             DataService.getAllJobs().catch(() => []),
             DataService.getMessages().catch(() => []),
             DataService.getShowroomItems().catch(() => []),
-            DataService.getStats('activity').catch(() => []),
-            DataService.getStats('commercial').catch(() => []),
-            DataService.getDetailedVisitorStats().catch(() => null),  // Use detailed visitor stats
-            DataService.getOrderStats().catch(() => null)  // Add order stats
+            loadPipelineStats().catch(() => null),
+            DataService.getVisitorStats().catch(() => null),
+            DataService.getOrderStats().catch(() => null),
+            DataService.getDetailedVisitorStats().catch(() => null)
         ]);
 
         // Helper function to safely update element
@@ -1680,366 +2298,260 @@ async function loadDashboardStats() {
             if (el) el.textContent = value;
         };
 
-        // Helper function to format number with separator
-        const formatNumber = (num) => {
-            return new Intl.NumberFormat('fr-FR').format(num);
+        // Helper function to update element with HTML
+        const updateElHtml = (id, html) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = html;
         };
 
-        // Helper function to update change indicator
-        const updateChange = (id, trend, direction) => {
-            const el = document.getElementById(id);
-            if (el && trend) {
-                const icon = direction === 'up' ? 'fa-arrow-up' : (direction === 'down' ? 'fa-arrow-down' : 'fa-minus');
-                const color = direction === 'up' ? '#22c55e' : (direction === 'down' ? '#ef4444' : '#64748b');
-                el.innerHTML = `<i class="fas ${icon}" style="color: ${color}"></i> ${trend}`;
-            }
+        // Helper function to format number with separator
+        const formatNum = (num) => {
+            return new Intl.NumberFormat('fr-FR').format(num);
         };
 
         // === Quick Stats Row ===
         updateEl('stat-news-count', news.length);
-        updateEl('stat-products-count', products.length);
-        updateEl('stat-products-total', products.length);
         updateEl('stat-jobs-count', jobs.length);
         updateEl('stat-messages-count', messages.length);
-        updateEl('stat-showroom-count', showroom.length);
 
-        // === Real Visitor Stats from page_views table ===
-        if (visitorStats && visitorStats.totalPageViews > 0) {
-            // Main KPI cards (top row)
-            updateEl('stat-visitors-total', formatNumber(visitorStats.totalVisitors));
+        // === Visitor Statistics (Activité Générale) ===
+        // Use detailedVisitorStats for accurate session data
+        const vStats = detailedVisitorStats || visitorStats;
+        if (vStats) {
+            // Total Visitors (unique)
+            const totalVisitors = vStats.totalVisitors || vStats.uniqueVisitors || 0;
+            updateEl('stat-total-visitors', formatNum(totalVisitors));
+            updateEl('stat-detail-visitors', formatNum(totalVisitors));
             
-            // Calculate change (compare today vs average)
-            const avgDaily = visitorStats.totalVisitors / 30;
-            const todayChange = avgDaily > 0 ? Math.round(((visitorStats.visitorsToday - avgDaily) / avgDaily) * 100) : 0;
-            const changeDirection = todayChange >= 0 ? 'up' : 'down';
-            updateChange('stat-visitors-change', `${todayChange >= 0 ? '+' : ''}${todayChange}%`, changeDirection);
-
-            // Update page views card (replacing clients)
-            updateEl('stat-page-views-total', formatNumber(visitorStats.totalPageViews));
+            // Total Page Views
+            const totalPageViews = vStats.totalPageViews || vStats.totalViews || 0;
+            updateEl('stat-total-pageviews', formatNum(totalPageViews));
+            updateEl('stat-detail-pages', formatNum(totalPageViews));
             
-            // Calculate page views change
-            const avgPageViews = visitorStats.totalPageViews / 30;
-            const todayPageViewsChange = avgPageViews > 0 ? Math.round(((visitorStats.totalPageViews - avgPageViews) / avgPageViews) * 100) : 0;
-            const pageViewsDirection = todayPageViewsChange >= 0 ? 'up' : 'down';
-            updateChange('stat-page-views-change', `${todayPageViewsChange >= 0 ? '+' : ''}${todayPageViewsChange}%`, pageViewsDirection);
-
-            // Detailed visitor stats section (new section)
-            updateEl('stat-total-visitors', formatNumber(visitorStats.totalVisitors));
-            updateEl('stat-visitors-today', formatNumber(visitorStats.visitorsToday));
-            updateEl('stat-new-visitors', formatNumber(visitorStats.newVisitors));
-            updateEl('stat-total-sessions', formatNumber(visitorStats.totalSessions));
-            updateEl('stat-total-pageviews', formatNumber(visitorStats.totalPageViews));
-            updateEl('stat-avg-pages-per-session', visitorStats.avgPagesPerSession);
-        } else {
-            // Fallback to stats table
-            const visitorsData = activityStats.find(s => s.key === 'total_visitors');
-            if (visitorsData) {
-                updateEl('stat-visitors-total', formatNumber(visitorsData.value));
-                updateChange('stat-visitors-change', visitorsData.trend, visitorsData.trend_direction);
+            // Today's Visitors
+            const todayVisitors = vStats.visitorsToday || vStats.todayViews || 0;
+            updateEl('stat-detail-today', formatNum(todayVisitors));
+            
+            // New Visitors
+            const newVisitors = vStats.newVisitors || 0;
+            updateEl('stat-detail-new', formatNum(newVisitors));
+            
+            // Sessions (accurate from detailedVisitorStats)
+            const sessions = vStats.totalSessions || Math.round((visitorStats?.weekViews || 0) / 3);
+            updateEl('stat-detail-sessions', formatNum(sessions));
+            
+            // Pages per session
+            const pagesPerSession = vStats.avgPagesPerSession || 
+                (totalVisitors > 0 ? (totalPageViews / totalVisitors).toFixed(2) : '0.00');
+            updateEl('stat-pages-per-session', pagesPerSession);
+            
+            // Calculate visitor growth trends
+            if (visitorStats) {
+                const weekViews = visitorStats.weekViews || 0;
+                const monthViews = visitorStats.monthViews || 1;
+                const visitorTrend = weekViews > 0 ? Math.round((weekViews / monthViews) * 100 * 4) : 0;
+                updateElHtml('stat-visitors-change', `<i class="fas fa-arrow-up"></i> +${Math.min(visitorTrend, 9999)}%`);
+                
+                const todayViews = visitorStats.todayViews || 0;
+                const pagesTrend = todayViews > 0 ? Math.round((todayViews / Math.max(weekViews, 1)) * 100 * 7) : 0;
+                updateElHtml('stat-pageviews-change', `<i class="fas fa-arrow-up"></i> +${Math.min(pagesTrend, 9999)}%`);
             }
-
-            // For page views, use 0 or fallback
-            updateEl('stat-page-views-total', '0');
-            
-            // Detailed stats fallback
-            updateEl('stat-total-visitors', '0');
-            updateEl('stat-visitors-today', '0');
-            updateEl('stat-new-visitors', '0');
-            updateEl('stat-total-sessions', '0');
-            updateEl('stat-total-pageviews', '0');
-            updateEl('stat-avg-pages-per-session', '0');
         }
-// from here
-// ===============================
-// Activity Stats — Orders
-// ===============================
-if (orderStats && typeof orderStats.totalOrders === 'number') {
-  updateEl('stat-orders-total', formatNumber(orderStats.totalOrders));
 
-  if (orderStats.totalOrders > 0) {
-    updateChange(
-      'stat-orders-change',
-      orderStats.trendLabel ?? '—',
-      orderStats.trendDirection ?? 'stable'
-    );
-  } else {
-    updateChange('stat-orders-change', '0%', 'stable');
-  }
-} else if (Array.isArray(activityStats)) {
-  const ordersData = activityStats.find(s => s.key === 'total_orders');
-  if (ordersData) {
-    updateEl('stat-orders-total', formatNumber(ordersData.value));
-    updateChange(
-      'stat-orders-change',
-      ordersData.trend ?? '0%',
-      ordersData.trend_direction ?? 'stable'
-    );
-  } else {
-    updateEl('stat-orders-total', '0');
-    updateChange('stat-orders-change', '0%', 'stable');
-  }
-}
+        // === Order Statistics ===
+        if (orderStats) {
+            updateEl('stat-total-orders', formatNum(orderStats.totalOrders || 0));
+            
+            // Order trend
+            const orderTrend = orderStats.trendPercent || 0;
+            const trendIcon = orderTrend >= 0 ? 'arrow-up' : 'arrow-down';
+            const trendSign = orderTrend >= 0 ? '+' : '';
+            updateElHtml('stat-orders-change', `<i class="fas fa-${trendIcon}"></i> ${trendSign}${orderTrend}%`);
+            
+            // Conversion rate (visitors to orders)
+            if (visitorStats && visitorStats.uniqueVisitors > 0) {
+                const conversionRate = ((orderStats.totalOrders || 0) / visitorStats.uniqueVisitors * 100).toFixed(2);
+                updateEl('stat-conversion-rate', `${conversionRate}%`);
+            }
+        }
+        
+        // === Pipeline Stats (Lead Management) ===
+        if (pipelineData) {
+            // Fresh Leads (new this week)
+            updateEl('stat-fresh-leads', pipelineData.freshLeads);
+            
+            // Response Rate
+            const responseRate = pipelineData.totalLeads > 0 
+                ? Math.round((pipelineData.contactedLeads / pipelineData.totalLeads) * 100) 
+                : 0;
+            updateEl('stat-response-rate', `${responseRate}%`);
+            
+            // Pipeline Health (negotiating)
+            updateEl('stat-pipeline-health', pipelineData.negotiatingLeads);
+            
+            // Win Rate (Conversion)
+            const winRate = pipelineData.totalLeads > 0 
+                ? Math.round((pipelineData.wonLeads / pipelineData.totalLeads) * 100) 
+                : 0;
+            updateEl('stat-win-rate', `${winRate}%`);
+            updateEl('stat-deals-won', `${pipelineData.wonLeads} ventes`);
 
-// ===============================
-// Conversion Rate
-// ===============================
-const conversionData = Array.isArray(activityStats)
-  ? activityStats.find(s => s.key === 'conversion_rate')
-  : null;
+            // Total leads
+            updateEl('stat-total-leads', pipelineData.totalLeads);
 
-if (
-  visitorStats?.totalVisitors > 0 &&
-  orderStats?.totalOrders > 0
-) {
-  const conversion = (
-    (orderStats.totalOrders / visitorStats.totalVisitors) * 100
-  ).toFixed(2);
+            // Sales Summary
+            updateEl('stat-revenue-total', `TND ${formatNum(pipelineData.totalRevenue)}`);
+            updateEl('stat-avg-deal', `TND ${formatNum(pipelineData.avgDeal)}`);
+            updateEl('stat-sales-month', pipelineData.salesThisMonth);
 
-  updateEl('stat-conversion-rate', `${conversion}%`);
-  updateChange('stat-conversion-change', 'Visiteurs → Commandes', 'up');
-} else if (conversionData) {
-  updateEl('stat-conversion-rate', conversionData.value);
-  updateChange(
-    'stat-conversion-change',
-    conversionData.trend ?? '0%',
-    conversionData.trend_direction ?? 'stable'
-  );
-} else {
-  updateEl('stat-conversion-rate', '0%');
-  updateChange('stat-conversion-change', '—', 'stable');
-}
+            // Tag counts
+            updateEl('tag-vip-count', pipelineData.vipCount || 0);
+            updateEl('tag-wholesale-count', pipelineData.wholesaleCount || 0);
+            updateEl('tag-individual-count', pipelineData.individualCount || 0);
 
-// ===============================
-// Commercial Stats — Revenue
-// ===============================
-const getTrendUI = (percent) => ({
-  icon: percent >= 0 ? 'fa-arrow-up' : 'fa-arrow-down',
-  color: percent >= 0 ? '#22c55e' : '#ef4444',
-  label: percent >= 0 ? 'Tendance positive' : 'Tendance négative',
-});
+            // Load top requested products
+            await loadTopRequestedProducts();
+            
+            // Load recent wins
+            await loadRecentWins();
+        }
 
-if (orderStats && typeof orderStats.totalRevenue === 'number') {
-  // ---- Total Revenue ----
-  updateEl(
-    'stat-revenue-total',
-    `€ ${formatNumber(Math.round(orderStats.totalRevenue))}`
-  );
-
-  const totalChangeEl = document.getElementById('stat-revenue-total-change');
-  if (totalChangeEl) {
-    if (orderStats.totalRevenue > 0) {
-      const { icon, color } = getTrendUI(orderStats.revenueTrendPercent);
-      totalChangeEl.style.color = color;
-      totalChangeEl.innerHTML =
-        `<i class="fas ${icon}"></i> ${orderStats.revenueTrendLabel} vs mois dernier`;
-    } else {
-      totalChangeEl.style.color = '#64748b';
-      totalChangeEl.innerHTML =
-        `<i class="fas fa-minus"></i> Pas de données`;
-    }
-  }
-
-  // ---- Monthly Revenue ----
-  updateEl(
-    'stat-revenue-month',
-    `€ ${formatNumber(Math.round(orderStats.currentMonthRevenue ?? 0))}`
-  );
-
-  const monthChangeEl = document.getElementById('stat-revenue-month-change');
-  if (monthChangeEl) {
-    if (
-      orderStats.currentMonthRevenue > 0 ||
-      orderStats.previousMonthRevenue > 0
-    ) {
-      const { icon, color } = getTrendUI(orderStats.revenueTrendPercent);
-      monthChangeEl.style.color = color;
-      monthChangeEl.innerHTML =
-        `<i class="fas ${icon}"></i> ${orderStats.revenueTrendLabel} vs mois dernier`;
-    } else {
-      monthChangeEl.style.color = '#64748b';
-      monthChangeEl.innerHTML =
-        `<i class="fas fa-minus"></i> Pas de données`;
-    }
-  }
-
-  // ---- Sales Growth ----
-  updateEl(
-    'stat-growth-rate',
-    orderStats.totalRevenue > 0
-      ? orderStats.revenueTrendLabel
-      : '0%'
-  );
-
-  const trendEl = document.getElementById('stat-growth-trend');
-  if (trendEl) {
-    if (orderStats.totalRevenue > 0) {
-      const { icon, color, label } =
-        getTrendUI(orderStats.revenueTrendPercent);
-      trendEl.style.color = color;
-      trendEl.innerHTML =
-        `<i class="fas ${icon}"></i> ${label}`;
-    } else {
-      trendEl.style.color = '#64748b';
-      trendEl.innerHTML =
-        `<i class="fas fa-minus"></i> Ajoutez des commandes`;
-    }
-  }
-}
-
-        // === Top Selling Products ===
-        await loadTopSellingProducts(products);
-
-        // === Low Rotation Products ===
-        await loadLowRotationProducts(products);
-
-        renderTrafficSalesChart();
     } catch (error) {
         console.error('Error loading stats:', error);
-        // Show error state in stats
-        document.querySelectorAll('[id^="stat-"]').forEach(el => {
-            if (el.textContent === '-' || el.textContent === '--%') {
-                el.textContent = 'N/A';
-            }
-        });
-        renderTrafficSalesChart(); // still render with mock data
     }
 }
 
-/**
- * Load top selling products into the dashboard
- */
-async function loadTopSellingProducts(products) {
-    const container = document.getElementById('top-selling-products');
+async function loadPipelineStats() {
+    try {
+        const { data: leads, error } = await supabaseClient
+            .from('orders')
+            .select('*');
+
+        if (error) throw error;
+
+        const now = new Date();
+        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+        // Calculate stats
+        const freshLeads = leads.filter(l => new Date(l.created_at) >= oneWeekAgo && (l.lead_status === 'new' || !l.lead_status)).length;
+        const contactedLeads = leads.filter(l => ['contacted', 'negotiating', 'won'].includes(l.lead_status)).length;
+        const negotiatingLeads = leads.filter(l => l.lead_status === 'negotiating').length;
+        const wonLeads = leads.filter(l => l.lead_status === 'won').length;
+        const lostLeads = leads.filter(l => l.lead_status === 'lost').length;
+
+        // Revenue from won deals
+        const wonDeals = leads.filter(l => l.lead_status === 'won' && l.final_sale_price);
+        const totalRevenue = wonDeals.reduce((sum, l) => sum + parseFloat(l.final_sale_price || 0), 0);
+        const avgDeal = wonDeals.length > 0 ? totalRevenue / wonDeals.length : 0;
+
+        // Sales this month
+        const salesThisMonth = wonDeals.filter(l => l.closed_at && new Date(l.closed_at) >= startOfMonth).length;
+
+        // Tag counts
+        const vipCount = leads.filter(l => l.lead_tags?.includes('vip') || l.lead_tags?.includes('high_potential')).length;
+        const wholesaleCount = leads.filter(l => l.lead_tags?.includes('wholesale')).length;
+        const individualCount = leads.length - wholesaleCount;
+
+        return {
+            totalLeads: leads.length,
+            freshLeads,
+            contactedLeads,
+            negotiatingLeads,
+            wonLeads,
+            lostLeads,
+            totalRevenue,
+            avgDeal,
+            salesThisMonth,
+            vipCount,
+            wholesaleCount,
+            individualCount
+        };
+    } catch (error) {
+        console.error('Error loading pipeline stats:', error);
+        return null;
+    }
+}
+
+async function loadTopRequestedProducts() {
+    const container = document.getElementById('top-requested-products');
     if (!container) return;
 
     try {
-        // Get products stats or use featured/sorted products as proxy for "top selling"
-        const topProducts = products
-            .filter(p => p.is_featured)
-            .slice(0, 4);
+        const { data: leads, error } = await supabaseClient
+            .from('orders')
+            .select('product_interest')
+            .not('product_interest', 'is', null);
 
-        if (topProducts.length === 0) {
-            // Fallback: just show first 4 products
-            topProducts.push(...products.slice(0, 4));
-        }
+        if (error) throw error;
 
-        if (topProducts.length === 0) {
-            container.innerHTML = '<p style="color: #64748b; text-align: center; padding: 1rem;">Aucun produit disponible</p>';
+        // Count product interests
+        const productCounts = {};
+        leads.forEach(lead => {
+            const product = lead.product_interest?.trim();
+            if (product) {
+                productCounts[product] = (productCounts[product] || 0) + 1;
+            }
+        });
+
+        // Sort by count
+        const sorted = Object.entries(productCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+
+        if (sorted.length === 0) {
+            container.innerHTML = '<p style="color: #64748b; text-align: center; padding: 1rem;">Aucune demande</p>';
             return;
         }
 
-        container.innerHTML = topProducts.map((product, index) => `
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; ${index < topProducts.length - 1 ? 'border-bottom: 1px solid #e2e8f0;' : ''}">
-                <span style="color: #374151;">${escapeHtml(product.name)}</span>
-                <span class="badge badge-success">${product.badge || 'Populaire'}</span>
+        container.innerHTML = sorted.map(([product, count], index) => `
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; ${index < sorted.length - 1 ? 'border-bottom: 1px solid #e2e8f0;' : ''}">
+                <span style="color: #374151;">${escapeHtml(product)}</span>
+                <span class="badge badge-info">${count} demandes</span>
             </div>
         `).join('');
+
     } catch (error) {
         console.error('Error loading top products:', error);
-        container.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 1rem;">Erreur de chargement</p>';
+        container.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 1rem;">Erreur</p>';
     }
 }
 
-/**
- * Load low rotation products into the dashboard
- */
-async function loadLowRotationProducts(products) {
-    const container = document.getElementById('low-rotation-products');
+async function loadRecentWins() {
+    const container = document.getElementById('recent-wins');
     if (!container) return;
 
     try {
-        // Get products that are not featured as proxy for "low rotation"
-        const lowRotationProducts = products
-            .filter(p => !p.is_featured)
-            .slice(-4)
-            .reverse();
+        const { data: wins, error } = await supabaseClient
+            .from('orders')
+            .select('*')
+            .eq('lead_status', 'won')
+            .not('final_sale_price', 'is', null)
+            .order('closed_at', { ascending: false })
+            .limit(3);
 
-        if (lowRotationProducts.length === 0) {
-            container.innerHTML = '<p style="color: #64748b; text-align: center; padding: 1rem;">Aucun produit à faible rotation</p>';
+        if (error) throw error;
+
+        if (!wins || wins.length === 0) {
+            container.innerHTML = '<p style="opacity: 0.8; text-align: center;">Aucune vente récente</p>';
             return;
         }
 
-        container.innerHTML = lowRotationProducts.map((product, index) => `
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; ${index < lowRotationProducts.length - 1 ? 'border-bottom: 1px solid #e2e8f0;' : ''}">
-                <span style="color: #374151;">${escapeHtml(product.name)}</span>
-                <span class="badge badge-warning">À surveiller</span>
+        container.innerHTML = wins.map((win, index) => `
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; ${index < wins.length - 1 ? 'border-bottom: 1px solid rgba(255,255,255,0.2);' : ''}">
+                <div>
+                    <strong style="font-size: 0.9rem;">${escapeHtml(win.client_name)}</strong>
+                    <br><small style="opacity: 0.8;">${formatDate(win.closed_at)}</small>
+                </div>
+                <span style="background: rgba(255,255,255,0.2); padding: 0.25rem 0.5rem; border-radius: 6px; font-weight: 600;">
+                    TND ${formatNumber(win.final_sale_price)}
+                </span>
             </div>
         `).join('');
+
     } catch (error) {
-        console.error('Error loading low rotation products:', error);
-        container.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 1rem;">Erreur de chargement</p>';
-    }
-}
-
-let trafficChart = null;
-async function renderTrafficSalesChart() {
-    const ctx = document.getElementById('traffic-sales-chart');
-    if (!ctx || typeof Chart === 'undefined') return;
-
-    try {
-        // Try to get real visitor data
-        const viewsByDay = await DataService.getViewsByDay(10).catch(() => null);
-        
-        let labels, views;
-        
-        if (viewsByDay && viewsByDay.length > 0 && viewsByDay.some(d => d.views > 0)) {
-            // Use real data
-            labels = viewsByDay.map(d => {
-                const date = new Date(d.date);
-                return date.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' });
-            });
-            views = viewsByDay.map(d => d.views);
-        } else {
-            // Fallback to mock data
-            labels = Array.from({ length: 10 }).map((_, idx) => {
-                const d = new Date();
-                d.setDate(d.getDate() - (9 - idx));
-                return d.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' });
-            });
-            views = labels.map((_, i) => 800 + Math.round(Math.sin(i) * 120) + i * 25);
-        }
-
-        // Mock sales data (could be connected to real orders later)
-        const sales = labels.map((_, i) => 40 + Math.round(Math.cos(i) * 8) + i * 2);
-
-        if (trafficChart) trafficChart.destroy();
-
-        trafficChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [
-                    {
-                        label: 'Vues',
-                        data: views,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.15)',
-                        tension: 0.35,
-                        fill: true
-                    },
-                    {
-                        label: 'Ventes',
-                        data: sales,
-                        borderColor: '#22c55e',
-                        backgroundColor: 'rgba(34, 197, 94, 0.15)',
-                        tension: 0.35,
-                        fill: true
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'top' }
-                },
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
-    } catch (error) {
-        console.error('Error rendering chart:', error);
+        console.error('Error loading recent wins:', error);
+        container.innerHTML = '<p style="opacity: 0.8; text-align: center;">Erreur</p>';
     }
 }
 
@@ -2110,6 +2622,20 @@ function exportToWindow() {
     window.closeMessageModal = closeMessageModal;
     window.closeConfirmModal = closeConfirmModal;
     
+    // Pipeline/Lead Management functions
+    window.loadPipeline = loadPipeline;
+    window.viewLead = viewLead;
+    window.closeLeadModal = closeLeadModal;
+    window.changeLeadStatus = changeLeadStatus;
+    window.openWinWizard = openWinWizard;
+    window.closeWinWizard = closeWinWizard;
+    window.openWhatsApp = openWhatsApp;
+    
+    // Sales Ledger functions
+    window.loadSalesLedger = loadSalesLedger;
+    window.exportSalesLedgerToCSV = exportSalesLedgerToCSV;
+    window.exportPipelineToCSV = exportPipelineToCSV;
+    
     // Navigation (used by sidebar links)
     window.switchSection = switchSection;
     
@@ -2156,6 +2682,7 @@ function initEventListeners() {
     document.getElementById('job-form')?.addEventListener('submit', handleJobFormSubmit);
     document.getElementById('product-form')?.addEventListener('submit', handleProductFormSubmit);
     document.getElementById('showroom-form')?.addEventListener('submit', handleShowroomFormSubmit);
+    document.getElementById('win-wizard-form')?.addEventListener('submit', handleWinWizardSubmit);
 
     // Confirm delete button
     document.getElementById('confirm-delete-btn')?.addEventListener('click', handleConfirmDelete);
