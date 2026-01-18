@@ -246,18 +246,26 @@ const FormHandler = {
             // Validate required fields
             const name = this.sanitizeInput(formData.get('name'));
             const email = formData.get('email')?.trim();
+            const address = this.sanitizeInput(formData.get('address'));
             
             if (!name || name.length < 2) {
                 throw new Error('Veuillez entrer un nom valide');
             }
             
-            if (!email || !this.isValidEmail(email)) {
+            if (email && !this.isValidEmail(email)) {
                 throw new Error('Veuillez entrer une adresse e-mail valide');
             }
             
             const phone = formData.get('phone');
             if (phone && !this.isValidPhone(phone)) {
                 throw new Error('Veuillez entrer un numéro de téléphone valide');
+            }
+
+            // Validate quantity (must be at least 200)
+            const qtyRaw = formData.get('quantity');
+            const qtyNumber = this.parseQuantityEstimate(qtyRaw);
+            if (!qtyNumber || qtyNumber < 200) {
+                throw new Error('La quantité minimale est de 200 pièces');
             }
 
             const data = this.collectFormData(formData, formType);
@@ -545,7 +553,6 @@ const FormHandler = {
                         deadline: this.sanitizeInput(formData.get('deadline')),
                         customization: formData.getAll('customization[]').map(c => this.sanitizeInput(c)),
                         budget: this.sanitizeInput(formData.get('budget')),
-                        source: this.sanitizeInput(formData.get('source')),
                         newsletter: formData.get('newsletter') === 'on'
                     }
                 };

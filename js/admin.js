@@ -1265,12 +1265,17 @@ async function viewMessage(id) {
         `;
 
         if (message.metadata && Object.keys(message.metadata).length > 0) {
-            content += `
-                <div class="message-detail-row">
-                    <strong>Informations supplémentaires:</strong>
-                    <pre class="message-metadata">${escapeHtml(JSON.stringify(message.metadata, null, 2))}</pre>
-                </div>
-            `;
+            // Filter out removed/obsolete keys (e.g., 'source') for cleaner display
+            const metadataFiltered = { ...message.metadata };
+            delete metadataFiltered.source;
+            if (Object.keys(metadataFiltered).length > 0) {
+                content += `
+                    <div class="message-detail-row">
+                        <strong>Informations supplémentaires:</strong>
+                        <pre class="message-metadata">${escapeHtml(JSON.stringify(metadataFiltered, null, 2))}</pre>
+                    </div>
+                `;
+            }
         }
 
         content += `

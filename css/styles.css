@@ -344,7 +344,7 @@ p {
     font-weight: 600;
     text-align: center;
     border-radius: 50px;
-    border: 2px solid transparent;
+    border: none; /* removed transparent border to avoid jagged gradient edges */
     cursor: pointer;
     transition: all var(--transition-normal);
     letter-spacing: 0.5px;

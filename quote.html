@@ -104,12 +104,7 @@
                         </h4>
 
                         <div class="form-row">
-                            <div class="form-group">
-                                <label for="quote-company">Entreprise</label>
-                                <input type="text" id="quote-company" name="company"
-                                    placeholder="Nom de votre entreprise">
-                            </div>
-                            <div class="form-group">
+                            <div class="form-group" style="flex:1 1 100%;">
                                 <label for="quote-name">Nom complet *</label>
                                 <input type="text" id="quote-name" name="name" placeholder="Votre nom" required>
                             </div>
@@ -117,8 +112,8 @@
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="quote-email">E-mail *</label>
-                                <input type="email" id="quote-email" name="email" placeholder="Votre e-mail" required>
+                                <label for="quote-email">E-mail</label>
+                                <input type="email" id="quote-email" name="email" placeholder="Votre e-mail">
                             </div>
                             <div class="form-group">
                                 <label for="quote-phone">Téléphone *</label>
@@ -127,8 +122,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="quote-address">Adresse de livraison</label>
-                            <input type="text" id="quote-address" name="address" placeholder="Adresse complète">
+                            <label for="quote-address">Adresse de livraison *</label>
+                            <input type="text" id="quote-address" name="address" placeholder="Adresse complète" required>
                         </div>
 
                         <!-- Product Information -->
@@ -151,27 +146,16 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="quote-quantity">Quantité estimée *</label>
-                                <select id="quote-quantity" name="quantity" required>
-                                    <option value="">Sélectionnez une quantité</option>
-                                    <option value="1-10">1 - 10 pièces</option>
-                                    <option value="11-50">11 - 50 pièces</option>
-                                    <option value="51-100">51 - 100 pièces</option>
-                                    <option value="101-500">101 - 500 pièces</option>
-                                    <option value="500+">Plus de 500 pièces</option>
-                                </select>
+                                <label for="quote-quantity">Quantité estimée (min 200) *</label>
+                                <input type="number" id="quote-quantity" name="quantity" min="200" step="1" placeholder="Ex: 200" required>
                             </div>
                         </div>
 
                         <div class="form-row">
-                            <div class="form-group">
+                            <div class="form-group" style="flex:1 1 100%;">
                                 <label for="quote-product">Type de produit souhaité</label>
                                 <input type="text" id="quote-product" name="product"
                                     placeholder="Ex: Chemises, Polos, Uniformes...">
-                            </div>
-                            <div class="form-group">
-                                <label for="quote-deadline">Date de livraison souhaitée</label>
-                                <input type="date" id="quote-deadline" name="deadline">
                             </div>
                         </div>
 
@@ -207,30 +191,9 @@
                         </div>
 
                         <!-- Budget -->
-                        <div class="form-group">
-                            <label for="quote-budget">Budget estimé</label>
-                            <select id="quote-budget" name="budget">
-                                <option value="">Sélectionnez une fourchette</option>
-                                <option value="<500">Moins de 500 €</option>
-                                <option value="500-1000">500 € - 1 000 €</option>
-                                <option value="1000-5000">1 000 € - 5 000 €</option>
-                                <option value="5000-10000">5 000 € - 10 000 €</option>
-                                <option value="10000+">Plus de 10 000 €</option>
-                            </select>
-                        </div>
 
-                        <!-- How did you hear about us -->
-                        <div class="form-group">
-                            <label for="quote-source">Comment avez-vous connu Primavet ?</label>
-                            <select id="quote-source" name="source">
-                                <option value="">Sélectionnez une option</option>
-                                <option value="internet">Recherche Internet</option>
-                                <option value="reseaux-sociaux">Réseaux sociaux</option>
-                                <option value="recommandation">Recommandation</option>
-                                <option value="salon">Salon professionnel</option>
-                                <option value="autre">Autre</option>
-                            </select>
-                        </div>
+
+
 
                         <!-- Privacy -->
                         <div class="form-group">
@@ -339,7 +302,7 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-about">
-                    <div class="footer-logo"><img src="assets/logo1-removebg-preview.png" alt="Primavet" class="footer-logo-img"></div>
+                    <div class="footer-logo"><img src="assets/logo1_footer.png" alt="Primavet" class="footer-logo-img"></div>
                     <p>Votre partenaire de confiance pour des produits prêt à porter de qualité supérieure. Innovation,
                         savoir-faire et engagement envers l'excellence.</p>
                     <div class="footer-social">
@@ -376,15 +339,15 @@
                     <ul class="footer-contact">
                         <li>
                             <i class="fas fa-map-marker-alt"></i>
-                            <span>Rue Saad Ibn Waqas<br>Kalâa Seghira (4021), Tunisie</span>
+                            <a href="https://www.google.com/maps/search/?api=1&query=Rue+Saad+Ibn+Waqas+Kalâa+Seghira+Tunisie" target="_blank" style="text-decoration: none; color: inherit;">Rue Saad Ibn Waqas<br>Kalâa Seghira (4021), Tunisie</a>
                         </li>
                         <li>
                             <i class="fas fa-phone"></i>
-                            <span>Fixe: 36 110 027 | Mobile: 25 500 780</span>
+                            <span>Fixe: <a href="tel:+21636110027" style="text-decoration: none; color: inherit; font-weight: bold;">36 110 027</a> | Mobile: <a href="tel:+21625500780" style="text-decoration: none; color: inherit; font-weight: bold;">25 500 780</a></span>
                         </li>
                         <li>
                             <i class="fas fa-envelope"></i>
-                            <span>Societe@primavet.tn</span>
+                            <a href="mailto:Societe@primavet.tn" style="text-decoration: none; color: inherit;">Societe@primavet.tn</a>
                         </li>
                         <li>
                             <i class="fas fa-clock"></i>

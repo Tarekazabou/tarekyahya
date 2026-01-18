@@ -736,6 +736,17 @@ const DataService = {
             throw error;
         }
 
+        // Sanitize metadata for messages: remove obsolete 'source' key if present
+        if (Array.isArray(data)) {
+            data.forEach(msg => {
+                if (msg && msg.metadata && Object.prototype.hasOwnProperty.call(msg.metadata, 'source')) {
+                    const copy = { ...msg.metadata };
+                    delete copy.source;
+                    msg.metadata = copy;
+                }
+            });
+        }
+
         return data || [];
     },
 
@@ -752,6 +763,13 @@ const DataService = {
         if (error) {
             console.error('Error fetching message:', error);
             throw error;
+        }
+
+        // Remove obsolete 'source' key from metadata if present
+        if (data && data.metadata && Object.prototype.hasOwnProperty.call(data.metadata, 'source')) {
+            const copy = { ...data.metadata };
+            delete copy.source;
+            data.metadata = copy;
         }
 
         return data;
