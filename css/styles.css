@@ -2996,3 +2996,78 @@ p {
 .pb-product-card {
     cursor: pointer;
 }
+
+/* ==================== PRODUCT MODAL ZOOM & GALLERY ==================== */
+
+.pb-modal-image {
+    /* Ensure the container takes up space */
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 400px; /* Fallback min-height */
+    background: #f5f5f5;
+    overflow: hidden;
+}
+
+.pb-modal-image-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.pb-modal-image-inner {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    transition: background-image 0.3s ease; /* Smooth transition for image switch */
+}
+
+/* When zoomed, we handle background-position manually via JS */
+.pb-modal-image-inner[style*="cursor: zoom-out"] {
+    transition: background-image 0.3s ease, background-size 0.3s ease; 
+}
+
+/* Thumbnails container */
+.pb-image-toggles {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+}
+
+/* Individual thumbnail */
+.pb-thumb {
+    width: 40px;
+    height: 50px;
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    transition: transform 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.pb-thumb:hover {
+    transform: scale(1.05);
+    opacity: 1 !important;
+}
+
+/* Zoom controls hint */
+.pb-zoom-controls {
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.pb-modal-image-wrapper:hover .pb-zoom-controls {
+    opacity: 1;
+}
+
+/* Hover indicator for alt image */
+.pb-image-hover-indicator {
+    pointer-events: none;
+    opacity: 0.8;
+}

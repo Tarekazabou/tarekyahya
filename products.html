@@ -80,7 +80,8 @@
                     <h1>Collection</h1>
                     <span class="pb-results-count" id="results-count">0 articles</span>
                 </div>
-                <p class="pb-collection-subtitle">Découvrez notre sélection de produits prêt à porter de haute qualité</p>
+                <p class="pb-collection-subtitle">Découvrez notre sélection de produits prêt à porter de haute qualité
+                </p>
             </div>
 
             <!-- Toolbar -->
@@ -95,8 +96,8 @@
                 <!-- Search -->
                 <div class="pb-search-wrapper">
                     <i class="fas fa-search pb-search-icon"></i>
-                    <input type="text" class="pb-search-input" id="products-search" 
-                           placeholder="Rechercher..." onkeyup="handleProductsSearch(event)">
+                    <input type="text" class="pb-search-input" id="products-search" placeholder="Rechercher..."
+                        onkeyup="handleProductsSearch(event)">
                     <button class="pb-search-clear" id="search-clear" onclick="clearSearch()" style="display: none;">
                         <i class="fas fa-times"></i>
                     </button>
@@ -132,7 +133,7 @@
                     <span class="pb-modal-category" id="modalCategory">Collection</span>
                     <h2 class="pb-modal-title" id="modalTitle">Titre du produit</h2>
                     <p class="pb-modal-desc" id="modalDesc">Description du produit</p>
-                    
+
                     <div class="pb-modal-features">
                         <div class="pb-modal-feature">
                             <i class="fas fa-check-circle"></i>
@@ -229,7 +230,8 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-about">
-                    <div class="footer-logo"><img src="assets/logo1_footer.png" alt="Primavet" class="footer-logo-img"></div>
+                    <div class="footer-logo"><img src="assets/logo1_footer.png" alt="Primavet" class="footer-logo-img">
+                    </div>
                     <p>Votre partenaire de confiance pour des produits prêt à porter de qualité supérieure. Innovation,
                         savoir-faire et engagement envers l'excellence.</p>
                     <div class="footer-social">
@@ -266,15 +268,22 @@
                     <ul class="footer-contact">
                         <li>
                             <i class="fas fa-map-marker-alt"></i>
-                            <a href="https://www.google.com/maps/search/?api=1&query=Rue+Saad+Ibn+Waqas+Kalâa+Seghira+Tunisie" target="_blank" style="text-decoration: none; color: inherit;">Rue Saad Ibn Waqas<br>Kalâa Seghira (4021), Tunisie</a>
+                            <a href="https://www.google.com/maps/search/?api=1&query=Rue+Saad+Ibn+Waqas+Kalâa+Seghira+Tunisie"
+                                target="_blank" style="text-decoration: none; color: inherit;">Rue Saad Ibn
+                                Waqas<br>Kalâa Seghira (4021), Tunisie</a>
                         </li>
                         <li>
                             <i class="fas fa-phone"></i>
-                            <span>Fixe: <a href="tel:+21636110027" style="text-decoration: none; color: inherit; font-weight: bold;">36 110 027</a> | Mobile: <a href="tel:+21625500780" style="text-decoration: none; color: inherit; font-weight: bold;">25 500 780</a></span>
+                            <span>Fixe: <a href="tel:+21636110027"
+                                    style="text-decoration: none; color: inherit; font-weight: bold;">36 110 027</a> |
+                                Mobile: <a href="tel:+21625500780"
+                                    style="text-decoration: none; color: inherit; font-weight: bold;">25 500
+                                    780</a></span>
                         </li>
                         <li>
                             <i class="fas fa-envelope"></i>
-                            <a href="mailto:Societe@primavet.tn" style="text-decoration: none; color: inherit;">Societe@primavet.tn</a>
+                            <a href="mailto:Societe@primavet.tn"
+                                style="text-decoration: none; color: inherit;">Societe@primavet.tn</a>
                         </li>
                         <li>
                             <i class="fas fa-clock"></i>
@@ -306,14 +315,14 @@
         function handleProductsSearch(event) {
             const searchInput = document.getElementById('products-search');
             const clearBtn = document.getElementById('search-clear');
-            
+
             // Show/hide clear button
             if (searchInput.value.trim()) {
                 clearBtn.style.display = 'block';
             } else {
                 clearBtn.style.display = 'none';
             }
-            
+
             if (event.key === 'Enter') {
                 searchProducts();
             }
@@ -334,12 +343,12 @@
         function initPBFilters() {
             const pills = document.querySelectorAll('.pb-pill');
             pills.forEach(pill => {
-                pill.addEventListener('click', function() {
+                pill.addEventListener('click', function () {
                     // Remove active from all
                     pills.forEach(p => p.classList.remove('active'));
                     // Add active to clicked
                     this.classList.add('active');
-                    
+
                     const filter = this.dataset.filter;
                     if (filter === 'all') {
                         PageRenderers.productsCategory = null;
@@ -360,6 +369,10 @@
             }
         }
 
+        // Global variables for zoom state
+        let isZoomMode = false;
+        let currentZoomElement = null;
+
         // Open product detail modal
         function openProductModal(name, description, category, gradient, icon, imageUrl = null, imageUrl2 = null) {
             const modal = document.getElementById('productModal');
@@ -367,43 +380,80 @@
             const modalTitle = document.getElementById('modalTitle');
             const modalDesc = document.getElementById('modalDesc');
             const modalCategory = document.getElementById('modalCategory');
-            
+
+            // Reset state
+            isZoomMode = false;
+            currentZoomElement = null;
+
             // Set content with image if available
             if (imageUrl && imageUrl.trim()) {
+                // Clean URLs
+                const img1 = imageUrl.trim();
+                const img2 = imageUrl2 && imageUrl2.trim() ? imageUrl2.trim() : null;
+
                 modalImage.innerHTML = `
                     <div class="pb-modal-image-wrapper">
-                        <div class="pb-modal-image-inner" style="background-image: url('${imageUrl}'); background-size: cover; background-position: center; background-color: ${gradient}; cursor: zoom-in;" data-zoom="false" data-primary-image="${imageUrl}" data-alt-image="${imageUrl2 || ''}" onclick="toggleImageZoom(this)">
-                            <div class="pb-zoom-controls" style="position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.7); padding: 8px 12px; border-radius: 6px; color: white; font-size: 12px; z-index: 100; cursor: pointer;">
-                                <i class="fas fa-search-plus"></i> Click to zoom
-                            </div>
-                            ${imageUrl2 ? `<div class="pb-image-hover-indicator" style="position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.7); padding: 6px 10px; border-radius: 4px; color: white; font-size: 11px; z-index: 100;"><i class="fas fa-exchange-alt"></i> Hover for alt</div>` : ''}
+                        <div class="pb-modal-image-inner" 
+                             id="zoomableImage"
+                             style="background-image: url('${img1}'); background-size: cover; background-position: center; background-color: ${gradient}; cursor: zoom-in;" 
+                             data-primary="${img1}" 
+                             data-secondary="${img2 || ''}"
+                             data-current="${img1}">
+                            
+                            ${img2 ? `
+                                <div class="pb-image-toggles" style="position: absolute; bottom: 20px; left: 20px; display: flex; gap: 10px; z-index: 10;">
+                                    <div class="pb-thumb active" onclick="event.stopPropagation(); manualSwitchImage('${img1}')" style="width: 40px; height: 50px; background-image: url('${img1}'); background-size: cover; border: 2px solid white; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3);"></div>
+                                    <div class="pb-thumb" onclick="event.stopPropagation(); manualSwitchImage('${img2}')" style="width: 40px; height: 50px; background-image: url('${img2}'); background-size: cover; border: 1px solid rgba(255,255,255,0.5); cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3);"></div>
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 `;
 
-                // Add hover effect for second image if available
-                if (imageUrl2 && imageUrl2.trim()) {
-                    const imageInner = modalImage.querySelector('.pb-modal-image-inner');
-                    if (imageInner) {
-                        imageInner.addEventListener('mouseenter', function() {
-                            this.style.backgroundImage = `url('${imageUrl2}')`;
-                        });
-                        imageInner.addEventListener('mouseleave', function() {
-                            this.style.backgroundImage = `url('${imageUrl}')`;
-                        });
+                const imageInner = document.getElementById('zoomableImage');
+
+                // Click to toggle zoom
+                imageInner.addEventListener('click', function (e) {
+                    toggleZoom(this, e);
+                });
+
+                // Mouse move for panning when zoomed
+                imageInner.addEventListener('mousemove', function (e) {
+                    if (isZoomMode) {
+                        panImage(this, e);
                     }
+                });
+
+                // Hover effect (only if not zoomed)
+                if (img2) {
+                    imageInner.addEventListener('mouseenter', function () {
+                        if (!isZoomMode) {
+                            this.style.backgroundImage = `url('${img2}')`;
+                            this.dataset.current = img2;
+                            updateActiveThumb(img2);
+                        }
+                    });
+                    imageInner.addEventListener('mouseleave', function () {
+                        if (!isZoomMode) {
+                            this.style.backgroundImage = `url('${img1}')`;
+                            this.dataset.current = img1;
+                            updateActiveThumb(img1);
+                        }
+                    });
                 }
+
             } else {
                 modalImage.innerHTML = `
-                    <div class="pb-modal-image-inner" style="background: ${gradient};">
-                        <i class="fas ${icon}"></i>
+                    <div class="pb-modal-image-inner" style="background: ${gradient}; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas ${icon}" style="font-size: 8rem; color: rgba(255,255,255,0.2);"></i>
                     </div>
                 `;
             }
+
             modalTitle.textContent = name;
             modalDesc.textContent = description;
             modalCategory.textContent = category.charAt(0).toUpperCase() + category.slice(1);
-            
+
             // Show modal
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -422,36 +472,90 @@
             );
         }
 
-        // Toggle image zoom in modal
-        function toggleImageZoom(element) {
-            const isZoomed = element.dataset.zoom === 'true';
-            const primaryImage = element.dataset.primaryImage;
-            
-            if (!isZoomed) {
-                // Zoom in
-                element.style.backgroundSize = 'contain';
-                element.style.backgroundPosition = 'center';
+        function isTouchDevice() {
+            return (('ontouchstart' in window) ||
+                (navigator.maxTouchPoints > 0) ||
+                (navigator.msMaxTouchPoints > 0));
+        }
+
+        function toggleZoom(element, event) {
+            // Disable zoom on mobile/touch devices for better UX (handled by native pinch)
+            if (isTouchDevice()) return;
+
+            if (!isZoomMode) {
+                // ENABLE ZOOM
+                isZoomMode = true;
+                currentZoomElement = element;
                 element.style.cursor = 'zoom-out';
-                element.dataset.zoom = 'true';
-                
+                element.style.backgroundSize = '250%'; // Zoom level
+
+                // Show zoom out hint
                 const controls = element.querySelector('.pb-zoom-controls');
-                if (controls) {
-                    controls.innerHTML = '<i class="fas fa-search-minus"></i> Click to zoom out';
-                }
+                if (controls) controls.innerHTML = '<i class="fas fa-search-minus"></i> Click to zoom out';
+
+                // Initial pan to click position
+                panImage(element, event);
+
             } else {
-                // Zoom out
-                element.style.backgroundSize = 'cover';
-                element.style.backgroundPosition = 'center';
-                element.style.cursor = 'zoom-in';
-                element.dataset.zoom = 'false';
-                // Reset to primary image when zooming out
-                element.style.backgroundImage = `url('${primaryImage}')`;
-                
-                const controls = element.querySelector('.pb-zoom-controls');
-                if (controls) {
-                    controls.innerHTML = '<i class="fas fa-search-plus"></i> Click to zoom';
-                }
+                // DISABLE ZOOM
+                disableZoom(element);
             }
+        }
+
+        function disableZoom(element) {
+            if (!element) return;
+            isZoomMode = false;
+            currentZoomElement = null;
+
+            // Reset logic
+            element.style.cursor = 'zoom-in';
+            element.style.backgroundSize = 'cover';
+            element.style.backgroundPosition = 'center';
+
+            // Reset to current image (logic handles switching back if needed)
+            const currentImg = element.dataset.current;
+            element.style.backgroundImage = `url('${currentImg}')`;
+
+            // Reset hint
+            const controls = element.querySelector('.pb-zoom-controls');
+            if (controls) controls.innerHTML = '<i class="fas fa-search-plus"></i> Click to zoom';
+        }
+
+        function panImage(element, event) {
+            const rect = element.getBoundingClientRect();
+
+            // Calculate mouse position as percentage of element size
+            const x = (event.clientX - rect.left) / rect.width * 100;
+            const y = (event.clientY - rect.top) / rect.height * 100;
+
+            element.style.backgroundPosition = `${x}% ${y}%`;
+        }
+
+        function manualSwitchImage(url) {
+            const element = document.getElementById('zoomableImage');
+            if (!element) return;
+
+            // If zoomed, reset zoom first
+            if (isZoomMode) disableZoom(element);
+
+            element.style.backgroundImage = `url('${url}')`;
+            element.dataset.current = url;
+            updateActiveThumb(url);
+        }
+
+        function updateActiveThumb(url) {
+            const thumbs = document.querySelectorAll('.pb-thumb');
+            thumbs.forEach(thumb => {
+                // Simple check if url contains the thumb's bg url
+                const style = thumb.style.backgroundImage.replace(/url\(['"]?(.*?)['"]?\)/i, '$1');
+                if (url.includes(style) || style.includes(url)) {
+                    thumb.style.border = '2px solid white';
+                    thumb.style.opacity = '1';
+                } else {
+                    thumb.style.border = '1px solid rgba(255,255,255,0.5)';
+                    thumb.style.opacity = '0.7';
+                }
+            });
         }
 
         // Close product modal
@@ -459,26 +563,22 @@
             const modal = document.getElementById('productModal');
             modal.classList.remove('active');
             document.body.style.overflow = '';
-            
-            // Reset zoom state
-            const modalImageInner = document.querySelector('.pb-modal-image-inner');
-            if (modalImageInner) {
-                modalImageInner.style.backgroundSize = 'cover';
-                modalImageInner.style.backgroundPosition = 'center';
-                modalImageInner.style.cursor = 'zoom-in';
-                modalImageInner.dataset.zoom = 'false';
+
+            if (currentZoomElement) {
+                disableZoom(currentZoomElement);
             }
         }
 
         // Close modal on escape key
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 closeProductModal();
             }
         });
 
-        // Handle image hover effect on product cards
-        document.addEventListener('DOMContentLoaded', function() {
+        // Initialize listener for card hover
+        document.addEventListener('DOMContentLoaded', function () {
+            // (Preserved from original)
             const productCards = document.querySelectorAll('.pb-product-card');
             productCards.forEach(card => {
                 const imageInner = card.querySelector('.pb-product-image-inner');
@@ -486,11 +586,11 @@
                     const primaryImage = imageInner.style.backgroundImage;
                     const altImageUrl = imageInner.dataset.imageAlt;
 
-                    imageInner.addEventListener('mouseenter', function() {
+                    imageInner.addEventListener('mouseenter', function () {
                         this.style.backgroundImage = `url('${altImageUrl}')`;
                     });
 
-                    imageInner.addEventListener('mouseleave', function() {
+                    imageInner.addEventListener('mouseleave', function () {
                         this.style.backgroundImage = primaryImage;
                     });
                 }
@@ -500,7 +600,7 @@
             try {
                 // Initialize filters
                 initPBFilters();
-                
+
                 // Load all products with Pull&Bear style
                 await PageRenderers.renderProductsPB('products-grid');
 

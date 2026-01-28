@@ -179,6 +179,12 @@ function initGlobalEventListeners() {
             case 'delete-order':
                 confirmDeleteOrder(id); // UUID string, don't parse
                 break;
+
+            // --- STORAGE ---
+            case 'delete-storage-file':
+                const path = btn.dataset.path;
+                confirmDeleteStorageFile(path);
+                break;
         }
     });
 
@@ -218,6 +224,7 @@ function switchSection(sectionName) {
     if (sectionName === 'pipeline') loadPipeline();
     if (sectionName === 'sales-ledger') loadSalesLedger();
     if (sectionName === 'messages') loadMessagesTable();
+    if (sectionName === 'storage') loadStorageStats();
 }
 
 // ==================== DEBUGGING HELPER ====================
@@ -917,11 +924,11 @@ function closeProductModal() {
 document.addEventListener('DOMContentLoaded', () => {
     const imageInput = document.getElementById('product-image');
     if (imageInput) {
-        imageInput.addEventListener('change', function(e) {
+        imageInput.addEventListener('change', function (e) {
             const file = this.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(event) {
+                reader.onload = function (event) {
                     const preview = document.getElementById('image-preview');
                     const previewImg = document.getElementById('image-preview-img');
                     previewImg.src = event.target.result;
@@ -934,11 +941,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const imageInput2 = document.getElementById('product-image-2');
     if (imageInput2) {
-        imageInput2.addEventListener('change', function(e) {
+        imageInput2.addEventListener('change', function (e) {
             const file = this.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(event) {
+                reader.onload = function (event) {
                     const preview = document.getElementById('image-preview-2');
                     const previewImg = document.getElementById('image-preview-img-2');
                     previewImg.src = event.target.result;
@@ -1135,7 +1142,7 @@ async function handleProductFormSubmit(e) {
             // Upload optimized image to Supabase storage
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Upload de l\'image 1...';
             const fileName = `products/${Date.now()}-${sanitizeInput(document.getElementById('product-name').value).replace(/\s+/g, '-')}.webp`;
-            
+
             const { data: uploadData, error: uploadError } = await supabaseClient.storage
                 .from('textile-images')
                 .upload(fileName, optimizedFile, { upsert: false });
@@ -1183,7 +1190,7 @@ async function handleProductFormSubmit(e) {
             // Upload optimized image to Supabase storage
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Upload de l\'image 2...';
             const fileName2 = `products/${Date.now()}-alt-${sanitizeInput(document.getElementById('product-name').value).replace(/\s+/g, '-')}.webp`;
-            
+
             const { data: uploadData2, error: uploadError2 } = await supabaseClient.storage
                 .from('textile-images')
                 .upload(fileName2, optimizedFile2, { upsert: false });
@@ -1945,7 +1952,7 @@ async function loadPipeline() {
     } catch (error) {
         console.error('Error loading pipeline:', error);
         showToast('Erreur lors du chargement du pipeline', 'error');
-        
+
         // CRITICAL: Clear loading spinners to show error state
         ['new', 'contacted', 'negotiating', 'won', 'lost'].forEach(status => {
             const container = document.getElementById(`cards-${status}`);
@@ -2911,7 +2918,7 @@ async function initializeStorageBucket() {
     try {
         // List existing buckets
         const { data: buckets, error: listError } = await supabaseClient.storage.listBuckets();
-        
+
         if (listError) {
             console.warn('⚠️ Could not list buckets:', listError.message);
             return false;
@@ -2919,7 +2926,7 @@ async function initializeStorageBucket() {
 
         // Check if textile-images bucket exists
         const bucketExists = buckets?.some(b => b.name === 'textile-images');
-        
+
         if (bucketExists) {
             console.log('✅ Storage bucket "textile-images" already exists');
             return true;
@@ -3107,6 +3114,206 @@ async function loadSalesLedger() {
     } catch (error) {
         console.error('Error loading sales ledger:', error);
         container.innerHTML = '<p class="loading" style="color: #dc2626;">Erreur de chargement</p>';
+    }
+}
+
+// ==================== STORAGE MANAGEMENT ====================
+
+// Utility function to format bytes to human-readable size
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return (bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
+}
+
+// Load storage statistics and files
+async function loadStorageStats() {
+    console.log('📦 Loading storage statistics...');
+
+    // Check if Supabase is ready
+    if (!supabaseClient) {
+        console.warn('loadStorageStats: Supabase not ready yet');
+        showToast('Connexion en cours...', 'warning');
+        return;
+    }
+
+    try {
+        // List all files in the bucket
+        const { data: files, error } = await supabaseClient.storage
+            .from('textile-images')
+            .list('', {
+                limit: 1000,
+                offset: 0,
+                sortBy: { column: 'name', order: 'asc' }
+            });
+
+        if (error) throw error;
+
+        // Also list files in products folder
+        const { data: productFiles, error: productError } = await supabaseClient.storage
+            .from('textile-images')
+            .list('products', {
+                limit: 1000,
+                offset: 0,
+                sortBy: { column: 'created_at', order: 'desc' }
+            });
+
+        if (productError) throw productError;
+
+        // Combine all files
+        const allFiles = [
+            ...files.map(f => ({ ...f, path: f.name })),
+            ...productFiles.map(f => ({ ...f, path: `products/${f.name}` }))
+        ];
+
+        // Filter out folders (they have metadata.size undefined or null)
+        const actualFiles = allFiles.filter(f => f.metadata && f.metadata.size);
+
+        // Calculate total size
+        const totalBytes = actualFiles.reduce((sum, file) => sum + (file.metadata.size || 0), 0);
+        const totalMB = totalBytes / (1024 * 1024);
+        const limitMB = 50;
+        const availableMB = limitMB - totalMB;
+        const percentage = (totalMB / limitMB) * 100;
+
+        // Update statistics
+        document.getElementById('storage-used').textContent = totalMB.toFixed(2) + ' MB';
+        document.getElementById('storage-available').textContent = Math.max(0, availableMB).toFixed(2) + ' MB';
+        document.getElementById('storage-percentage').textContent = percentage.toFixed(1) + '%';
+        document.getElementById('storage-file-count').textContent = actualFiles.length;
+
+        // Update progress bar
+        const progressBar = document.getElementById('storage-progress-bar');
+        const progressText = document.getElementById('storage-progress-text');
+
+        progressBar.style.width = Math.min(100, percentage).toFixed(1) + '%';
+        progressText.textContent = `${totalMB.toFixed(2)} MB / ${limitMB} MB`;
+
+        // Change color based on usage
+        if (percentage > 80) {
+            progressBar.style.background = 'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)';
+        } else if (percentage > 50) {
+            progressBar.style.background = 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)';
+        } else {
+            progressBar.style.background = 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)';
+        }
+
+        // Load files table
+        loadStorageFiles(actualFiles);
+
+        console.log(`✅ Storage stats loaded: ${totalMB.toFixed(2)} MB used (${percentage.toFixed(1)}%)`);
+
+    } catch (error) {
+        console.error('❌ Error loading storage stats:', error);
+        showToast('Erreur lors du chargement du stockage: ' + error.message, 'error');
+    }
+}
+
+// Load and display files in table
+function loadStorageFiles(files) {
+    const container = document.getElementById('storage-files-container');
+    const badge = document.getElementById('storage-files-badge');
+
+    badge.textContent = `${files.length} fichiers`;
+
+    if (files.length === 0) {
+        container.innerHTML = '<p class="loading">Aucun fichier dans le stockage.</p>';
+        return;
+    }
+
+    // Sort by size (largest first)
+    files.sort((a, b) => (b.metadata.size || 0) - (a.metadata.size || 0));
+
+    container.innerHTML = `
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">Aperçu</th>
+                    <th>Nom du Fichier</th>
+                    <th>Chemin</th>
+                    <th style="width: 120px;">Taille</th>
+                    <th style="width: 180px;">Date</th>
+                    <th style="width: 100px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${files.map(file => {
+        const publicUrl = supabaseClient.storage
+            .from('textile-images')
+            .getPublicUrl(file.path).data.publicUrl;
+
+        return `
+                        <tr>
+                            <td>
+                                <img src="${escapeHtml(publicUrl)}" 
+                                     alt="Preview" 
+                                     style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; display: block;"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div style="display: none; width: 60px; height: 60px; background: #f1f5f9; border-radius: 8px; align-items: center; justify-content: center;">
+                                    <i class="fas fa-file" style="color: #94a3b8;"></i>
+                                </div>
+                            </td>
+                            <td><strong>${escapeHtml(file.name)}</strong></td>
+                            <td><code style="font-size: 0.85rem; color: #64748b;">${escapeHtml(file.path)}</code></td>
+                            <td><span class="badge badge-info">${formatFileSize(file.metadata.size)}</span></td>
+                            <td style="color: #64748b; font-size: 0.9rem;">${formatDate(file.created_at)}</td>
+                            <td class="actions">
+                                <button class="btn-icon delete" 
+                                        data-action="delete-storage-file" 
+                                        data-path="${escapeHtml(file.path)}" 
+                                        title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+    }).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+// Global variable to store file path for deletion
+let deleteStorageFilePath = null;
+
+// Confirm delete storage file
+function confirmDeleteStorageFile(path) {
+    deleteStorageFilePath = path;
+    deleteType = 'storage-file';
+
+    // Show confirmation
+    if (confirm(`⚠️ Êtes-vous sûr de vouloir supprimer ce fichier?\n\nChemin: ${path}\n\nAttention: Cette action est irréversible et peut casser les produits/actualités qui utilisent cette image!`)) {
+        deleteStorageFile(path);
+    }
+}
+
+// Delete storage file
+async function deleteStorageFile(path) {
+    console.log('🗑️ Deleting storage file:', path);
+
+    if (!supabaseClient) {
+        showToast('Connexion non disponible', 'error');
+        return;
+    }
+
+    try {
+        const { data, error } = await supabaseClient.storage
+            .from('textile-images')
+            .remove([path]);
+
+        if (error) throw error;
+
+        console.log('✅ File deleted:', path);
+        showToast('Fichier supprimé avec succès');
+
+        // Reload storage stats
+        await loadStorageStats();
+
+    } catch (error) {
+        console.error('❌ Delete error:', error);
+        showToast('Erreur lors de la suppression: ' + error.message, 'error');
     }
 }
 
