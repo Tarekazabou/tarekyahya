@@ -160,10 +160,174 @@ const PageRenderers = {
         }
     },
 
+    // ==================== PULL & BEAR STYLE PRODUCTS ====================
+    
+    async renderProductsPB(containerId = 'products-grid') {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        container.innerHTML = `
+            <div class="pb-loading">
+                <div class="pb-loading-spinner"></div>
+                <p>Chargement...</p>
+            </div>
+        `;
+
+        try {
+            const result = await DataService.getProductsPaginated(
+                this.productsCurrentPage,
+                this.productsPerPage,
+                this.productsCategory,
+                this.productsSearchTerm
+            );
+
+            // Update results count
+            if (typeof updateResultsCount === 'function') {
+                updateResultsCount(result.count || result.data.length);
+            }
+
+            if (result.data.length === 0) {
+                container.innerHTML = `
+                    <div class="pb-no-results">
+                        <i class="fas fa-search"></i>
+                        <p>Aucun produit trouvé</p>
+                        <button class="pb-btn-reset" onclick="PageRenderers.resetFilters()">
+                            Réinitialiser les filtres
+                        </button>
+                    </div>
+                `;
+                this.renderPaginationPB('products-pagination', result);
+                return;
+            }
+
+            container.innerHTML = result.data.map(product => `
+                <div class="pb-product-card" data-category="${Sanitizer.escapeHtml(product.category)}">
+                    <div class="pb-product-image">
+                        <div class="pb-product-image-inner" style="background: ${Sanitizer.sanitizeGradient(product.gradient)};">
+                            <i class="fas ${Sanitizer.sanitizeIcon(product.icon)}"></i>
+                        </div>
+                        
+                        ${product.badge ? `
+                            <span class="pb-badge ${product.badge.toLowerCase() === 'nouveau' ? 'pb-badge-new' : 'pb-badge-sale'}">
+                                ${Sanitizer.escapeHtml(product.badge)}
+                            </span>
+                        ` : ''}
+                        
+                        <button class="pb-favorite-btn" onclick="toggleFavorite(this, event)" aria-label="Ajouter aux favoris">
+                            <i class="far fa-heart"></i>
+                        </button>
+
+                        <div class="pb-quick-actions">
+                            <a href="quote.html" class="pb-quick-btn pb-quick-btn-primary">
+                                <i class="fas fa-file-invoice"></i>
+                                <span>Devis</span>
+                            </a>
+                            <a href="contact.html" class="pb-quick-btn">
+                                <i class="fas fa-eye"></i>
+                                <span>Détails</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="pb-product-info">
+                        <span class="pb-product-category">${Sanitizer.escapeHtml(this.capitalizeFirst(product.category))}</span>
+                        <h3 class="pb-product-name">${Sanitizer.escapeHtml(product.name)}</h3>
+                        <p class="pb-product-desc">${Sanitizer.escapeHtml(product.description)}</p>
+                        
+                        <div class="pb-product-price">
+                            <span class="pb-price-current">Sur devis</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            this.renderPaginationPB('products-pagination', result);
+        } catch (error) {
+            console.error('Error rendering products:', error);
+            container.innerHTML = `
+                <div class="pb-no-results">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Erreur lors du chargement</p>
+                    <button class="pb-btn-reset" onclick="PageRenderers.renderProductsPB()">
+                        Réessayer
+                    </button>
+                </div>
+            `;
+        }
+    },
+
+    renderPaginationPB(containerId, result) {
+        const container = document.getElementById(containerId);
+        if (!container || result.totalPages <= 1) {
+            if (container) container.innerHTML = '';
+            return;
+        }
+
+        let paginationHTML = `
+            <button class="pb-page-btn pb-page-prev" 
+                    onclick="PageRenderers.goToProductsPagePB(${result.currentPage - 1})"
+                    ${result.currentPage === 1 ? 'disabled' : ''}
+                    aria-label="Page précédente">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="pb-page-numbers">
+        `;
+
+        for (let i = 1; i <= result.totalPages; i++) {
+            paginationHTML += `
+                <button class="pb-page-num ${i === result.currentPage ? 'active' : ''}"
+                        onclick="PageRenderers.goToProductsPagePB(${i})"
+                        aria-label="Page ${i}">
+                    ${i}
+                </button>
+            `;
+        }
+
+        paginationHTML += `
+            </div>
+            <button class="pb-page-btn pb-page-next" 
+                    onclick="PageRenderers.goToProductsPagePB(${result.currentPage + 1})"
+                    ${result.currentPage === result.totalPages ? 'disabled' : ''}
+                    aria-label="Page suivante">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        `;
+
+        container.innerHTML = paginationHTML;
+    },
+
+    goToProductsPagePB(page) {
+        this.productsCurrentPage = page;
+        this.renderProductsPB();
+        // Scroll to top of products
+        document.querySelector('.pb-collection-section')?.scrollIntoView({ behavior: 'smooth' });
+    },
+
+    resetFilters() {
+        this.productsCategory = null;
+        this.productsSearchTerm = null;
+        this.productsCurrentPage = 1;
+        
+        // Reset UI
+        document.querySelectorAll('.pb-pill').forEach(p => p.classList.remove('active'));
+        document.querySelector('.pb-pill[data-filter="all"]')?.classList.add('active');
+        const searchInput = document.getElementById('products-search');
+        if (searchInput) searchInput.value = '';
+        const clearBtn = document.getElementById('search-clear');
+        if (clearBtn) clearBtn.style.display = 'none';
+        
+        this.renderProductsPB();
+    },
+
     searchProducts(searchTerm) {
         this.productsSearchTerm = searchTerm || null;
         this.productsCurrentPage = 1;
-        this.renderProductsPaginated();
+        // Check if we're using PB style
+        if (document.querySelector('.pb-products-grid')) {
+            this.renderProductsPB();
+        } else {
+            this.renderProductsPaginated();
+        }
     },
 
     filterProductsByCategory(category) {

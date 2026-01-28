@@ -43,7 +43,7 @@ export default function Header() {
       <div className="container">
         <Link href="/" className="logo">
           <Image
-            src="/assets/logo1-removebg-preview.png"
+            src="/logo1-removebg-preview.png"
             alt="Primavet"
             className="logo-img"
             width={120}

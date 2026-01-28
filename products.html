@@ -62,54 +62,58 @@
     <!-- Page Header -->
     <section class="page-header">
         <div class="container">
-            <h1>Nos Produits</h1>
+            <h1>Collection</h1>
             <nav class="breadcrumb">
                 <a href="index.html">Accueil</a>
                 <span>/</span>
-                <span>Produits</span>
+                <span>Collection</span>
             </nav>
         </div>
     </section>
 
-    <!-- Products Section -->
-    <section class="products section">
-        <div class="container">
-            <div class="section-title">
-                <h2>Notre Catalogue</h2>
-                <p>Explorez notre gamme complète de produits prêt à porter de haute qualité, organisés par catégorie.</p>
+    <!-- Products Section - Pull&Bear Style -->
+    <section class="pb-collection-section">
+        <div class="pb-container">
+            <!-- Header with results count -->
+            <div class="pb-collection-header">
+                <div class="pb-collection-title">
+                    <h1>Collection</h1>
+                    <span class="pb-results-count" id="results-count">0 articles</span>
+                </div>
+                <p class="pb-collection-subtitle">Découvrez notre sélection de produits prêt à porter de haute qualité</p>
             </div>
 
-            <!-- Search Bar -->
-            <div class="search-container" style="margin-bottom: 2rem;">
-                <div style="max-width: 500px; margin: 0 auto;">
-                    <div class="form-group" style="position: relative;">
-                        <input type="text" id="products-search" placeholder="Rechercher un produit..." 
-                               style="padding-right: 50px;" onkeyup="handleProductsSearch(event)">
-                        <button onclick="searchProducts()" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: var(--primary-color); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
+            <!-- Toolbar -->
+            <div class="pb-toolbar">
+                <!-- Filter Pills -->
+                <div class="pb-filter-pills">
+                    <button class="pb-pill active" data-filter="all">Tout voir</button>
+                    <button class="pb-pill" data-filter="homme">Homme</button>
+                    <button class="pb-pill" data-filter="femme">Femme</button>
+                </div>
+
+                <!-- Search -->
+                <div class="pb-search-wrapper">
+                    <i class="fas fa-search pb-search-icon"></i>
+                    <input type="text" class="pb-search-input" id="products-search" 
+                           placeholder="Rechercher..." onkeyup="handleProductsSearch(event)">
+                    <button class="pb-search-clear" id="search-clear" onclick="clearSearch()" style="display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             </div>
 
-            <!-- Filter Buttons -->
-            <div class="products-filter">
-                <button class="filter-btn active" data-filter="all">Tous</button>
-                <button class="filter-btn" data-filter="homme">Homme</button>
-                <button class="filter-btn" data-filter="femme">Femme</button>
-            </div>
-
             <!-- Products Grid -->
-            <div class="products-grid" id="products-grid">
+            <div class="pb-products-grid" id="products-grid">
                 <!-- Products loaded dynamically from Supabase -->
-                <div class="loading-spinner" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
-                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
-                    <p style="margin-top: 1rem; color: var(--gray);">Chargement des produits...</p>
+                <div class="pb-loading">
+                    <div class="pb-loading-spinner"></div>
+                    <p>Chargement...</p>
                 </div>
             </div>
 
             <!-- Pagination -->
-            <div id="products-pagination"></div>
+            <div id="products-pagination" class="pb-pagination"></div>
         </div>
     </section>
 
@@ -250,6 +254,16 @@
     <script>
         // Search functions
         function handleProductsSearch(event) {
+            const searchInput = document.getElementById('products-search');
+            const clearBtn = document.getElementById('search-clear');
+            
+            // Show/hide clear button
+            if (searchInput.value.trim()) {
+                clearBtn.style.display = 'block';
+            } else {
+                clearBtn.style.display = 'none';
+            }
+            
             if (event.key === 'Enter') {
                 searchProducts();
             }
@@ -260,11 +274,50 @@
             PageRenderers.searchProducts(searchTerm);
         }
 
+        function clearSearch() {
+            document.getElementById('products-search').value = '';
+            document.getElementById('search-clear').style.display = 'none';
+            PageRenderers.searchProducts('');
+        }
+
+        // Initialize Pull&Bear style filters
+        function initPBFilters() {
+            const pills = document.querySelectorAll('.pb-pill');
+            pills.forEach(pill => {
+                pill.addEventListener('click', function() {
+                    // Remove active from all
+                    pills.forEach(p => p.classList.remove('active'));
+                    // Add active to clicked
+                    this.classList.add('active');
+                    
+                    const filter = this.dataset.filter;
+                    if (filter === 'all') {
+                        PageRenderers.productsCategory = null;
+                    } else {
+                        PageRenderers.productsCategory = filter;
+                    }
+                    PageRenderers.productsCurrentPage = 1;
+                    PageRenderers.renderProductsPB('products-grid');
+                });
+            });
+        }
+
+        // Update results count
+        function updateResultsCount(count) {
+            const countEl = document.getElementById('results-count');
+            if (countEl) {
+                countEl.textContent = `${count} article${count !== 1 ? 's' : ''}`;
+            }
+        }
+
         // Initialize dynamic content on page load
         document.addEventListener('DOMContentLoaded', async function () {
             try {
-                // Load all products
-                await PageRenderers.renderProducts('products-grid');
+                // Initialize filters
+                initPBFilters();
+                
+                // Load all products with Pull&Bear style
+                await PageRenderers.renderProductsPB('products-grid');
 
                 console.log('✅ Products page content loaded from Supabase');
             } catch (error) {

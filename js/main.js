@@ -17,6 +17,27 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /* ------------------------------------------------
+   Pull & Bear Style Helpers
+   ------------------------------------------------ */
+function toggleFavorite(btn, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    btn.classList.toggle('active');
+    const icon = btn.querySelector('i');
+    
+    if (btn.classList.contains('active')) {
+        icon.classList.remove('far');
+        icon.classList.add('fas');
+        btn.setAttribute('aria-label', 'Retirer des favoris');
+    } else {
+        icon.classList.remove('fas');
+        icon.classList.add('far');
+        btn.setAttribute('aria-label', 'Ajouter aux favoris');
+    }
+}
+
+/* ------------------------------------------------
    Accessibility Module
    ------------------------------------------------ */
 function initAccessibility() {

@@ -68,8 +68,11 @@ const initSupabase = async () => {
     return false;
 };
 
-// Start initialization
-initSupabase();
+// Start initialization and store the promise
+let supabaseReady = initSupabase();
+
+// Export the ready promise for other scripts to await
+window.supabaseReady = supabaseReady;
 
 // Session management utilities
 const AuthManager = {
@@ -168,9 +171,12 @@ const RateLimiter = {
     }
 };
 
-// Export for use in other scripts
-window.supabaseClient = supabaseClient;
+// Export for use in other scripts using getter (so it returns current value, not null)
+Object.defineProperty(window, 'supabaseClient', {
+    get: () => supabaseClient,
+    configurable: true
+});
 window.AuthManager = AuthManager;
 window.RateLimiter = RateLimiter;
 
-console.log('✅ Supabase client initialized with security enhancements');
+console.log('✅ Supabase client module loaded (initialization in progress...)');

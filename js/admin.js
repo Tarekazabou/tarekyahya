@@ -72,13 +72,13 @@ async function checkAuth() {
         }
 
         const session = await AuthManager.getSession();
-        
+
         if (!session) {
             console.warn('No session found, redirecting to login');
             window.location.href = 'login.html';
             return false;
         }
-        
+
         currentUser = session.user;
         console.log('✅ User authenticated:', currentUser.email);
         return true;
@@ -113,7 +113,7 @@ function initGlobalEventListeners() {
     document.addEventListener('click', (e) => {
         // Find the closest button if user clicked on the icon <i> inside
         const btn = e.target.closest('button[data-action]');
-        
+
         // If no button clicked or button has no action, ignore
         if (!btn || !btn.dataset.action) return;
 
@@ -181,7 +181,7 @@ function initGlobalEventListeners() {
                 break;
         }
     });
-    
+
     console.log('✅ Global event listeners initialized');
 }
 
@@ -189,7 +189,7 @@ function initGlobalEventListeners() {
 
 function initNavigation() {
     const sidebarLinks = document.querySelectorAll('.sidebar-link[data-section]');
-    
+
     sidebarLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -201,7 +201,7 @@ function initNavigation() {
 
 function switchSection(sectionName) {
     const sidebarLinks = document.querySelectorAll('.sidebar-link[data-section]');
-    
+
     // Update sidebar
     sidebarLinks.forEach(l => l.classList.remove('active'));
     document.querySelector(`[data-section="${sectionName}"]`)?.classList.add('active');
@@ -254,6 +254,13 @@ async function loadNewsTable() {
     container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>';
 
     console.log('📰 Loading news table...');
+
+    // CRITICAL: Check if supabaseClient is ready
+    if (!supabaseClient) {
+        console.warn('loadNewsTable: Supabase not ready yet');
+        container.innerHTML = '<p class="loading" style="color: #f59e0b;"><i class="fas fa-exclamation-triangle"></i> Connexion en cours...</p>';
+        return;
+    }
 
     try {
         const { data: news, error } = await supabaseClient
@@ -537,6 +544,13 @@ async function handleNewsFormSubmit(e) {
 async function loadJobsTable() {
     const container = document.getElementById('jobs-table-container');
     container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>';
+
+    // CRITICAL: Check if supabaseClient is ready
+    if (!supabaseClient) {
+        console.warn('loadJobsTable: Supabase not ready yet');
+        container.innerHTML = '<p class="loading" style="color: #f59e0b;"><i class="fas fa-exclamation-triangle"></i> Connexion en cours...</p>';
+        return;
+    }
 
     try {
         const jobs = await DataService.getAllJobs();
@@ -822,6 +836,13 @@ async function loadProductsTable() {
     const container = document.getElementById('products-table-container');
     container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>';
 
+    // CRITICAL: Check if supabaseClient is ready
+    if (!supabaseClient) {
+        console.warn('loadProductsTable: Supabase not ready yet');
+        container.innerHTML = '<p class="loading" style="color: #f59e0b;"><i class="fas fa-exclamation-triangle"></i> Connexion en cours...</p>';
+        return;
+    }
+
     try {
         const products = await DataService.getProducts();
         document.getElementById('products-count-badge').textContent = `${products.length} produits`;
@@ -992,6 +1013,13 @@ async function loadShowroomTable() {
     const container = document.getElementById('showroom-table-container');
     container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>';
 
+    // CRITICAL: Check if supabaseClient is ready
+    if (!supabaseClient) {
+        console.warn('loadShowroomTable: Supabase not ready yet');
+        container.innerHTML = '<p class="loading" style="color: #f59e0b;"><i class="fas fa-exclamation-triangle"></i> Connexion en cours...</p>';
+        return;
+    }
+
     try {
         const items = await DataService.getShowroomItems();
         document.getElementById('showroom-count-badge').textContent = `${items.length} éléments`;
@@ -1154,6 +1182,13 @@ async function loadMessagesTable() {
     const container = document.getElementById('messages-table-container');
     container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>';
 
+    // CRITICAL: Check if supabaseClient is ready
+    if (!supabaseClient) {
+        console.warn('loadMessagesTable: Supabase not ready yet');
+        container.innerHTML = '<p class="loading" style="color: #f59e0b;"><i class="fas fa-exclamation-triangle"></i> Connexion en cours...</p>';
+        return;
+    }
+
     try {
         const filter = document.getElementById('messages-filter')?.value || 'all';
         const messages = await DataService.getMessages(filter);
@@ -1212,6 +1247,13 @@ async function loadMessagesTable() {
 }
 
 async function viewMessage(id) {
+    // CRITICAL: Check if supabaseClient is ready
+    if (!supabaseClient) {
+        console.warn('viewMessage: Supabase not ready yet');
+        showToast('Connexion en cours...', 'warning');
+        return;
+    }
+
     try {
         const message = await DataService.getMessage(id);
 
@@ -1227,7 +1269,7 @@ async function viewMessage(id) {
         };
 
         document.getElementById('message-modal-title').textContent = formTypeLabels[message.form_type] || 'Message';
-        
+
         let content = `
             <div class="message-detail-row">
                 <strong>De:</strong> ${escapeHtml(message.name)} (${escapeHtml(message.email)})
@@ -1337,7 +1379,7 @@ async function deleteMessage(id) {
 }
 
 // ==================== CONFIRM DELETE MODAL ====================
-  
+
 
 // ==================== ORDERS MANAGEMENT ====================
 
@@ -1384,8 +1426,8 @@ async function loadOrdersTable() {
                 </thead>
                 <tbody>
                     ${orders.map(order => {
-                        const status = statusLabels[order.status] || { text: order.status || 'Inconnu', color: 'secondary' };
-                        return `
+            const status = statusLabels[order.status] || { text: order.status || 'Inconnu', color: 'secondary' };
+            return `
                         <tr>
                             <td><strong>${escapeHtml(order.order_number)}</strong></td>
                             <td>${escapeHtml(order.client_name)}</td>
@@ -1403,7 +1445,7 @@ async function loadOrdersTable() {
                             </td>
                         </tr>
                         `;
-                    }).join('')}
+        }).join('')}
                 </tbody>
             </table>
         `;
@@ -1581,15 +1623,29 @@ let currentLeadId = null;
 let allLeads = [];
 
 async function loadPipeline() {
+    const statuses = ['new', 'contacted', 'negotiating', 'won', 'lost'];
     const filter = document.getElementById('pipeline-filter')?.value || 'all';
-    
+
     // Show loading state in all columns
-    ['new', 'contacted', 'negotiating', 'won', 'lost'].forEach(status => {
+    statuses.forEach(status => {
         const container = document.getElementById(`cards-${status}`);
         if (container) {
             container.innerHTML = '<div class="kanban-loading"><i class="fas fa-spinner fa-spin"></i></div>';
         }
     });
+
+    // CRITICAL: Check if supabaseClient is ready
+    if (!supabaseClient) {
+        console.warn('loadPipeline: Supabase not ready yet');
+        statuses.forEach(status => {
+            const container = document.getElementById(`cards-${status}`);
+            if (container) {
+                container.innerHTML = '<div class="kanban-empty"><i class="fas fa-exclamation-triangle"></i><p>Connexion en cours...</p></div>';
+            }
+        });
+        showToast('Connexion en cours...', 'warning');
+        return;
+    }
 
     try {
         // Fetch all orders (leads) from database
@@ -1606,7 +1662,7 @@ async function loadPipeline() {
 
         // Apply filters
         let filteredLeads = [...allLeads];
-        
+
         if (filter === 'vip') {
             filteredLeads = filteredLeads.filter(l => l.lead_tags?.includes('vip') || l.lead_tags?.includes('high_potential'));
         } else if (filter === 'wholesale') {
@@ -1653,6 +1709,14 @@ async function loadPipeline() {
     } catch (error) {
         console.error('Error loading pipeline:', error);
         showToast('Erreur lors du chargement du pipeline', 'error');
+        
+        // CRITICAL: Clear loading spinners to show error state
+        ['new', 'contacted', 'negotiating', 'won', 'lost'].forEach(status => {
+            const container = document.getElementById(`cards-${status}`);
+            if (container) {
+                container.innerHTML = '<div class="kanban-empty"><i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i><p>Erreur de chargement</p></div>';
+            }
+        });
     }
 }
 
@@ -1674,7 +1738,7 @@ function renderKanbanColumn(status, leads) {
         const tags = lead.lead_tags || [];
         const isVip = tags.includes('vip') || tags.includes('high_potential');
         const isWholesale = tags.includes('wholesale');
-        
+
         return `
             <div class="lead-card ${isVip ? 'vip' : ''} ${isWholesale ? 'wholesale' : ''}" 
                  data-id="${lead.id}" 
@@ -1750,7 +1814,7 @@ function initKanbanDragDrop() {
         column.addEventListener('drop', async (e) => {
             e.preventDefault();
             column.classList.remove('drag-over');
-            
+
             const leadId = e.dataTransfer.getData('text/plain');
             const newStatus = column.dataset.status;
 
@@ -1768,6 +1832,13 @@ function initKanbanDragDrop() {
 }
 
 async function viewLead(id) {
+    // CRITICAL: Check if supabaseClient is ready
+    if (!supabaseClient) {
+        console.warn('viewLead: Supabase not ready yet');
+        showToast('Connexion en cours...', 'warning');
+        return;
+    }
+
     try {
         const { data: lead, error } = await supabaseClient
             .from('orders')
@@ -1897,6 +1968,13 @@ async function changeLeadStatus(newStatus) {
 }
 
 async function updateLeadStatus(leadId, newStatus) {
+    // CRITICAL: Check if supabaseClient is ready
+    if (!supabaseClient) {
+        console.warn('updateLeadStatus: Supabase not ready yet');
+        showToast('Connexion en cours...', 'warning');
+        return;
+    }
+
     try {
         const updateData = {
             lead_status: newStatus,
@@ -1933,7 +2011,7 @@ function openWinWizard(lead) {
     document.getElementById('win-final-price').value = '';
     document.getElementById('win-salesperson').value = '';
     document.getElementById('win-notes').value = '';
-    
+
     document.getElementById('win-wizard-modal').classList.add('active');
 }
 
@@ -1982,107 +2060,7 @@ async function handleWinWizardSubmit(e) {
 
 // ==================== SALES LEDGER ====================
 
-async function loadSalesLedger() {
-    const container = document.getElementById('sales-ledger-container');
-    if (!container) return;
 
-    container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>';
-
-    try {
-        const period = document.getElementById('ledger-period')?.value || 'all';
-        
-        let query = supabaseClient
-            .from('orders')
-            .select('*')
-            .eq('lead_status', 'won')
-            .not('final_sale_price', 'is', null)
-            .order('closed_at', { ascending: false });
-
-        // Apply period filter
-        if (period === 'this-month') {
-            const startOfMonth = new Date();
-            startOfMonth.setDate(1);
-            startOfMonth.setHours(0, 0, 0, 0);
-            query = query.gte('closed_at', startOfMonth.toISOString());
-        } else if (period === 'last-month') {
-            const startOfLastMonth = new Date();
-            startOfLastMonth.setMonth(startOfLastMonth.getMonth() - 1);
-            startOfLastMonth.setDate(1);
-            startOfLastMonth.setHours(0, 0, 0, 0);
-            const endOfLastMonth = new Date();
-            endOfLastMonth.setDate(0);
-            endOfLastMonth.setHours(23, 59, 59, 999);
-            query = query.gte('closed_at', startOfLastMonth.toISOString()).lte('closed_at', endOfLastMonth.toISOString());
-        } else if (period === 'this-year') {
-            const startOfYear = new Date();
-            startOfYear.setMonth(0, 1);
-            startOfYear.setHours(0, 0, 0, 0);
-            query = query.gte('closed_at', startOfYear.toISOString());
-        }
-
-        const { data: sales, error } = await query;
-
-        if (error) throw error;
-
-        // Calculate analytics
-        const totalRevenue = sales.reduce((sum, s) => sum + parseFloat(s.final_sale_price || 0), 0);
-        const totalDeals = sales.length;
-        const avgDeal = totalDeals > 0 ? totalRevenue / totalDeals : 0;
-
-        // Get total leads for conversion rate
-        const { count: totalLeads } = await supabaseClient
-            .from('orders')
-            .select('*', { count: 'exact', head: true });
-
-        const conversionRate = totalLeads > 0 ? (totalDeals / totalLeads * 100).toFixed(1) : 0;
-
-        // Update analytics cards
-        document.getElementById('ledger-total-revenue').textContent = `TND ${formatNumber(totalRevenue)}`;
-        document.getElementById('ledger-total-deals').textContent = totalDeals;
-        document.getElementById('ledger-avg-deal').textContent = `TND ${formatNumber(avgDeal)}`;
-        document.getElementById('ledger-conversion').textContent = `${conversionRate}%`;
-        document.getElementById('sales-count-badge').textContent = `${totalDeals} ventes`;
-
-        if (sales.length === 0) {
-            container.innerHTML = '<p class="loading">Aucune vente enregistrée.</p>';
-            return;
-        }
-
-        container.innerHTML = `
-            <table class="admin-table sales-ledger-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Client</th>
-                        <th>Produit</th>
-                        <th>Montant</th>
-                        <th>Vendeur</th>
-                        <th>Notes</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${sales.map(sale => `
-                        <tr>
-                            <td>${formatDate(sale.closed_at)}</td>
-                            <td>
-                                <strong>${escapeHtml(sale.client_name)}</strong>
-                                ${sale.client_company ? `<br><small style="color: #64748b;">${escapeHtml(sale.client_company)}</small>` : ''}
-                            </td>
-                            <td>${escapeHtml(sale.product_interest || '-')}</td>
-                            <td class="sale-amount-cell">TND ${formatNumber(sale.final_sale_price)}</td>
-                            <td>${escapeHtml(sale.salesperson || '-')}</td>
-                            <td><small style="color: #64748b;">${escapeHtml(sale.sale_notes || '-')}</small></td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-
-    } catch (error) {
-        console.error('Error loading sales ledger:', error);
-        container.innerHTML = '<p class="loading" style="color: #dc2626;">Erreur de chargement</p>';
-    }
-}
 
 function exportSalesLedgerToCSV() {
     supabaseClient
@@ -2251,9 +2229,9 @@ const MAX_INPUT_LENGTH = 10000;
 function sanitizeInput(str) {
     if (!str) return '';
     let result = String(str).trim();
-    
+
     result = result.replace(/[<>]/g, '');
-    
+
     let prevResult;
     do {
         prevResult = result;
@@ -2261,12 +2239,12 @@ function sanitizeInput(str) {
         result = result.replace(/vbscript\s*:/gi, '');
         result = result.replace(/data\s*:/gi, '');
     } while (result !== prevResult);
-    
+
     do {
         prevResult = result;
         result = result.replace(/on\w+\s*=/gi, '');
     } while (result !== prevResult);
-    
+
     return result.substring(0, MAX_INPUT_LENGTH);
 }
 
@@ -2322,36 +2300,36 @@ async function loadDashboardStats() {
             const totalVisitors = vStats.totalVisitors || vStats.uniqueVisitors || 0;
             updateEl('stat-total-visitors', formatNum(totalVisitors));
             updateEl('stat-detail-visitors', formatNum(totalVisitors));
-            
+
             // Total Page Views
             const totalPageViews = vStats.totalPageViews || vStats.totalViews || 0;
             updateEl('stat-total-pageviews', formatNum(totalPageViews));
             updateEl('stat-detail-pages', formatNum(totalPageViews));
-            
+
             // Today's Visitors
             const todayVisitors = vStats.visitorsToday || vStats.todayViews || 0;
             updateEl('stat-detail-today', formatNum(todayVisitors));
-            
+
             // New Visitors
             const newVisitors = vStats.newVisitors || 0;
             updateEl('stat-detail-new', formatNum(newVisitors));
-            
+
             // Sessions (accurate from detailedVisitorStats)
             const sessions = vStats.totalSessions || Math.round((visitorStats?.weekViews || 0) / 3);
             updateEl('stat-detail-sessions', formatNum(sessions));
-            
+
             // Pages per session
-            const pagesPerSession = vStats.avgPagesPerSession || 
+            const pagesPerSession = vStats.avgPagesPerSession ||
                 (totalVisitors > 0 ? (totalPageViews / totalVisitors).toFixed(2) : '0.00');
             updateEl('stat-pages-per-session', pagesPerSession);
-            
+
             // Calculate visitor growth trends
             if (visitorStats) {
                 const weekViews = visitorStats.weekViews || 0;
                 const monthViews = visitorStats.monthViews || 1;
                 const visitorTrend = weekViews > 0 ? Math.round((weekViews / monthViews) * 100 * 4) : 0;
                 updateElHtml('stat-visitors-change', `<i class="fas fa-arrow-up"></i> +${Math.min(visitorTrend, 9999)}%`);
-                
+
                 const todayViews = visitorStats.todayViews || 0;
                 const pagesTrend = todayViews > 0 ? Math.round((todayViews / Math.max(weekViews, 1)) * 100 * 7) : 0;
                 updateElHtml('stat-pageviews-change', `<i class="fas fa-arrow-up"></i> +${Math.min(pagesTrend, 9999)}%`);
@@ -2361,37 +2339,37 @@ async function loadDashboardStats() {
         // === Order Statistics ===
         if (orderStats) {
             updateEl('stat-total-orders', formatNum(orderStats.totalOrders || 0));
-            
+
             // Order trend
             const orderTrend = orderStats.trendPercent || 0;
             const trendIcon = orderTrend >= 0 ? 'arrow-up' : 'arrow-down';
             const trendSign = orderTrend >= 0 ? '+' : '';
             updateElHtml('stat-orders-change', `<i class="fas fa-${trendIcon}"></i> ${trendSign}${orderTrend}%`);
-            
+
             // Conversion rate (visitors to orders)
             if (visitorStats && visitorStats.uniqueVisitors > 0) {
                 const conversionRate = ((orderStats.totalOrders || 0) / visitorStats.uniqueVisitors * 100).toFixed(2);
                 updateEl('stat-conversion-rate', `${conversionRate}%`);
             }
         }
-        
+
         // === Pipeline Stats (Lead Management) ===
         if (pipelineData) {
             // Fresh Leads (new this week)
             updateEl('stat-fresh-leads', pipelineData.freshLeads);
-            
+
             // Response Rate
-            const responseRate = pipelineData.totalLeads > 0 
-                ? Math.round((pipelineData.contactedLeads / pipelineData.totalLeads) * 100) 
+            const responseRate = pipelineData.totalLeads > 0
+                ? Math.round((pipelineData.contactedLeads / pipelineData.totalLeads) * 100)
                 : 0;
             updateEl('stat-response-rate', `${responseRate}%`);
-            
+
             // Pipeline Health (negotiating)
             updateEl('stat-pipeline-health', pipelineData.negotiatingLeads);
-            
+
             // Win Rate (Conversion)
-            const winRate = pipelineData.totalLeads > 0 
-                ? Math.round((pipelineData.wonLeads / pipelineData.totalLeads) * 100) 
+            const winRate = pipelineData.totalLeads > 0
+                ? Math.round((pipelineData.wonLeads / pipelineData.totalLeads) * 100)
                 : 0;
             updateEl('stat-win-rate', `${winRate}%`);
             updateEl('stat-deals-won', `${pipelineData.wonLeads} ventes`);
@@ -2411,7 +2389,7 @@ async function loadDashboardStats() {
 
             // Load top requested products
             await loadTopRequestedProducts();
-            
+
             // Load recent wins
             await loadRecentWins();
         }
@@ -2422,6 +2400,12 @@ async function loadDashboardStats() {
 }
 
 async function loadPipelineStats() {
+    // CRITICAL: Check if supabaseClient is ready
+    if (!supabaseClient) {
+        console.warn('loadPipelineStats: Supabase not ready yet');
+        return null;
+    }
+
     try {
         const { data: leads, error } = await supabaseClient
             .from('orders')
@@ -2477,6 +2461,12 @@ async function loadTopRequestedProducts() {
     const container = document.getElementById('top-requested-products');
     if (!container) return;
 
+    // CRITICAL: Check if supabaseClient is ready
+    if (!supabaseClient) {
+        container.innerHTML = '<p style="color: #f59e0b; text-align: center; padding: 1rem;"><i class="fas fa-spinner fa-spin"></i> Connexion...</p>';
+        return;
+    }
+
     try {
         const { data: leads, error } = await supabaseClient
             .from('orders')
@@ -2521,6 +2511,12 @@ async function loadRecentWins() {
     const container = document.getElementById('recent-wins');
     if (!container) return;
 
+    // CRITICAL: Check if supabaseClient is ready
+    if (!supabaseClient) {
+        container.innerHTML = '<p style="opacity: 0.8; text-align: center;"><i class="fas fa-spinner fa-spin"></i> Connexion...</p>';
+        return;
+    }
+
     try {
         const { data: wins, error } = await supabaseClient
             .from('orders')
@@ -2559,6 +2555,13 @@ async function loadRecentWins() {
 
 async function testSupabaseConnection() {
     console.group('🔍 Supabase Connection Test');
+
+    // CRITICAL: Check if supabaseClient is ready
+    if (!supabaseClient) {
+        console.log('❌ Supabase client is NOT initialized');
+        console.groupEnd();
+        return;
+    }
 
     try {
         console.log('1. Supabase client:', typeof supabaseClient !== 'undefined' ? '✅' : '❌');
@@ -2621,27 +2624,28 @@ function exportToWindow() {
     window.closeShowroomModal = closeShowroomModal;
     window.closeMessageModal = closeMessageModal;
     window.closeConfirmModal = closeConfirmModal;
-    
+
     // Pipeline/Lead Management functions
     window.loadPipeline = loadPipeline;
     window.viewLead = viewLead;
+    window.viewMessage = viewMessage;
     window.closeLeadModal = closeLeadModal;
     window.changeLeadStatus = changeLeadStatus;
     window.openWinWizard = openWinWizard;
     window.closeWinWizard = closeWinWizard;
     window.openWhatsApp = openWhatsApp;
-    
+
     // Sales Ledger functions
     window.loadSalesLedger = loadSalesLedger;
     window.exportSalesLedgerToCSV = exportSalesLedgerToCSV;
     window.exportPipelineToCSV = exportPipelineToCSV;
-    
+
     // Navigation (used by sidebar links)
     window.switchSection = switchSection;
-    
+
     // Utilities
     window.showToast = showToast;
-    
+
     console.log('✅ Admin functions exported to window scope');
 }
 
@@ -2657,7 +2661,7 @@ window.addEventListener('error', (event) => {
     console.error('💥 Uncaught error:', event.error || event.message);
     try {
         showToast('Erreur: ' + (event.error?.message || event.message), 'error');
-    } catch (_) {}
+    } catch (_) { }
 });
 
 // ==================== INITIALIZATION ====================
@@ -2709,8 +2713,142 @@ function initEventListeners() {
     });
 }
 
+// ==================== SALES LEDGER ====================
+
+async function loadSalesLedger() {
+    const container = document.getElementById('sales-ledger-container');
+    if (!container) return;
+
+    container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>';
+
+    // CRITICAL: Check if supabaseClient is ready
+    if (!supabaseClient) {
+        console.warn('loadSalesLedger: Supabase not ready yet');
+        container.innerHTML = '<p class="loading" style="color: #f59e0b;"><i class="fas fa-exclamation-triangle"></i> Connexion en cours...</p>';
+        showToast('Connexion en cours...', 'warning');
+        return;
+    }
+
+    try {
+        const period = document.getElementById('ledger-period')?.value || 'all';
+
+        let query = supabaseClient
+            .from('orders')
+            .select('*')
+            .eq('lead_status', 'won')
+            .not('final_sale_price', 'is', null)
+            .order('closed_at', { ascending: false });
+
+        // Apply period filter
+        if (period === 'this-month') {
+            const startOfMonth = new Date();
+            startOfMonth.setDate(1);
+            startOfMonth.setHours(0, 0, 0, 0);
+            query = query.gte('closed_at', startOfMonth.toISOString());
+        } else if (period === 'last-month') {
+            const startOfLastMonth = new Date();
+            startOfLastMonth.setMonth(startOfLastMonth.getMonth() - 1);
+            startOfLastMonth.setDate(1);
+            startOfLastMonth.setHours(0, 0, 0, 0);
+            const endOfLastMonth = new Date();
+            endOfLastMonth.setDate(0);
+            endOfLastMonth.setHours(23, 59, 59, 999);
+            query = query.gte('closed_at', startOfLastMonth.toISOString()).lte('closed_at', endOfLastMonth.toISOString());
+        } else if (period === 'this-year') {
+            const startOfYear = new Date();
+            startOfYear.setMonth(0, 1);
+            startOfYear.setHours(0, 0, 0, 0);
+            query = query.gte('closed_at', startOfYear.toISOString());
+        }
+
+        const { data: sales, error } = await query;
+
+        if (error) throw error;
+
+        // Calculate analytics
+        const totalRevenue = sales.reduce((sum, s) => sum + parseFloat(s.final_sale_price || 0), 0);
+        const totalDeals = sales.length;
+        const avgDeal = totalDeals > 0 ? totalRevenue / totalDeals : 0;
+
+        // Get total leads for conversion rate
+        const { count: totalLeads } = await supabaseClient
+            .from('orders')
+            .select('*', { count: 'exact', head: true });
+
+        const conversionRate = totalLeads > 0 ? (totalDeals / totalLeads * 100).toFixed(1) : 0;
+
+        // Update analytics cards
+        const updateEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        updateEl('ledger-total-revenue', `TND ${formatNumber(totalRevenue)}`);
+        updateEl('ledger-total-deals', totalDeals);
+        updateEl('ledger-avg-deal', `TND ${formatNumber(avgDeal)}`);
+        updateEl('ledger-conversion', `${conversionRate}%`);
+        updateEl('sales-count-badge', `${totalDeals} ventes`);
+
+        if (sales.length === 0) {
+            container.innerHTML = '<p class="loading">Aucune vente enregistrée.</p>';
+            return;
+        }
+
+        container.innerHTML = `
+            <table class="admin-table sales-ledger-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th>Produit</th>
+                        <th>Montant</th>
+                        <th>Vendeur</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${sales.map(sale => `
+                        <tr>
+                            <td>${formatDate(sale.closed_at)}</td>
+                            <td>
+                                <strong>${escapeHtml(sale.client_name)}</strong>
+                                ${sale.client_company ? `<br><small style="color: #64748b;">${escapeHtml(sale.client_company)}</small>` : ''}
+                            </td>
+                            <td>${escapeHtml(sale.product_interest || '-')}</td>
+                            <td class="sale-amount-cell">TND ${formatNumber(sale.final_sale_price)}</td>
+                            <td>${escapeHtml(sale.salesperson || '-')}</td>
+                            <td><small style="color: #64748b;">${escapeHtml(sale.sale_notes || '-')}</small></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+
+    } catch (error) {
+        console.error('Error loading sales ledger:', error);
+        container.innerHTML = '<p class="loading" style="color: #dc2626;">Erreur de chargement</p>';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Admin panel initializing...');
+
+    // CRITICAL: Wait for Supabase to be ready before doing anything
+    console.log('⏳ Waiting for Supabase...');
+    if (window.supabaseReady) {
+        await window.supabaseReady;
+    } else {
+        // Fallback: wait up to 5 seconds for supabaseClient to be available
+        let attempts = 0;
+        while (!supabaseClient && attempts < 50) {
+            await new Promise(r => setTimeout(r, 100));
+            attempts++;
+        }
+    }
+
+    if (!supabaseClient) {
+        console.error('❌ Supabase client failed to initialize');
+        showToast('Erreur de connexion au serveur. Veuillez rafraîchir la page.', 'error');
+        // Still try to show something
+    } else {
+        console.log('✅ Supabase client ready');
+    }
 
     // Re-export functions to window (in case first attempt failed)
     try {
@@ -2744,7 +2882,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize navigation
     initNavigation();
-    
+
     // Initialize global event delegation (handles all button clicks)
     initGlobalEventListeners();
 
