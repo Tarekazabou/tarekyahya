@@ -203,7 +203,9 @@ const PageRenderers = {
             container.innerHTML = result.data.map(product => `
                 <div class="pb-product-card" data-category="${Sanitizer.escapeHtml(product.category)}">
                     <div class="pb-product-image">
-                        <div class="pb-product-image-inner" style="background-image: url('${Sanitizer.escapeHtml(product.image_url || '')}'); background-size: cover; background-position: center; background-color: ${Sanitizer.sanitizeGradient(product.gradient)};">
+                        <div class="pb-product-image-inner" 
+                             style="background-image: url('${Sanitizer.escapeHtml(product.image_url || '')}'); background-size: cover; background-position: center; background-color: ${Sanitizer.sanitizeGradient(product.gradient)};"
+                             loading="lazy">
                             ${!product.image_url ? `<i class="fas ${Sanitizer.sanitizeIcon(product.icon)}"></i>` : ''}
                         </div>
                         
@@ -222,7 +224,7 @@ const PageRenderers = {
                                 <i class="fas fa-file-invoice"></i>
                                 <span>Devis</span>
                             </a>
-                            <button class="pb-quick-btn" onclick="openProductModal('${Sanitizer.escapeHtml(product.name).replace(/'/g, "\\'")}', '${Sanitizer.escapeHtml(product.description).replace(/'/g, "\\'")}', '${Sanitizer.escapeHtml(product.category)}', '${Sanitizer.sanitizeGradient(product.gradient)}', '${Sanitizer.sanitizeIcon(product.icon)}')">
+                            <button class="pb-quick-btn" onclick="openProductModal('${Sanitizer.escapeHtml(product.name).replace(/'/g, "\\'")}', '${Sanitizer.escapeHtml(product.description).replace(/'/g, "\\'")}', '${Sanitizer.escapeHtml(product.category)}', '${Sanitizer.sanitizeGradient(product.gradient)}', '${Sanitizer.sanitizeIcon(product.icon)}', '${Sanitizer.escapeHtml(product.image_url || '')}')">
                                 <i class="fas fa-eye"></i>
                                 <span>Détails</span>
                             </button>

@@ -361,19 +361,26 @@
         }
 
         // Open product detail modal
-        function openProductModal(name, description, category, gradient, icon) {
+        function openProductModal(name, description, category, gradient, icon, imageUrl = null) {
             const modal = document.getElementById('productModal');
             const modalImage = document.getElementById('modalImage');
             const modalTitle = document.getElementById('modalTitle');
             const modalDesc = document.getElementById('modalDesc');
             const modalCategory = document.getElementById('modalCategory');
             
-            // Set content
-            modalImage.innerHTML = `
-                <div class="pb-modal-image-inner" style="background: ${gradient};">
-                    <i class="fas ${icon}"></i>
-                </div>
-            `;
+            // Set content with image if available
+            if (imageUrl && imageUrl.trim()) {
+                modalImage.innerHTML = `
+                    <div class="pb-modal-image-inner" style="background-image: url('${imageUrl}'); background-size: cover; background-position: center; background-color: ${gradient};">
+                    </div>
+                `;
+            } else {
+                modalImage.innerHTML = `
+                    <div class="pb-modal-image-inner" style="background: ${gradient};">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                `;
+            }
             modalTitle.textContent = name;
             modalDesc.textContent = description;
             modalCategory.textContent = category.charAt(0).toUpperCase() + category.slice(1);

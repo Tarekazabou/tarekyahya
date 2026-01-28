@@ -1000,6 +1000,60 @@ async function deleteProduct(id) {
     }
 }
 
+// ==================== IMAGE OPTIMIZATION ====================
+
+async function optimizeImage(file) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                // Create canvas with max dimensions
+                const maxWidth = 1200;
+                const maxHeight = 1200;
+                let width = img.width;
+                let height = img.height;
+
+                // Calculate new dimensions (maintain aspect ratio)
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round(height * (maxWidth / width));
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round(width * (maxHeight / height));
+                        height = maxHeight;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Convert to blob with compression
+                canvas.toBlob(
+                    (blob) => {
+                        const optimizedFile = new File([blob], file.name, {
+                            type: 'image/webp',
+                            lastModified: Date.now()
+                        });
+                        resolve(optimizedFile);
+                    },
+                    'image/webp',
+                    0.85 // Quality: 85% (good balance)
+                );
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// ==================== IMAGE UPLOAD ====================
+
 async function handleProductFormSubmit(e) {
     e.preventDefault();
 
@@ -1020,7 +1074,7 @@ async function handleProductFormSubmit(e) {
     try {
         // Handle image upload if a file is selected
         if (imageFile) {
-            // Validate file size (5MB max)
+            // Validate file size before optimization (5MB max)
             if (imageFile.size > 5 * 1024 * 1024) {
                 showToast('L\'image est trop volumineuse (max 5MB)', 'error');
                 submitBtn.disabled = false;
@@ -1036,12 +1090,24 @@ async function handleProductFormSubmit(e) {
                 return;
             }
 
-            // Upload image to Supabase storage
-            const fileName = `products/${Date.now()}-${sanitizeInput(document.getElementById('product-name').value).replace(/\s+/g, '-')}.${imageFile.name.split('.').pop()}`;
+            // Optimize image (resize + compress to WebP)
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Optimisation de l\'image...';
+            let optimizedFile = imageFile;
+            try {
+                optimizedFile = await optimizeImage(imageFile);
+                console.log(`📸 Image optimisée: ${(imageFile.size / 1024 / 1024).toFixed(2)}MB → ${(optimizedFile.size / 1024 / 1024).toFixed(2)}MB`);
+            } catch (optimizeError) {
+                console.warn('⚠️ Could not optimize image, using original:', optimizeError);
+                // Continue with original file if optimization fails
+            }
+
+            // Upload optimized image to Supabase storage
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Upload de l\'image...';
+            const fileName = `products/${Date.now()}-${sanitizeInput(document.getElementById('product-name').value).replace(/\s+/g, '-')}.webp`;
             
             const { data: uploadData, error: uploadError } = await supabaseClient.storage
                 .from('textile-images')
-                .upload(fileName, imageFile, { upsert: false });
+                .upload(fileName, optimizedFile, { upsert: false });
 
             if (uploadError) {
                 throw new Error(`Erreur d'upload: ${uploadError.message}`);
@@ -1053,6 +1119,7 @@ async function handleProductFormSubmit(e) {
                 .getPublicUrl(fileName);
 
             imageUrl = urlData.publicUrl;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement du produit...';
         }
 
         const productData = {
@@ -2750,6 +2817,54 @@ window.addEventListener('error', (event) => {
     } catch (_) { }
 });
 
+// ==================== STORAGE INITIALIZATION ====================
+
+async function initializeStorageBucket() {
+    if (!supabaseClient) {
+        console.warn('⚠️ Supabase client not ready for storage init');
+        return false;
+    }
+
+    try {
+        // List existing buckets
+        const { data: buckets, error: listError } = await supabaseClient.storage.listBuckets();
+        
+        if (listError) {
+            console.warn('⚠️ Could not list buckets:', listError.message);
+            return false;
+        }
+
+        // Check if textile-images bucket exists
+        const bucketExists = buckets?.some(b => b.name === 'textile-images');
+        
+        if (bucketExists) {
+            console.log('✅ Storage bucket "textile-images" already exists');
+            return true;
+        }
+
+        // Try to create the bucket
+        console.log('📦 Creating storage bucket "textile-images"...');
+        const { data: newBucket, error: createError } = await supabaseClient.storage.createBucket('textile-images', {
+            public: true,
+            fileSizeLimit: 5242880 // 5MB
+        });
+
+        if (createError) {
+            console.warn('⚠️ Could not create bucket:', createError.message);
+            console.warn('Please create bucket manually: Storage → Create Bucket → "textile-images"');
+            return false;
+        }
+
+        console.log('✅ Storage bucket created successfully:', newBucket);
+        showToast('Bucket de stockage créé avec succès', 'success');
+        return true;
+
+    } catch (error) {
+        console.error('❌ Storage initialization error:', error);
+        return false;
+    }
+}
+
 // ==================== INITIALIZATION ====================
 
 function initEventListeners() {
@@ -2974,6 +3089,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize event listeners
     initEventListeners();
+
+    // Initialize storage bucket (for image uploads)
+    console.log('📦 Initializing storage...');
+    await initializeStorageBucket();
 
     // Run diagnostic
     await testSupabaseConnection();
