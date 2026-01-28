@@ -111,6 +111,14 @@ async function rateLimitedRequest(requestFn, key = 'admin') {
 
 function initGlobalEventListeners() {
     document.addEventListener('click', (e) => {
+        // Handle row clicks for view-message
+        const row = e.target.closest('tr[data-action="view-message"]');
+        if (row && !e.target.closest('button') && !e.target.closest('a')) {
+            const id = row.dataset.id;
+            if (id) viewMessage(id);
+            return;
+        }
+
         // Find the closest button if user clicked on the icon <i> inside
         const btn = e.target.closest('button[data-action]');
 
@@ -1421,6 +1429,9 @@ async function handleShowroomFormSubmit(e) {
 
 // ==================== MESSAGES MANAGEMENT ====================
 
+// Global variable for currently selected message
+let selectedMessageId = null;
+
 async function loadMessagesTable() {
     const container = document.getElementById('messages-table-container');
     container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>';
@@ -1450,31 +1461,43 @@ async function loadMessagesTable() {
             'suggestion': 'Suggestion'
         };
 
+        // Render table
         container.innerHTML = `
-            <table class="admin-table">
-                <thead>
+            <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+                <thead style="position: sticky; top: 0; background: #f8fafc; z-index: 10;">
                     <tr>
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th>Nom</th>
-                        <th>Email</th>
-                        <th>Statut</th>
-                        <th>Actions</th>
+                        <th style="width: 120px;">Date</th>
+                        <th style="width: 250px;">Expéditeur</th>
+                        <th style="width: 150px;">Type</th>
+                        <th>Aperçu</th>
+                        <th style="width: 60px;"></th>
                     </tr>
                 </thead>
                 <tbody>
                     ${messages.map(msg => `
-                        <tr ${msg.status === 'unread' ? 'class="unread-row"' : ''}>
-                            <td>${formatDate(msg.created_at)}</td>
-                            <td><span class="badge badge-info">${formTypeLabels[msg.form_type] || msg.form_type}</span></td>
-                            <td><strong>${escapeHtml(msg.name)}</strong></td>
-                            <td>${escapeHtml(msg.email)}</td>
-                            <td>${msg.status === 'unread' ? '<span class="badge badge-warning">Non lu</span>' : '<span class="badge badge-success">Lu</span>'}</td>
-                            <td class="actions">
-                                <button class="btn-icon edit" data-action="view-message" data-id="${msg.id}" title="Voir">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="btn-icon delete" data-action="delete-message" data-id="${msg.id}" title="Supprimer">
+                        <tr id="msg-row-${msg.id}" 
+                            class="${msg.status === 'unread' ? 'unread-row' : ''} ${selectedMessageId === msg.id ? 'selected-row' : ''}" 
+                            style="cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: background 0.2s;" 
+                            data-action="view-message" 
+                            data-id="${msg.id}">
+                            
+                            <td style="color: #64748b; font-size: 0.85rem;">${formatDate(msg.created_at)}</td>
+                            <td>
+                                <div style="font-weight: 600; color: #1e293b;">${escapeHtml(msg.name)}</div>
+                                <div style="font-size: 0.85rem; color: #64748b;">${escapeHtml(msg.email)}</div>
+                            </td>
+                            <td>
+                                <span class="badge" style="background: #e2e8f0; color: #475569;">${formTypeLabels[msg.form_type] || msg.form_type}</span>
+                            </td>
+                            <td style="color: #64748b; font-size: 0.9rem;">
+                                <i class="fas fa-comment-alt" style="margin-right: 6px; color: #94a3b8;"></i>
+                                ${escapeHtml(msg.message ? msg.message.substring(0, 60) + (msg.message.length > 60 ? '...' : '') : '(Aucun contenu)')}
+                            </td>
+                            <td>
+                                <button class="btn-icon delete" 
+                                        data-action="delete-message" 
+                                        data-id="${msg.id}" 
+                                        title="Supprimer">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -1498,10 +1521,49 @@ async function viewMessage(id) {
     }
 
     try {
+        // Highlight selection
+        const rows = document.querySelectorAll('#messages-table-container tr');
+        rows.forEach(r => {
+            r.style.background = '';
+            r.classList.remove('selected-row');
+        });
+        const selectedRow = document.getElementById(`msg-row-${id}`);
+        if (selectedRow) {
+            selectedRow.style.background = '#eff6ff'; // Light blue
+            selectedRow.classList.remove('unread-row'); // Visually mark read immediately
+            selectedRow.classList.add('selected-row');
+        }
+        selectedMessageId = id;
+
+        // Show loading in reading pane
+        const readingPane = document.getElementById('reading-pane-content');
+        if (!readingPane) return; // Guard
+        readingPane.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement du message...</div>';
+
+        // Fetch data
         const message = await DataService.getMessage(id);
+
+        if (!message) {
+            readingPane.innerHTML = '<div class="error-state">Message introuvable</div>';
+            return;
+        }
 
         if (message.status === 'unread') {
             await DataService.markMessageAsRead(id);
+        }
+
+        // Prepare Delete button logic for reading pane
+        const deleteBtn = document.getElementById('reading-pane-delete-btn');
+        if (deleteBtn) {
+            // Remove old listeners using clone (nuclear option but simplest here)
+            const newBtn = deleteBtn.cloneNode(true);
+            deleteBtn.parentNode.replaceChild(newBtn, deleteBtn);
+
+            // Add new listener via delegation-compatible way or direct click
+            newBtn.onclick = () => confirmDeleteMessage(id);
+
+            const actionsDiv = document.getElementById('reading-pane-actions');
+            if (actionsDiv) actionsDiv.style.display = 'block';
         }
 
         const formTypeLabels = {
@@ -1511,83 +1573,89 @@ async function viewMessage(id) {
             'suggestion': 'Suggestion'
         };
 
-        document.getElementById('message-modal-title').textContent = formTypeLabels[message.form_type] || 'Message';
-
+        // Build Content
         let content = `
-            <div class="message-detail-row">
-                <strong>De:</strong> ${escapeHtml(message.name)} (${escapeHtml(message.email)})
-            </div>
-        `;
+            <div style="margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <h1 style="margin: 0; font-size: 1.5rem; color: #1e293b;">
+                        ${escapeHtml(message.subject || formTypeLabels[message.form_type] || 'Message')}
+                    </h1>
+                    <span style="color: #64748b; font-size: 0.9rem;">${formatDate(message.created_at)}</span>
+                </div>
 
-        if (message.phone) {
-            content += `<div class="message-detail-row"><strong>Téléphone:</strong> ${escapeHtml(message.phone)}</div>`;
-        }
-
-        if (message.company) {
-            content += `<div class="message-detail-row"><strong>Entreprise:</strong> ${escapeHtml(message.company)}</div>`;
-        }
-
-        if (message.subject) {
-            content += `<div class="message-detail-row"><strong>Sujet:</strong> ${escapeHtml(message.subject)}</div>`;
-        }
-
-        if (message.job_id) {
-            content += `<div class="message-detail-row"><strong>Poste:</strong> ${escapeHtml(message.job_id)}</div>`;
-        }
-
-        if (message.product_interest) {
-            content += `<div class="message-detail-row"><strong>Produit:</strong> ${escapeHtml(message.product_interest)}</div>`;
-        }
-
-        if (message.quantity) {
-            content += `<div class="message-detail-row"><strong>Quantité:</strong> ${escapeHtml(message.quantity)}</div>`;
-        }
-
-        content += `
-            <div class="message-detail-row">
-                <strong>Message:</strong>
-                <p class="message-content-box">${escapeHtml(message.message) || 'Pas de message'}</p>
-            </div>
-        `;
-
-        if (message.metadata && Object.keys(message.metadata).length > 0) {
-            // Filter out removed/obsolete keys (e.g., 'source') for cleaner display
-            const metadataFiltered = { ...message.metadata };
-            delete metadataFiltered.source;
-            if (Object.keys(metadataFiltered).length > 0) {
-                content += `
-                    <div class="message-detail-row">
-                        <strong>Informations supplémentaires:</strong>
-                        <pre class="message-metadata">${escapeHtml(JSON.stringify(metadataFiltered, null, 2))}</pre>
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; gap: 1rem; align-items: center;">
+                    <div style="width: 48px; height: 48px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #64748b; font-size: 1.2rem;">
+                        ${message.name.charAt(0).toUpperCase()}
                     </div>
-                `;
-            }
-        }
+                    <div>
+                        <div style="font-weight: 600; color: #0f172a;">${escapeHtml(message.name)}</div>
+                        <div style="color: #3b82f6;">${escapeHtml(message.email)}</div>
+                        ${message.phone ? `<div style="color: #64748b; font-size: 0.9rem;"><i class="fas fa-phone" style="font-size: 0.8rem;"></i> ${escapeHtml(message.phone)}</div>` : ''}
+                    </div>
+                </div>
+            </div>
 
-        content += `
-            <div class="message-footer">
-                <small class="text-muted">Reçu le ${formatDate(message.created_at)}</small>
+            <div style="margin-bottom: 2rem;">
+                <h3 style="font-size: 1rem; color: #64748b; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">Message</h3>
+                <div style="font-size: 1.1rem; line-height: 1.6; color: #334155; white-space: pre-wrap;">${escapeHtml(message.message || 'Pas de contenu texte.')}</div>
             </div>
         `;
 
-        document.getElementById('message-detail-content').innerHTML = content;
-        document.getElementById('message-modal').classList.add('active');
-        loadMessagesTable();
+        // Additional Metadata Grid
+        if (message.metadata || message.company || message.product_interest || message.quantity) {
+            content += `<div style="background: #fdfdfd; border: 1px solid #f1f5f9; border-radius: 8px; padding: 1.5rem; margin-top: 2rem;">
+                <h4 style="margin-top: 0; margin-bottom: 1rem; color: #94a3b8;">Détails Supplémentaires</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">`;
+
+            if (message.company) content += `<div><small style="color: #94a3b8; display: block;">Entreprise</small><strong>${escapeHtml(message.company)}</strong></div>`;
+            if (message.product_interest) content += `<div><small style="color: #94a3b8; display: block;">Intérêt Produit</small><strong>${escapeHtml(message.product_interest)}</strong></div>`;
+            if (message.quantity) content += `<div><small style="color: #94a3b8; display: block;">Quantité</small><strong>${escapeHtml(message.quantity)}</strong></div>`;
+            if (message.form_type === 'application' && message.job_id) content += `<div><small style="color: #94a3b8; display: block;">Poste</small><strong>${escapeHtml(message.job_id)}</strong></div>`;
+
+            if (message.metadata) {
+                const meta = { ...message.metadata };
+                delete meta.source; // filtering
+                for (const [key, value] of Object.entries(meta)) {
+                    if (value && typeof value !== 'object') {
+                        content += `<div><small style="color: #94a3b8; display: block;">${key}</small><strong>${escapeHtml(String(value))}</strong></div>`;
+                    }
+                }
+            }
+            content += `</div></div>`;
+        }
+
+        // CV / File display
+        if (message.metadata && message.metadata.cv_url) {
+            content += `
+                <div style="margin-top: 2rem;">
+                    <a href="${escapeHtml(message.metadata.cv_url)}" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-file-download"></i> Télécharger le CV / Fichier joint
+                    </a>
+                </div>
+            `;
+        }
+
+        readingPane.innerHTML = content;
 
     } catch (error) {
-        console.error('Error loading message:', error);
-        showToast('Erreur lors du chargement du message', 'error');
+        console.error('Error loading message details:', error);
+        document.getElementById('reading-pane-content').innerHTML = `
+            <div style="text-align: center; color: #dc2626; padding: 2rem;">
+                <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                <p>Erreur lors du chargement du message.</p>
+            </div>
+        `;
     }
 }
 
 function closeMessageModal() {
-    document.getElementById('message-modal').classList.remove('active');
+    // Legacy function support - no longer needed for new layout but kept for safety
 }
 
 function confirmDeleteMessage(id) {
-    deleteMessageId = id;
-    deleteType = 'message';
-    document.getElementById('confirm-modal').classList.add('active');
+    if (confirm('Voulez-vous vraiment supprimer ce message ? Cette action est irréversible.')) {
+        deleteMessage(id);
+    }
 }
 
 async function deleteMessage(id) {
@@ -1622,6 +1690,46 @@ async function deleteMessage(id) {
 }
 
 // ==================== CONFIRM DELETE MODAL ====================
+
+async function handleConfirmDelete() {
+    console.log('🗑️ Handle Confirm Delete:', { deleteType, deleteProductId, deleteMessageId });
+
+    if (!deleteType) return;
+
+    try {
+        switch (deleteType) {
+            case 'message':
+                if (deleteMessageId) await deleteMessage(deleteMessageId);
+                break;
+            case 'product':
+                // Product delete is handled via direct confirm() now, but keeping for safety
+                if (deleteProductId) await deleteProduct(deleteProductId);
+                break;
+            case 'news':
+                if (window.deleteNewsId) await deleteNews(window.deleteNewsId);
+                break;
+            case 'job':
+                if (window.deleteJobId) await deleteJob(window.deleteJobId);
+                break;
+            case 'showroom':
+                if (window.deleteShowroomId) await deleteShowroom(window.deleteShowroomId);
+                break;
+            case 'order':
+                if (window.deleteOrderId) await deleteOrder(window.deleteOrderId);
+                break;
+            case 'storage-file':
+                // Handled directly via confirm()
+                break;
+        }
+
+        closeConfirmModal();
+
+    } catch (error) {
+        console.error('❌ Delete failed:', error);
+        showToast('Erreur lors de la suppression', 'error');
+        closeConfirmModal();
+    }
+}
 
 
 // ==================== ORDERS MANAGEMENT ====================
@@ -1936,7 +2044,7 @@ async function loadPipeline() {
 
         // Render each column
         Object.keys(grouped).forEach(status => {
-            renderKanbanColumn(status, grouped[status]);
+            renderKanbanColumnV2(status, grouped[status]);
         });
 
         // Update counts
@@ -1998,11 +2106,34 @@ function renderKanbanColumn(status, leads) {
                     ${escapeHtml(lead.product_interest || 'Non spécifié')}
                     ${lead.quantity ? `<span style="color: #3b82f6;">(x${lead.quantity})</span>` : ''}
                 </div>
+                
+                <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 2px;">
+                    ${lead.client_phone ? `<span><i class="fas fa-phone-alt" style="font-size: 0.75rem; margin-right: 4px;"></i> ${escapeHtml(lead.client_phone)}</span>` : ''}
+                    ${lead.client_email ? `<span><i class="fas fa-envelope" style="font-size: 0.75rem; margin-right: 4px;"></i> ${escapeHtml(lead.client_email)}</span>` : ''}
+                </div>
+
+                ${lead.message ? `
+                    <div style="margin-top: 0.75rem; font-size: 0.85rem; color: #475569; font-style: italic; border-left: 2px solid #cbd5e1; padding-left: 8px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                        "${escapeHtml(lead.message)}"
+                    </div>
+                ` : ''}
+
                 ${status === 'won' && lead.final_sale_price ? `
                     <div style="margin-top: 0.5rem;">
                         <span class="lead-sale-amount">TND ${formatNumber(lead.final_sale_price)}</span>
                     </div>
                 ` : ''}
+                <!-- Expanded Details (Hidden by default) -->
+                <div class="lead-card-details" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                    <div style="font-size: 0.9rem; color: #334155; white-space: pre-wrap; margin-bottom: 1rem;">${escapeHtml(lead.message || 'Pas de message')}</div>
+                    
+                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                        <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); viewLead('${lead.id}')">
+                            <i class="fas fa-edit"></i> Gérer
+                        </button>
+                    </div>
+                </div>
+
                 <div class="lead-card-footer">
                     <span>${formatDate(lead.created_at)}</span>
                     <div class="lead-card-actions">
@@ -2011,8 +2142,8 @@ function renderKanbanColumn(status, leads) {
                                 <i class="fab fa-whatsapp"></i>
                             </button>
                         ` : ''}
-                        <button onclick="event.stopPropagation(); viewLead('${lead.id}')" title="Voir détails">
-                            <i class="fas fa-eye"></i>
+                        <button onclick="event.stopPropagation(); toggleLeadCard(this, '${lead.id}')" title="Aperçu rapide">
+                            <i class="fas fa-chevron-down"></i>
                         </button>
                     </div>
                 </div>
@@ -2026,6 +2157,24 @@ function renderKanbanColumn(status, leads) {
             viewLead(card.dataset.id);
         });
     });
+}
+
+function toggleLeadCard(btn, id) {
+    const card = btn.closest('.lead-card');
+    const details = card.querySelector('.lead-card-details');
+    const icon = btn.querySelector('i');
+
+    if (details.style.display === 'none') {
+        details.style.display = 'block';
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-up');
+        card.style.background = '#f8fafc'; // Highlight expanded
+    } else {
+        details.style.display = 'none';
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-chevron-down');
+        card.style.background = ''; // Reset
+    }
 }
 
 function initKanbanDragDrop() {
@@ -2414,34 +2563,7 @@ function formatNumber(num) {
     return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 3 }).format(num);
 }
 
-async function handleConfirmDelete() {
-    console.log('🗑️ Confirm delete clicked', { deleteType, deleteNewsId, deleteJobId, deleteProductId });
 
-    try {
-        if (deleteType === 'news' && deleteNewsId) {
-            await deleteNews(deleteNewsId);
-        } else if (deleteType === 'job' && deleteJobId) {
-            await deleteJob(deleteJobId);
-        } else if (deleteType === 'product' && deleteProductId) {
-            await deleteProduct(deleteProductId);
-        } else if (deleteType === 'showroom' && deleteShowroomId) {
-            await deleteShowroom(deleteShowroomId);
-        } else if (deleteType === 'message' && deleteMessageId) {
-            await deleteMessage(deleteMessageId);
-        } else if (deleteType === 'order' && deleteOrderId) {
-            await deleteOrder(deleteOrderId);
-        } else {
-            console.error('❌ No valid delete target');
-            showToast('Erreur: aucun élément à supprimer', 'error');
-        }
-
-        closeConfirmModal();
-
-    } catch (error) {
-        console.error('❌ Delete failed:', error);
-        showToast('Erreur lors de la suppression: ' + error.message, 'error');
-    }
-}
 
 // ==================== SUB-TABS (INLINE EDITORS) ====================
 function switchSubtab(section, tab) {
@@ -3317,6 +3439,9 @@ async function deleteStorageFile(path) {
     }
 }
 
+// ==================== GLOBAL EVENT SYSTEM ====================
+
+
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Admin panel initializing...');
 
@@ -3341,10 +3466,41 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('✅ Supabase client ready');
     }
 
-    // Re-export functions to window (in case first attempt failed)
+    // ==================== GLOBAL EXPORTS ====================
+    function exportToWindow() {
+        window.openNewsModal = openNewsModal;
+        window.closeNewsModal = closeNewsModal;
+        window.openJobModal = openJobModal;
+        window.closeJobModal = closeJobModal;
+        window.openProductModal = openProductModal;
+        window.closeProductModal = closeProductModal;
+        window.openShowroomModal = openShowroomModal;
+        window.closeShowroomModal = closeShowroomModal;
+        window.closeMessageModal = closeMessageModal;
+        window.closeConfirmModal = typeof closeConfirmModal !== 'undefined' ? closeConfirmModal : () => document.getElementById('confirm-modal')?.classList.remove('active');
+
+        // Pipeline functions
+        window.loadPipeline = loadPipeline;
+        window.switchSection = switchSection;
+        window.showToast = showToast;
+        window.exportSalesLedgerToCSV = loadSalesLedger ? exportSalesLedgerToCSV : null;
+        window.exportPipelineToCSV = window.exportPipelineToCSV || null;
+
+        // Make handlers available
+        window.handleNewsFormSubmit = handleNewsFormSubmit;
+        window.handleJobFormSubmit = handleJobFormSubmit;
+        window.handleProductFormSubmit = handleProductFormSubmit;
+        window.handleShowroomFormSubmit = handleShowroomFormSubmit;
+        window.handleWinWizardSubmit = typeof handleWinWizardSubmit !== 'undefined' ? handleWinWizardSubmit : null;
+        window.handleConfirmDelete = typeof handleConfirmDelete !== 'undefined' ? handleConfirmDelete : null;
+
+        console.log('✅ Admin functions exported to window scope');
+    }
+
+    // Export immediately
     try {
         exportToWindow();
-        console.log('✅ Functions exported to window');
+        console.log('✅ Functions exported');
     } catch (e) {
         console.error('Failed to export functions:', e);
     }
@@ -3404,3 +3560,124 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     console.log('✅ Admin panel ready');
 });
+
+function renderKanbanColumnV2(status, leads) {
+    const container = document.getElementById(`cards-${status}`);
+    if (!container) return;
+
+    if (leads.length === 0) {
+        container.innerHTML = `
+            <div class="kanban-empty" style="padding: 2rem; text-align: center; color: #94a3b8; border: 2px dashed #e2e8f0; border-radius: 12px; background: #f8fafc; transition: all 0.3s;">
+                <div style="width: 48px; height: 48px; margin: 0 auto 1rem; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-inbox" style="font-size: 1.25rem; color: #cbd5e1;"></i>
+                </div>
+                <p style="margin: 0; font-weight: 500; color: #64748b;">Aucun lead</p>
+                <small style="display: block; margin-top: 4px; opacity: 0.7; font-size: 0.8rem;">Cette colonne est vide</small>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = leads.map(lead => {
+        const tags = lead.lead_tags || [];
+        const isVip = tags.includes('vip') || tags.includes('high_potential');
+        const isWholesale = tags.includes('wholesale');
+
+        // Generate avatar color
+        const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1'];
+        const nameHash = (lead.client_name || 'U').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const avatarColor = colors[nameHash % colors.length];
+        const initials = (lead.client_name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+        return `
+            <div class="lead-card modern-card" 
+                 data-id="${lead.id}" 
+                 draggable="true"
+                 style="background: white; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.02); transition: all 0.2s ease; position: relative; overflow: hidden; cursor: pointer;">
+                
+                ${isVip ? '<div style="position: absolute; top: 0; right: 0; width: 0; height: 0; border-style: solid; border-width: 0 40px 40px 0; border-color: transparent #f59e0b transparent transparent; z-index: 1;"><i class="fas fa-star" style="position: absolute; top: 6px; right: -36px; color: white; font-size: 0.7rem;"></i></div>' : ''}
+                
+                <div class="card-header" style="display: flex; gap: 0.75rem; align-items: flex-start; margin-bottom: 1rem;">
+                    <div class="user-avatar" style="width: 42px; height: 42px; background: ${avatarColor}; color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        ${initials}
+                    </div>
+                    <div class="card-meta" style="min-width: 0; flex: 1;">
+                        <h4 class="card-title" style="margin: 0 0 4px 0; font-size: 0.95rem; font-weight: 700; color: #1e293b; line-height: 1.2;">${escapeHtml(lead.client_name)}</h4>
+                        <span class="card-subtitle" style="display: block; font-size: 0.8rem; color: #64748b;">
+                            ${escapeHtml(lead.client_company || 'Particulier')}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    ${(isVip || isWholesale) ? `
+                        <div class="tags" style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                            ${isVip ? '<span style="background: #fffbeb; color: #d97706; border: 1px solid #fcd34d; border-radius: 20px; padding: 2px 8px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.5px;">VIP</span>' : ''}
+                            ${isWholesale ? '<span style="background: #eff6ff; color: #3b82f6; border: 1px solid #bfdbfe; border-radius: 20px; padding: 2px 8px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.5px;">B2B</span>' : ''}
+                        </div>
+                    ` : ''}
+
+                    <div class="product-interest" style="margin-bottom: 1rem; background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid #f1f5f9;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                            <i class="fas fa-box" style="color: #64748b; font-size: 0.9rem;"></i>
+                            <span style="font-weight: 600; color: #334155; font-size: 0.9rem;">${escapeHtml(lead.product_interest || 'Non spécifié')}</span>
+                        </div>
+                        ${lead.quantity ? `<div style="font-size: 0.8rem; color: #64748b; margin-left: 24px;">Quantité: <strong style="color: #334155;">${lead.quantity}</strong></div>` : ''}
+                    </div>
+
+                    ${status === 'won' && lead.final_sale_price ? `
+                        <div style="margin-bottom: 1rem; text-align: right; background: #ecfdf5; padding: 0.5rem 1rem; border-radius: 6px;">
+                            <span style="color: #059669; font-weight: 700; font-size: 0.95rem;">+ TND ${formatNumber(lead.final_sale_price)}</span>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <!-- Expanded Details (Hidden by default) -->
+                <div class="lead-card-details" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #cbd5e1; animation: fadeIn 0.3s ease;">
+                    <div style="font-size: 0.9rem; color: #475569; white-space: pre-wrap; margin-bottom: 1.5rem; line-height: 1.6; font-style: italic; background: #fff; padding: 0.5rem; border-radius: 6px;">
+                        "${escapeHtml(lead.message || 'Aucun message joint.')}"
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; gap: 0.75rem;">
+                            ${lead.client_email ? `<a href="mailto:${lead.client_email}" title="Envoyer un email" style="color: #64748b; font-size: 1.1rem; transition: color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#64748b'"><i class="fas fa-envelope"></i></a>` : ''}
+                            ${lead.metadata?.cv_url ? `<a href="${lead.metadata.cv_url}" target="_blank" title="Voir le CV" style="color: #64748b; font-size: 1.1rem; transition: color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#64748b'"><i class="fas fa-file-pdf"></i></a>` : ''}
+                        </div>
+                        <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); viewLead('${lead.id}')" style="font-size: 0.85rem; padding: 0.4rem 1rem; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);">
+                            <i class="fas fa-sliders-h"></i> Gérer
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-footer" style="margin-top: 0; padding-top: 1rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 500;">
+                        <i class="far fa-clock" style="margin-right: 4px;"></i>${formatDate(lead.created_at)}
+                    </span>
+                    <div class="actions" style="display: flex; gap: 0.5rem;">
+                        ${lead.client_phone ? `
+                            <button onclick="event.stopPropagation(); openWhatsApp('${lead.client_phone}')" 
+                                    style="width: 32px; height: 32px; border-radius: 50%; border: none; background: #dcfce7; color: #16a34a; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
+                                    title="WhatsApp">
+                                <i class="fab fa-whatsapp" style="font-size: 1rem;"></i>
+                            </button>
+                        ` : ''}
+                        <button onclick="event.stopPropagation(); toggleLeadCard(this, '${lead.id}')" 
+                                style="width: 32px; height: 32px; border-radius: 50%; border: none; background: #f1f5f9; color: #475569; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
+                                onmouseover="this.style.background='#e2e8f0'"
+                                onmouseout="this.style.background='#f1f5f9'"
+                                title="Voir détails">
+                            <i class="fas fa-chevron-down" style="font-size: 0.9rem;"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Add click handlers
+    container.querySelectorAll('.lead-card').forEach(card => {
+        card.addEventListener('click', () => {
+            viewLead(card.dataset.id);
+        });
+    });
+}
