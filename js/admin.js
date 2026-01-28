@@ -999,9 +999,9 @@ async function editProduct(id) {
 }
 
 function confirmDeleteProduct(id) {
-    deleteProductId = id;
-    deleteType = 'product';
-    document.getElementById('confirm-modal').classList.add('active');
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ? Cette action est irréversible.')) {
+        deleteProduct(id);
+    }
 }
 
 async function deleteProduct(id) {
