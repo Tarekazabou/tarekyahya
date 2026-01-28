@@ -910,6 +910,7 @@ function openProductModal(productData = null) {
 function closeProductModal() {
     switchSubtab('products', 'list');
     clearImagePreview();
+    clearImagePreview2();
 }
 
 // Image preview for product upload
@@ -930,11 +931,39 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    const imageInput2 = document.getElementById('product-image-2');
+    if (imageInput2) {
+        imageInput2.addEventListener('change', function(e) {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('image-preview-2');
+                    const previewImg = document.getElementById('image-preview-img-2');
+                    previewImg.src = event.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
 });
 
 function clearImagePreview() {
     const imageInput = document.getElementById('product-image');
     const preview = document.getElementById('image-preview');
+    if (imageInput) {
+        imageInput.value = '';
+    }
+    if (preview) {
+        preview.style.display = 'none';
+    }
+}
+
+function clearImagePreview2() {
+    const imageInput = document.getElementById('product-image-2');
+    const preview = document.getElementById('image-preview-2');
     if (imageInput) {
         imageInput.value = '';
     }
@@ -1068,15 +1097,18 @@ async function handleProductFormSubmit(e) {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
 
     let imageUrl = null;
+    let imageUrl2 = null;
     const imageInput = document.getElementById('product-image');
+    const imageInput2 = document.getElementById('product-image-2');
     const imageFile = imageInput.files[0];
+    const imageFile2 = imageInput2.files[0];
 
     try {
-        // Handle image upload if a file is selected
+        // Handle first image upload if a file is selected
         if (imageFile) {
             // Validate file size before optimization (5MB max)
             if (imageFile.size > 5 * 1024 * 1024) {
-                showToast('L\'image est trop volumineuse (max 5MB)', 'error');
+                showToast('L\'image 1 est trop volumineuse (max 5MB)', 'error');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnText;
                 return;
@@ -1084,25 +1116,24 @@ async function handleProductFormSubmit(e) {
 
             // Validate file type
             if (!imageFile.type.startsWith('image/')) {
-                showToast('Veuillez sélectionner une image valide', 'error');
+                showToast('Veuillez sélectionner une image valide pour l\'image 1', 'error');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnText;
                 return;
             }
 
             // Optimize image (resize + compress to WebP)
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Optimisation de l\'image...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Optimisation de l\'image 1...';
             let optimizedFile = imageFile;
             try {
                 optimizedFile = await optimizeImage(imageFile);
-                console.log(`📸 Image optimisée: ${(imageFile.size / 1024 / 1024).toFixed(2)}MB → ${(optimizedFile.size / 1024 / 1024).toFixed(2)}MB`);
+                console.log(`📸 Image 1 optimisée: ${(imageFile.size / 1024 / 1024).toFixed(2)}MB → ${(optimizedFile.size / 1024 / 1024).toFixed(2)}MB`);
             } catch (optimizeError) {
-                console.warn('⚠️ Could not optimize image, using original:', optimizeError);
-                // Continue with original file if optimization fails
+                console.warn('⚠️ Could not optimize image 1, using original:', optimizeError);
             }
 
             // Upload optimized image to Supabase storage
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Upload de l\'image...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Upload de l\'image 1...';
             const fileName = `products/${Date.now()}-${sanitizeInput(document.getElementById('product-name').value).replace(/\s+/g, '-')}.webp`;
             
             const { data: uploadData, error: uploadError } = await supabaseClient.storage
@@ -1110,7 +1141,7 @@ async function handleProductFormSubmit(e) {
                 .upload(fileName, optimizedFile, { upsert: false });
 
             if (uploadError) {
-                throw new Error(`Erreur d'upload: ${uploadError.message}`);
+                throw new Error(`Erreur d'upload image 1: ${uploadError.message}`);
             }
 
             // Get public URL
@@ -1119,8 +1150,57 @@ async function handleProductFormSubmit(e) {
                 .getPublicUrl(fileName);
 
             imageUrl = urlData.publicUrl;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement du produit...';
         }
+
+        // Handle second image upload if a file is selected
+        if (imageFile2) {
+            // Validate file size before optimization (5MB max)
+            if (imageFile2.size > 5 * 1024 * 1024) {
+                showToast('L\'image 2 est trop volumineuse (max 5MB)', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                return;
+            }
+
+            // Validate file type
+            if (!imageFile2.type.startsWith('image/')) {
+                showToast('Veuillez sélectionner une image valide pour l\'image 2', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                return;
+            }
+
+            // Optimize image (resize + compress to WebP)
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Optimisation de l\'image 2...';
+            let optimizedFile2 = imageFile2;
+            try {
+                optimizedFile2 = await optimizeImage(imageFile2);
+                console.log(`📸 Image 2 optimisée: ${(imageFile2.size / 1024 / 1024).toFixed(2)}MB → ${(optimizedFile2.size / 1024 / 1024).toFixed(2)}MB`);
+            } catch (optimizeError) {
+                console.warn('⚠️ Could not optimize image 2, using original:', optimizeError);
+            }
+
+            // Upload optimized image to Supabase storage
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Upload de l\'image 2...';
+            const fileName2 = `products/${Date.now()}-alt-${sanitizeInput(document.getElementById('product-name').value).replace(/\s+/g, '-')}.webp`;
+            
+            const { data: uploadData2, error: uploadError2 } = await supabaseClient.storage
+                .from('textile-images')
+                .upload(fileName2, optimizedFile2, { upsert: false });
+
+            if (uploadError2) {
+                throw new Error(`Erreur d'upload image 2: ${uploadError2.message}`);
+            }
+
+            // Get public URL
+            const { data: urlData2 } = supabaseClient.storage
+                .from('textile-images')
+                .getPublicUrl(fileName2);
+
+            imageUrl2 = urlData2.publicUrl;
+        }
+
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement du produit...';
 
         const productData = {
             name: sanitizeInput(document.getElementById('product-name').value),
@@ -1133,9 +1213,12 @@ async function handleProductFormSubmit(e) {
             is_featured: document.getElementById('product-featured').checked
         };
 
-        // Add image URL if available
+        // Add image URLs if available
         if (imageUrl) {
             productData.image_url = imageUrl;
+        }
+        if (imageUrl2) {
+            productData.image_url_2 = imageUrl2;
         }
 
         const id = document.getElementById('product-id').value;

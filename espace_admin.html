@@ -762,12 +762,21 @@
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="product-image">Image du Produit</label>
+                                <label for="product-image">Image 1 du Produit (Affichage par défaut)</label>
                                 <input type="file" id="product-image" accept="image/*" placeholder="Sélectionner une image">
                                 <small style="color: #64748b; display: block; margin-top: 0.5rem;">Formats acceptés: JPG, PNG, WebP (Max 5MB)</small>
                                 <div id="image-preview" style="margin-top: 1rem; display: none;">
                                     <img id="image-preview-img" src="" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
                                     <button type="button" class="btn btn-sm btn-secondary" onclick="clearImagePreview()" style="margin-left: 1rem;">Supprimer l'image</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="product-image-2">Image 2 du Produit (Apparaît au survol)</label>
+                                <input type="file" id="product-image-2" accept="image/*" placeholder="Sélectionner une deuxième image">
+                                <small style="color: #64748b; display: block; margin-top: 0.5rem;">Formats acceptés: JPG, PNG, WebP (Max 5MB) - Cette image apparaît lors du survol</small>
+                                <div id="image-preview-2" style="margin-top: 1rem; display: none;">
+                                    <img id="image-preview-img-2" src="" alt="Preview 2" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
+                                    <button type="button" class="btn btn-sm btn-secondary" onclick="clearImagePreview2()" style="margin-left: 1rem;">Supprimer l'image</button>
                                 </div>
                             </div>
                             <div class="form-group">

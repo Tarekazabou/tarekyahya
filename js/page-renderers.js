@@ -201,33 +201,38 @@ const PageRenderers = {
             }
 
             container.innerHTML = result.data.map(product => `
-                <div class="pb-product-card" data-category="${Sanitizer.escapeHtml(product.category)}">
+                <div class="pb-product-card" data-category="${Sanitizer.escapeHtml(product.category)}" 
+                     data-product-name="${Sanitizer.escapeHtml(product.name)}"
+                     data-product-description="${Sanitizer.escapeHtml(product.description)}"
+                     data-product-category="${Sanitizer.escapeHtml(product.category)}"
+                     data-product-gradient="${Sanitizer.sanitizeGradient(product.gradient)}"
+                     data-product-icon="${Sanitizer.sanitizeIcon(product.icon)}"
+                     data-product-image="${Sanitizer.escapeHtml(product.image_url || '')}"
+                     data-product-image-2="${Sanitizer.escapeHtml(product.image_url_2 || '')}"
+                     onclick="openProductModalFromCard(this)">
                     <div class="pb-product-image">
                         <div class="pb-product-image-inner" 
                              style="background-image: url('${Sanitizer.escapeHtml(product.image_url || '')}'); background-size: cover; background-position: center; background-color: ${Sanitizer.sanitizeGradient(product.gradient)};"
+                             data-image-alt="${Sanitizer.escapeHtml(product.image_url_2 || '')}"
                              loading="lazy">
                             ${!product.image_url ? `<i class="fas ${Sanitizer.sanitizeIcon(product.icon)}"></i>` : ''}
                         </div>
                         
                         ${product.badge ? `
-                            <span class="pb-badge ${product.badge.toLowerCase() === 'nouveau' ? 'pb-badge-new' : 'pb-badge-sale'}">
+                            <span class="pb-badge ${product.badge.toLowerCase() === 'nuovo' ? 'pb-badge-new' : 'pb-badge-sale'}">
                                 ${Sanitizer.escapeHtml(product.badge)}
                             </span>
                         ` : ''}
                         
-                        <button class="pb-favorite-btn" onclick="toggleFavorite(this, event)" aria-label="Ajouter aux favoris">
+                        <button class="pb-favorite-btn" onclick="event.stopPropagation(); toggleFavorite(this, event)" aria-label="Ajouter aux favoris">
                             <i class="far fa-heart"></i>
                         </button>
 
                         <div class="pb-quick-actions">
-                            <a href="quote.html" class="pb-quick-btn pb-quick-btn-primary">
+                            <a href="quote.html" class="pb-quick-btn pb-quick-btn-primary" onclick="event.stopPropagation()">
                                 <i class="fas fa-file-invoice"></i>
                                 <span>Devis</span>
                             </a>
-                            <button class="pb-quick-btn" onclick="openProductModal('${Sanitizer.escapeHtml(product.name).replace(/'/g, "\\'")}', '${Sanitizer.escapeHtml(product.description).replace(/'/g, "\\'")}', '${Sanitizer.escapeHtml(product.category)}', '${Sanitizer.sanitizeGradient(product.gradient)}', '${Sanitizer.sanitizeIcon(product.icon)}', '${Sanitizer.escapeHtml(product.image_url || '')}')">
-                                <i class="fas fa-eye"></i>
-                                <span>Détails</span>
-                            </button>
                         </div>
                     </div>
                     
@@ -243,6 +248,9 @@ const PageRenderers = {
                 </div>
             `).join('');
 
+            // Initialize hover effects for dual images
+            this.initProductImageHoverEffects();
+
             this.renderPaginationPB('products-pagination', result);
         } catch (error) {
             console.error('Error rendering products:', error);
@@ -256,6 +264,30 @@ const PageRenderers = {
                 </div>
             `;
         }
+    },
+
+    // Initialize hover effects for dual product images
+    initProductImageHoverEffects() {
+        const productCards = document.querySelectorAll('.pb-product-card');
+        productCards.forEach(card => {
+            const imageInner = card.querySelector('.pb-product-image-inner');
+            if (imageInner && imageInner.dataset.imageAlt && imageInner.dataset.imageAlt.trim()) {
+                const primaryImageUrl = imageInner.style.backgroundImage;
+                const altImageUrl = imageInner.dataset.imageAlt;
+
+                // Remove existing listeners to prevent duplicates
+                const clonedElement = imageInner.cloneNode(true);
+                imageInner.parentNode.replaceChild(clonedElement, imageInner);
+                
+                clonedElement.addEventListener('mouseenter', function() {
+                    this.style.backgroundImage = `url('${altImageUrl}')`;
+                });
+
+                clonedElement.addEventListener('mouseleave', function() {
+                    this.style.backgroundImage = primaryImageUrl;
+                });
+            }
+        });
     },
 
     renderPaginationPB(containerId, result) {

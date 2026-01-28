@@ -361,7 +361,7 @@
         }
 
         // Open product detail modal
-        function openProductModal(name, description, category, gradient, icon, imageUrl = null) {
+        function openProductModal(name, description, category, gradient, icon, imageUrl = null, imageUrl2 = null) {
             const modal = document.getElementById('productModal');
             const modalImage = document.getElementById('modalImage');
             const modalTitle = document.getElementById('modalTitle');
@@ -371,9 +371,28 @@
             // Set content with image if available
             if (imageUrl && imageUrl.trim()) {
                 modalImage.innerHTML = `
-                    <div class="pb-modal-image-inner" style="background-image: url('${imageUrl}'); background-size: cover; background-position: center; background-color: ${gradient};">
+                    <div class="pb-modal-image-wrapper">
+                        <div class="pb-modal-image-inner" style="background-image: url('${imageUrl}'); background-size: cover; background-position: center; background-color: ${gradient}; cursor: zoom-in;" data-zoom="false" data-primary-image="${imageUrl}" data-alt-image="${imageUrl2 || ''}" onclick="toggleImageZoom(this)">
+                            <div class="pb-zoom-controls" style="position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.7); padding: 8px 12px; border-radius: 6px; color: white; font-size: 12px; z-index: 100; cursor: pointer;">
+                                <i class="fas fa-search-plus"></i> Click to zoom
+                            </div>
+                            ${imageUrl2 ? `<div class="pb-image-hover-indicator" style="position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.7); padding: 6px 10px; border-radius: 4px; color: white; font-size: 11px; z-index: 100;"><i class="fas fa-exchange-alt"></i> Hover for alt</div>` : ''}
+                        </div>
                     </div>
                 `;
+
+                // Add hover effect for second image if available
+                if (imageUrl2 && imageUrl2.trim()) {
+                    const imageInner = modalImage.querySelector('.pb-modal-image-inner');
+                    if (imageInner) {
+                        imageInner.addEventListener('mouseenter', function() {
+                            this.style.backgroundImage = `url('${imageUrl2}')`;
+                        });
+                        imageInner.addEventListener('mouseleave', function() {
+                            this.style.backgroundImage = `url('${imageUrl}')`;
+                        });
+                    }
+                }
             } else {
                 modalImage.innerHTML = `
                     <div class="pb-modal-image-inner" style="background: ${gradient};">
@@ -390,11 +409,65 @@
             document.body.style.overflow = 'hidden';
         }
 
+        // Helper function to open modal from card data attributes
+        function openProductModalFromCard(cardElement) {
+            openProductModal(
+                cardElement.dataset.productName,
+                cardElement.dataset.productDescription,
+                cardElement.dataset.productCategory,
+                cardElement.dataset.productGradient,
+                cardElement.dataset.productIcon,
+                cardElement.dataset.productImage,
+                cardElement.dataset.productImage2
+            );
+        }
+
+        // Toggle image zoom in modal
+        function toggleImageZoom(element) {
+            const isZoomed = element.dataset.zoom === 'true';
+            const primaryImage = element.dataset.primaryImage;
+            
+            if (!isZoomed) {
+                // Zoom in
+                element.style.backgroundSize = 'contain';
+                element.style.backgroundPosition = 'center';
+                element.style.cursor = 'zoom-out';
+                element.dataset.zoom = 'true';
+                
+                const controls = element.querySelector('.pb-zoom-controls');
+                if (controls) {
+                    controls.innerHTML = '<i class="fas fa-search-minus"></i> Click to zoom out';
+                }
+            } else {
+                // Zoom out
+                element.style.backgroundSize = 'cover';
+                element.style.backgroundPosition = 'center';
+                element.style.cursor = 'zoom-in';
+                element.dataset.zoom = 'false';
+                // Reset to primary image when zooming out
+                element.style.backgroundImage = `url('${primaryImage}')`;
+                
+                const controls = element.querySelector('.pb-zoom-controls');
+                if (controls) {
+                    controls.innerHTML = '<i class="fas fa-search-plus"></i> Click to zoom';
+                }
+            }
+        }
+
         // Close product modal
         function closeProductModal() {
             const modal = document.getElementById('productModal');
             modal.classList.remove('active');
             document.body.style.overflow = '';
+            
+            // Reset zoom state
+            const modalImageInner = document.querySelector('.pb-modal-image-inner');
+            if (modalImageInner) {
+                modalImageInner.style.backgroundSize = 'cover';
+                modalImageInner.style.backgroundPosition = 'center';
+                modalImageInner.style.cursor = 'zoom-in';
+                modalImageInner.dataset.zoom = 'false';
+            }
         }
 
         // Close modal on escape key
@@ -404,7 +477,25 @@
             }
         });
 
-        // Initialize dynamic content on page load
+        // Handle image hover effect on product cards
+        document.addEventListener('DOMContentLoaded', function() {
+            const productCards = document.querySelectorAll('.pb-product-card');
+            productCards.forEach(card => {
+                const imageInner = card.querySelector('.pb-product-image-inner');
+                if (imageInner && imageInner.dataset.imageAlt) {
+                    const primaryImage = imageInner.style.backgroundImage;
+                    const altImageUrl = imageInner.dataset.imageAlt;
+
+                    imageInner.addEventListener('mouseenter', function() {
+                        this.style.backgroundImage = `url('${altImageUrl}')`;
+                    });
+
+                    imageInner.addEventListener('mouseleave', function() {
+                        this.style.backgroundImage = primaryImage;
+                    });
+                }
+            });
+        });        // Initialize dynamic content on page load
         document.addEventListener('DOMContentLoaded', async function () {
             try {
                 // Initialize filters
