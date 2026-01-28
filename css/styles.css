@@ -2713,3 +2713,266 @@ p {
         transform: none;
     }
 }
+
+/* ================================================
+   PULL & BEAR - PRODUCT DETAIL MODAL
+   ================================================ */
+
+.pb-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.pb-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.pb-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+}
+
+.pb-modal-container {
+    position: relative;
+    background: #fff;
+    max-width: 1000px;
+    width: 95%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.3s ease;
+}
+
+.pb-modal.active .pb-modal-container {
+    transform: scale(1) translateY(0);
+}
+
+.pb-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    background: #fff;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.pb-modal-close:hover {
+    background: #000;
+    color: #fff;
+}
+
+.pb-modal-close i {
+    font-size: 18px;
+}
+
+.pb-modal-content {
+    display: flex;
+    width: 100%;
+}
+
+.pb-modal-image {
+    flex: 1;
+    min-height: 500px;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pb-modal-image-inner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pb-modal-image-inner i {
+    font-size: 120px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.pb-modal-info {
+    flex: 1;
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.pb-modal-category {
+    font-size: 11px;
+    color: #757575;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.pb-modal-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #000;
+    margin: 0 0 16px 0;
+    line-height: 1.2;
+}
+
+.pb-modal-desc {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.7;
+    margin: 0 0 32px 0;
+}
+
+.pb-modal-features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding: 24px;
+    background: #fafafa;
+    border-radius: 8px;
+}
+
+.pb-modal-feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pb-modal-feature i {
+    font-size: 16px;
+    color: #000;
+    width: 20px;
+}
+
+.pb-modal-feature span {
+    font-size: 13px;
+    color: #333;
+    font-weight: 500;
+}
+
+.pb-modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: auto;
+}
+
+.pb-modal-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 24px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pb-modal-btn-primary {
+    background: #000;
+    color: #fff;
+}
+
+.pb-modal-btn-primary:hover {
+    background: #333;
+    color: #fff;
+}
+
+.pb-modal-btn-secondary {
+    background: #fff;
+    color: #000;
+    border: 1px solid #e0e0e0;
+}
+
+.pb-modal-btn-secondary:hover {
+    border-color: #000;
+    background: #fafafa;
+    color: #000;
+}
+
+.pb-modal-btn i {
+    font-size: 14px;
+}
+
+/* Modal Mobile */
+@media (max-width: 768px) {
+    .pb-modal-container {
+        max-height: 95vh;
+        flex-direction: column;
+    }
+
+    .pb-modal-content {
+        flex-direction: column;
+    }
+
+    .pb-modal-image {
+        min-height: 280px;
+        flex: none;
+    }
+
+    .pb-modal-image-inner i {
+        font-size: 80px;
+    }
+
+    .pb-modal-info {
+        padding: 24px;
+    }
+
+    .pb-modal-title {
+        font-size: 22px;
+    }
+
+    .pb-modal-features {
+        grid-template-columns: 1fr;
+        padding: 16px;
+    }
+
+    .pb-modal-actions {
+        flex-direction: column;
+    }
+
+    .pb-modal-close {
+        top: 12px;
+        right: 12px;
+        width: 36px;
+        height: 36px;
+    }
+
+    .pb-modal-close i {
+        font-size: 14px;
+    }
+}

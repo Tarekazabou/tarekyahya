@@ -62,181 +62,410 @@
     <!-- Page Header -->
     <section class="page-header">
         <div class="container">
-            <h1>Showroom & Réalisations</h1>
+            <h1>Outfit</h1>
             <nav class="breadcrumb">
                 <a href="index.html">Accueil</a>
                 <span>/</span>
-                <span>Showroom</span>
+                <span>Outfit</span>
             </nav>
         </div>
     </section>
 
-    <!-- Showroom Introduction -->
-    <section class="section">
-        <div class="container">
-            <div class="section-title">
-                <h2>Nos Collections</h2>
-                <p>Découvrez nos réalisations et collections à travers notre galerie. Cliquez sur une image pour
-                    l'agrandir.</p>
+    <!-- Showroom Section - Pull&Bear Style -->
+    <section class="pb-collection-section">
+        <div class="pb-container">
+            <!-- Header with results count -->
+            <div class="pb-collection-header">
+                <div class="pb-collection-title">
+                    <h1>Outfit</h1>
+                    <span class="pb-results-count" id="outfit-count">12 looks</span>
+                </div>
+                <p class="pb-collection-subtitle">Découvrez nos réalisations et collections à travers notre galerie</p>
             </div>
 
-            <!-- Filter -->
-            <div class="products-filter">
-                <button class="filter-btn active" data-filter="all">Toutes</button>
-                <button class="filter-btn" data-filter="collection">Collections</button>
-                <button class="filter-btn" data-filter="realisation">Réalisations</button>
-                <button class="filter-btn" data-filter="evenement">Événements</button>
+            <!-- Toolbar -->
+            <div class="pb-toolbar">
+                <!-- Filter Pills -->
+                <div class="pb-filter-pills">
+                    <button class="pb-pill active" data-filter="all">Tout voir</button>
+                    <button class="pb-pill" data-filter="collection">Collections</button>
+                    <button class="pb-pill" data-filter="realisation">Réalisations</button>
+                    <button class="pb-pill" data-filter="evenement">Événements</button>
+                </div>
             </div>
-        </div>
-    </section>
 
-    <!-- Showroom Gallery -->
-    <section class="showroom section" style="padding-top: 0;">
-        <div class="container">
-            <div class="showroom-grid">
+            <!-- Outfit Grid -->
+            <div class="pb-products-grid" id="showroom-grid">
                 <!-- Collection Items -->
-                <div class="showroom-item" data-category="collection">
-                    <div
-                        style="width: 100%; height: 100%; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-tshirt" style="font-size: 5rem; color: white;"></i>
+                <div class="pb-product-card" data-category="collection">
+                    <div class="pb-product-image">
+                        <div class="pb-product-image-inner" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                        <span class="pb-badge pb-badge-new">Nouveau</span>
+                        <button class="pb-favorite-btn" onclick="toggleFavorite(this, event)" aria-label="Ajouter aux favoris">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="pb-quick-actions">
+                            <button class="pb-quick-btn pb-quick-btn-primary" onclick="openOutfitModal('Collection Printemps 2024', 'Nouvelle collection de vêtements légers et colorés', 'collection', 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)', 'fa-tshirt')">
+                                <i class="fas fa-eye"></i>
+                                <span>Voir</span>
+                            </button>
+                            <a href="quote.html" class="pb-quick-btn">
+                                <i class="fas fa-file-invoice"></i>
+                                <span>Devis</span>
+                            </a>
+                        </div>
                     </div>
-                    <div class="showroom-overlay">
-                        <h4>Collection Printemps 2024</h4>
-                        <p>Nouvelle collection de vêtements légers et colorés</p>
-                    </div>
-                </div>
-
-                <div class="showroom-item" data-category="collection">
-                    <div
-                        style="width: 100%; height: 100%; background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-vest" style="font-size: 5rem; color: white;"></i>
-                    </div>
-                    <div class="showroom-overlay">
-                        <h4>Collection Été 2024</h4>
-                        <p>Vêtements frais et confortables pour l'été</p>
-                    </div>
-                </div>
-
-                <div class="showroom-item" data-category="collection">
-                    <div
-                        style="width: 100%; height: 100%; background: linear-gradient(135deg, #dc2626 0%, #f87171 100%); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-user-tie" style="font-size: 5rem; color: white;"></i>
-                    </div>
-                    <div class="showroom-overlay">
-                        <h4>Collection Automne 2024</h4>
-                        <p>Tons chauds et matières douces</p>
+                    <div class="pb-product-info">
+                        <span class="pb-product-category">Collection</span>
+                        <h3 class="pb-product-name">Collection Printemps 2024</h3>
+                        <p class="pb-product-desc">Nouvelle collection de vêtements légers et colorés</p>
                     </div>
                 </div>
 
-                <div class="showroom-item" data-category="collection">
-                    <div
-                        style="width: 100%; height: 100%; background: linear-gradient(135deg, #1e293b 0%, #475569 100%); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-mitten" style="font-size: 5rem; color: white;"></i>
+                <div class="pb-product-card" data-category="collection">
+                    <div class="pb-product-image">
+                        <div class="pb-product-image-inner" style="background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);">
+                            <i class="fas fa-vest"></i>
+                        </div>
+                        <button class="pb-favorite-btn" onclick="toggleFavorite(this, event)" aria-label="Ajouter aux favoris">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="pb-quick-actions">
+                            <button class="pb-quick-btn pb-quick-btn-primary" onclick="openOutfitModal('Collection Été 2024', 'Vêtements frais et confortables pour l\\'été', 'collection', 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)', 'fa-vest')">
+                                <i class="fas fa-eye"></i>
+                                <span>Voir</span>
+                            </button>
+                            <a href="quote.html" class="pb-quick-btn">
+                                <i class="fas fa-file-invoice"></i>
+                                <span>Devis</span>
+                            </a>
+                        </div>
                     </div>
-                    <div class="showroom-overlay">
-                        <h4>Collection Hiver 2024</h4>
-                        <p>Vêtements chauds et élégants</p>
+                    <div class="pb-product-info">
+                        <span class="pb-product-category">Collection</span>
+                        <h3 class="pb-product-name">Collection Été 2024</h3>
+                        <p class="pb-product-desc">Vêtements frais et confortables pour l'été</p>
+                    </div>
+                </div>
+
+                <div class="pb-product-card" data-category="collection">
+                    <div class="pb-product-image">
+                        <div class="pb-product-image-inner" style="background: linear-gradient(135deg, #dc2626 0%, #f87171 100%);">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <span class="pb-badge pb-badge-sale">Tendance</span>
+                        <button class="pb-favorite-btn" onclick="toggleFavorite(this, event)" aria-label="Ajouter aux favoris">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="pb-quick-actions">
+                            <button class="pb-quick-btn pb-quick-btn-primary" onclick="openOutfitModal('Collection Automne 2024', 'Tons chauds et matières douces', 'collection', 'linear-gradient(135deg, #dc2626 0%, #f87171 100%)', 'fa-user-tie')">
+                                <i class="fas fa-eye"></i>
+                                <span>Voir</span>
+                            </button>
+                            <a href="quote.html" class="pb-quick-btn">
+                                <i class="fas fa-file-invoice"></i>
+                                <span>Devis</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="pb-product-info">
+                        <span class="pb-product-category">Collection</span>
+                        <h3 class="pb-product-name">Collection Automne 2024</h3>
+                        <p class="pb-product-desc">Tons chauds et matières douces</p>
+                    </div>
+                </div>
+
+                <div class="pb-product-card" data-category="collection">
+                    <div class="pb-product-image">
+                        <div class="pb-product-image-inner" style="background: linear-gradient(135deg, #1e293b 0%, #475569 100%);">
+                            <i class="fas fa-mitten"></i>
+                        </div>
+                        <button class="pb-favorite-btn" onclick="toggleFavorite(this, event)" aria-label="Ajouter aux favoris">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="pb-quick-actions">
+                            <button class="pb-quick-btn pb-quick-btn-primary" onclick="openOutfitModal('Collection Hiver 2024', 'Vêtements chauds et élégants', 'collection', 'linear-gradient(135deg, #1e293b 0%, #475569 100%)', 'fa-mitten')">
+                                <i class="fas fa-eye"></i>
+                                <span>Voir</span>
+                            </button>
+                            <a href="quote.html" class="pb-quick-btn">
+                                <i class="fas fa-file-invoice"></i>
+                                <span>Devis</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="pb-product-info">
+                        <span class="pb-product-category">Collection</span>
+                        <h3 class="pb-product-name">Collection Hiver 2024</h3>
+                        <p class="pb-product-desc">Vêtements chauds et élégants</p>
                     </div>
                 </div>
 
                 <!-- Réalisations -->
-                <div class="showroom-item" data-category="realisation">
-                    <div
-                        style="width: 100%; height: 100%; background: linear-gradient(135deg, #059669 0%, #10b981 100%); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-industry" style="font-size: 5rem; color: white;"></i>
+                <div class="pb-product-card" data-category="realisation">
+                    <div class="pb-product-image">
+                        <div class="pb-product-image-inner" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+                            <i class="fas fa-industry"></i>
+                        </div>
+                        <span class="pb-badge pb-badge-new">Pro</span>
+                        <button class="pb-favorite-btn" onclick="toggleFavorite(this, event)" aria-label="Ajouter aux favoris">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="pb-quick-actions">
+                            <button class="pb-quick-btn pb-quick-btn-primary" onclick="openOutfitModal('Uniforme Entreprise ABC', 'Réalisation complète d\\'uniformes corporate', 'realisation', 'linear-gradient(135deg, #059669 0%, #10b981 100%)', 'fa-industry')">
+                                <i class="fas fa-eye"></i>
+                                <span>Voir</span>
+                            </button>
+                            <a href="quote.html" class="pb-quick-btn">
+                                <i class="fas fa-file-invoice"></i>
+                                <span>Devis</span>
+                            </a>
+                        </div>
                     </div>
-                    <div class="showroom-overlay">
-                        <h4>Uniforme Entreprise ABC</h4>
-                        <p>Réalisation complète d'uniformes corporate</p>
-                    </div>
-                </div>
-
-                <div class="showroom-item" data-category="realisation">
-                    <div
-                        style="width: 100%; height: 100%; background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-hotel" style="font-size: 5rem; color: white;"></i>
-                    </div>
-                    <div class="showroom-overlay">
-                        <h4>Tenues Hôtel Luxe</h4>
-                        <p>Collection complète pour chaîne hôtelière</p>
-                    </div>
-                </div>
-
-                <div class="showroom-item" data-category="realisation">
-                    <div
-                        style="width: 100%; height: 100%; background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-utensils" style="font-size: 5rem; color: white;"></i>
-                    </div>
-                    <div class="showroom-overlay">
-                        <h4>Uniformes Restaurant Étoilé</h4>
-                        <p>Tenues personnalisées pour la haute gastronomie</p>
+                    <div class="pb-product-info">
+                        <span class="pb-product-category">Réalisation</span>
+                        <h3 class="pb-product-name">Uniforme Entreprise ABC</h3>
+                        <p class="pb-product-desc">Réalisation complète d'uniformes corporate</p>
                     </div>
                 </div>
 
-                <div class="showroom-item" data-category="realisation">
-                    <div
-                        style="width: 100%; height: 100%; background: linear-gradient(135deg, #db2777 0%, #ec4899 100%); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-store" style="font-size: 5rem; color: white;"></i>
+                <div class="pb-product-card" data-category="realisation">
+                    <div class="pb-product-image">
+                        <div class="pb-product-image-inner" style="background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);">
+                            <i class="fas fa-hotel"></i>
+                        </div>
+                        <button class="pb-favorite-btn" onclick="toggleFavorite(this, event)" aria-label="Ajouter aux favoris">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="pb-quick-actions">
+                            <button class="pb-quick-btn pb-quick-btn-primary" onclick="openOutfitModal('Tenues Hôtel Luxe', 'Collection complète pour chaîne hôtelière', 'realisation', 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)', 'fa-hotel')">
+                                <i class="fas fa-eye"></i>
+                                <span>Voir</span>
+                            </button>
+                            <a href="quote.html" class="pb-quick-btn">
+                                <i class="fas fa-file-invoice"></i>
+                                <span>Devis</span>
+                            </a>
+                        </div>
                     </div>
-                    <div class="showroom-overlay">
-                        <h4>Boutique Mode Paris</h4>
-                        <p>Collection exclusive pour boutique parisienne</p>
+                    <div class="pb-product-info">
+                        <span class="pb-product-category">Réalisation</span>
+                        <h3 class="pb-product-name">Tenues Hôtel Luxe</h3>
+                        <p class="pb-product-desc">Collection complète pour chaîne hôtelière</p>
+                    </div>
+                </div>
+
+                <div class="pb-product-card" data-category="realisation">
+                    <div class="pb-product-image">
+                        <div class="pb-product-image-inner" style="background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <button class="pb-favorite-btn" onclick="toggleFavorite(this, event)" aria-label="Ajouter aux favoris">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="pb-quick-actions">
+                            <button class="pb-quick-btn pb-quick-btn-primary" onclick="openOutfitModal('Uniformes Restaurant Étoilé', 'Tenues personnalisées pour la haute gastronomie', 'realisation', 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)', 'fa-utensils')">
+                                <i class="fas fa-eye"></i>
+                                <span>Voir</span>
+                            </button>
+                            <a href="quote.html" class="pb-quick-btn">
+                                <i class="fas fa-file-invoice"></i>
+                                <span>Devis</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="pb-product-info">
+                        <span class="pb-product-category">Réalisation</span>
+                        <h3 class="pb-product-name">Uniformes Restaurant Étoilé</h3>
+                        <p class="pb-product-desc">Tenues personnalisées pour la haute gastronomie</p>
+                    </div>
+                </div>
+
+                <div class="pb-product-card" data-category="realisation">
+                    <div class="pb-product-image">
+                        <div class="pb-product-image-inner" style="background: linear-gradient(135deg, #db2777 0%, #ec4899 100%);">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <span class="pb-badge pb-badge-sale">Exclusif</span>
+                        <button class="pb-favorite-btn" onclick="toggleFavorite(this, event)" aria-label="Ajouter aux favoris">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="pb-quick-actions">
+                            <button class="pb-quick-btn pb-quick-btn-primary" onclick="openOutfitModal('Boutique Mode Paris', 'Collection exclusive pour boutique parisienne', 'realisation', 'linear-gradient(135deg, #db2777 0%, #ec4899 100%)', 'fa-store')">
+                                <i class="fas fa-eye"></i>
+                                <span>Voir</span>
+                            </button>
+                            <a href="quote.html" class="pb-quick-btn">
+                                <i class="fas fa-file-invoice"></i>
+                                <span>Devis</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="pb-product-info">
+                        <span class="pb-product-category">Réalisation</span>
+                        <h3 class="pb-product-name">Boutique Mode Paris</h3>
+                        <p class="pb-product-desc">Collection exclusive pour boutique parisienne</p>
                     </div>
                 </div>
 
                 <!-- Événements -->
-                <div class="showroom-item" data-category="evenement">
-                    <div
-                        style="width: 100%; height: 100%; background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-calendar-check" style="font-size: 5rem; color: white;"></i>
+                <div class="pb-product-card" data-category="evenement">
+                    <div class="pb-product-image">
+                        <div class="pb-product-image-inner" style="background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <button class="pb-favorite-btn" onclick="toggleFavorite(this, event)" aria-label="Ajouter aux favoris">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="pb-quick-actions">
+                            <button class="pb-quick-btn pb-quick-btn-primary" onclick="openOutfitModal('Salon du Prêt à Porter 2024', 'Notre présence au salon international', 'evenement', 'linear-gradient(135deg, #4338ca 0%, #6366f1 100%)', 'fa-calendar-check')">
+                                <i class="fas fa-eye"></i>
+                                <span>Voir</span>
+                            </button>
+                            <a href="quote.html" class="pb-quick-btn">
+                                <i class="fas fa-file-invoice"></i>
+                                <span>Devis</span>
+                            </a>
+                        </div>
                     </div>
-                    <div class="showroom-overlay">
-                        <h4>Salon du Prêt à Porter 2024</h4>
-                        <p>Notre présence au salon international</p>
-                    </div>
-                </div>
-
-                <div class="showroom-item" data-category="evenement">
-                    <div
-                        style="width: 100%; height: 100%; background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-award" style="font-size: 5rem; color: white;"></i>
-                    </div>
-                    <div class="showroom-overlay">
-                        <h4>Prix de l'Innovation 2024</h4>
-                        <p>Reconnaissance pour nos créations innovantes</p>
-                    </div>
-                </div>
-
-                <div class="showroom-item" data-category="evenement">
-                    <div
-                        style="width: 100%; height: 100%; background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-handshake" style="font-size: 5rem; color: white;"></i>
-                    </div>
-                    <div class="showroom-overlay">
-                        <h4>Partenariat International</h4>
-                        <p>Nouvelle collaboration avec des marques mondiales</p>
+                    <div class="pb-product-info">
+                        <span class="pb-product-category">Événement</span>
+                        <h3 class="pb-product-name">Salon du Prêt à Porter 2024</h3>
+                        <p class="pb-product-desc">Notre présence au salon international</p>
                     </div>
                 </div>
 
-                <div class="showroom-item" data-category="evenement">
-                    <div
-                        style="width: 100%; height: 100%; background: linear-gradient(135deg, #854d0e 0%, #a16207 100%); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-users" style="font-size: 5rem; color: white;"></i>
+                <div class="pb-product-card" data-category="evenement">
+                    <div class="pb-product-image">
+                        <div class="pb-product-image-inner" style="background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);">
+                            <i class="fas fa-award"></i>
+                        </div>
+                        <span class="pb-badge pb-badge-new">Award</span>
+                        <button class="pb-favorite-btn" onclick="toggleFavorite(this, event)" aria-label="Ajouter aux favoris">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="pb-quick-actions">
+                            <button class="pb-quick-btn pb-quick-btn-primary" onclick="openOutfitModal('Prix de l\\'Innovation 2024', 'Reconnaissance pour nos créations innovantes', 'evenement', 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)', 'fa-award')">
+                                <i class="fas fa-eye"></i>
+                                <span>Voir</span>
+                            </button>
+                            <a href="quote.html" class="pb-quick-btn">
+                                <i class="fas fa-file-invoice"></i>
+                                <span>Devis</span>
+                            </a>
+                        </div>
                     </div>
-                    <div class="showroom-overlay">
-                        <h4>Journée Portes Ouvertes</h4>
-                        <p>Visite de nos ateliers de production</p>
+                    <div class="pb-product-info">
+                        <span class="pb-product-category">Événement</span>
+                        <h3 class="pb-product-name">Prix de l'Innovation 2024</h3>
+                        <p class="pb-product-desc">Reconnaissance pour nos créations innovantes</p>
+                    </div>
+                </div>
+
+                <div class="pb-product-card" data-category="evenement">
+                    <div class="pb-product-image">
+                        <div class="pb-product-image-inner" style="background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <button class="pb-favorite-btn" onclick="toggleFavorite(this, event)" aria-label="Ajouter aux favoris">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="pb-quick-actions">
+                            <button class="pb-quick-btn pb-quick-btn-primary" onclick="openOutfitModal('Partenariat International', 'Nouvelle collaboration avec des marques mondiales', 'evenement', 'linear-gradient(135deg, #b91c1c 0%, #dc2626 100%)', 'fa-handshake')">
+                                <i class="fas fa-eye"></i>
+                                <span>Voir</span>
+                            </button>
+                            <a href="quote.html" class="pb-quick-btn">
+                                <i class="fas fa-file-invoice"></i>
+                                <span>Devis</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="pb-product-info">
+                        <span class="pb-product-category">Événement</span>
+                        <h3 class="pb-product-name">Partenariat International</h3>
+                        <p class="pb-product-desc">Nouvelle collaboration avec des marques mondiales</p>
+                    </div>
+                </div>
+
+                <div class="pb-product-card" data-category="evenement">
+                    <div class="pb-product-image">
+                        <div class="pb-product-image-inner" style="background: linear-gradient(135deg, #854d0e 0%, #a16207 100%);">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <button class="pb-favorite-btn" onclick="toggleFavorite(this, event)" aria-label="Ajouter aux favoris">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="pb-quick-actions">
+                            <button class="pb-quick-btn pb-quick-btn-primary" onclick="openOutfitModal('Journée Portes Ouvertes', 'Visite de nos ateliers de production', 'evenement', 'linear-gradient(135deg, #854d0e 0%, #a16207 100%)', 'fa-users')">
+                                <i class="fas fa-eye"></i>
+                                <span>Voir</span>
+                            </button>
+                            <a href="quote.html" class="pb-quick-btn">
+                                <i class="fas fa-file-invoice"></i>
+                                <span>Devis</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="pb-product-info">
+                        <span class="pb-product-category">Événement</span>
+                        <h3 class="pb-product-name">Journée Portes Ouvertes</h3>
+                        <p class="pb-product-desc">Visite de nos ateliers de production</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Image Modal -->
-    <div class="modal" id="imageModal">
-        <span class="modal-close">&times;</span>
-        <div class="modal-content" id="modalContent">
-            <!-- Content dynamically populated by JavaScript -->
+    <!-- Product Detail Modal -->
+    <div class="pb-modal" id="productModal">
+        <div class="pb-modal-overlay" onclick="closeProductModal()"></div>
+        <div class="pb-modal-container">
+            <button class="pb-modal-close" onclick="closeProductModal()" aria-label="Fermer">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="pb-modal-content">
+                <div class="pb-modal-image" id="modalImage">
+                    <!-- Dynamic content -->
+                </div>
+                <div class="pb-modal-info">
+                    <span class="pb-modal-category" id="modalCategory">Collection</span>
+                    <h2 class="pb-modal-title" id="modalTitle">Titre du produit</h2>
+                    <p class="pb-modal-desc" id="modalDesc">Description du produit</p>
+                    
+                    <div class="pb-modal-features">
+                        <div class="pb-modal-feature">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Qualité Premium</span>
+                        </div>
+                        <div class="pb-modal-feature">
+                            <i class="fas fa-leaf"></i>
+                            <span>Matières Durables</span>
+                        </div>
+                        <div class="pb-modal-feature">
+                            <i class="fas fa-palette"></i>
+                            <span>Personnalisable</span>
+                        </div>
+                        <div class="pb-modal-feature">
+                            <i class="fas fa-truck"></i>
+                            <span>Livraison Rapide</span>
+                        </div>
+                    </div>
+
+                    <div class="pb-modal-actions">
+                        <a href="quote.html" class="pb-modal-btn pb-modal-btn-primary">
+                            <i class="fas fa-file-invoice"></i>
+                            Demander un devis
+                        </a>
+                        <a href="contact.html" class="pb-modal-btn pb-modal-btn-secondary">
+                            <i class="fas fa-phone"></i>
+                            Nous contacter
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -359,6 +588,83 @@
     <script src="js/supabase-client.js"></script>
     <script src="js/visitor-tracker.js"></script>
     <script src="js/main.js"></script>
+    <script>
+        // Initialize Pull&Bear style filters for outfit page
+        function initOutfitFilters() {
+            const pills = document.querySelectorAll('.pb-pill');
+            const cards = document.querySelectorAll('.pb-product-card');
+            
+            pills.forEach(pill => {
+                pill.addEventListener('click', function() {
+                    // Remove active from all
+                    pills.forEach(p => p.classList.remove('active'));
+                    // Add active to clicked
+                    this.classList.add('active');
+                    
+                    const filter = this.dataset.filter;
+                    let visibleCount = 0;
+                    
+                    cards.forEach(card => {
+                        if (filter === 'all' || card.dataset.category === filter) {
+                            card.style.display = '';
+                            visibleCount++;
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                    
+                    // Update count
+                    document.getElementById('outfit-count').textContent = `${visibleCount} look${visibleCount !== 1 ? 's' : ''}`;
+                });
+            });
+        }
+
+        // Open outfit detail modal
+        function openOutfitModal(title, description, category, gradient, icon) {
+            const modal = document.getElementById('productModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalDesc = document.getElementById('modalDesc');
+            const modalCategory = document.getElementById('modalCategory');
+            
+            // Set content
+            modalImage.innerHTML = `
+                <div class="pb-modal-image-inner" style="background: ${gradient};">
+                    <i class="fas ${icon}"></i>
+                </div>
+            `;
+            modalTitle.textContent = title;
+            modalDesc.textContent = description;
+            modalCategory.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+            
+            // Show modal
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close product modal
+        function closeProductModal() {
+            const modal = document.getElementById('productModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeProductModal();
+            }
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initOutfitFilters();
+            
+            // Update initial count
+            const totalCards = document.querySelectorAll('.pb-product-card').length;
+            document.getElementById('outfit-count').textContent = `${totalCards} looks`;
+        });
+    </script>
 </body>
 
 </html>

@@ -222,10 +222,10 @@ const PageRenderers = {
                                 <i class="fas fa-file-invoice"></i>
                                 <span>Devis</span>
                             </a>
-                            <a href="contact.html" class="pb-quick-btn">
+                            <button class="pb-quick-btn" onclick="openProductModal('${Sanitizer.escapeHtml(product.name).replace(/'/g, "\\'")}', '${Sanitizer.escapeHtml(product.description).replace(/'/g, "\\'")}', '${Sanitizer.escapeHtml(product.category)}', '${Sanitizer.sanitizeGradient(product.gradient)}', '${Sanitizer.sanitizeIcon(product.icon)}')">
                                 <i class="fas fa-eye"></i>
                                 <span>Détails</span>
-                            </a>
+                            </button>
                         </div>
                     </div>
                     

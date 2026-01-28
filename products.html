@@ -117,6 +117,56 @@
         </div>
     </section>
 
+    <!-- Product Detail Modal -->
+    <div class="pb-modal" id="productModal">
+        <div class="pb-modal-overlay" onclick="closeProductModal()"></div>
+        <div class="pb-modal-container">
+            <button class="pb-modal-close" onclick="closeProductModal()" aria-label="Fermer">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="pb-modal-content">
+                <div class="pb-modal-image" id="modalImage">
+                    <!-- Dynamic content -->
+                </div>
+                <div class="pb-modal-info">
+                    <span class="pb-modal-category" id="modalCategory">Collection</span>
+                    <h2 class="pb-modal-title" id="modalTitle">Titre du produit</h2>
+                    <p class="pb-modal-desc" id="modalDesc">Description du produit</p>
+                    
+                    <div class="pb-modal-features">
+                        <div class="pb-modal-feature">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Qualité Premium</span>
+                        </div>
+                        <div class="pb-modal-feature">
+                            <i class="fas fa-leaf"></i>
+                            <span>Matières Durables</span>
+                        </div>
+                        <div class="pb-modal-feature">
+                            <i class="fas fa-palette"></i>
+                            <span>Personnalisable</span>
+                        </div>
+                        <div class="pb-modal-feature">
+                            <i class="fas fa-truck"></i>
+                            <span>Livraison Rapide</span>
+                        </div>
+                    </div>
+
+                    <div class="pb-modal-actions">
+                        <a href="quote.html" class="pb-modal-btn pb-modal-btn-primary">
+                            <i class="fas fa-file-invoice"></i>
+                            Demander un devis
+                        </a>
+                        <a href="contact.html" class="pb-modal-btn pb-modal-btn-secondary">
+                            <i class="fas fa-phone"></i>
+                            Nous contacter
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Services Section -->
     <section class="section section-bg">
         <div class="container">
@@ -309,6 +359,43 @@
                 countEl.textContent = `${count} article${count !== 1 ? 's' : ''}`;
             }
         }
+
+        // Open product detail modal
+        function openProductModal(name, description, category, gradient, icon) {
+            const modal = document.getElementById('productModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalDesc = document.getElementById('modalDesc');
+            const modalCategory = document.getElementById('modalCategory');
+            
+            // Set content
+            modalImage.innerHTML = `
+                <div class="pb-modal-image-inner" style="background: ${gradient};">
+                    <i class="fas ${icon}"></i>
+                </div>
+            `;
+            modalTitle.textContent = name;
+            modalDesc.textContent = description;
+            modalCategory.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+            
+            // Show modal
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close product modal
+        function closeProductModal() {
+            const modal = document.getElementById('productModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeProductModal();
+            }
+        });
 
         // Initialize dynamic content on page load
         document.addEventListener('DOMContentLoaded', async function () {
