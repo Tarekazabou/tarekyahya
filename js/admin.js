@@ -909,6 +909,38 @@ function openProductModal(productData = null) {
 
 function closeProductModal() {
     switchSubtab('products', 'list');
+    clearImagePreview();
+}
+
+// Image preview for product upload
+document.addEventListener('DOMContentLoaded', () => {
+    const imageInput = document.getElementById('product-image');
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('image-preview');
+                    const previewImg = document.getElementById('image-preview-img');
+                    previewImg.src = event.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+
+function clearImagePreview() {
+    const imageInput = document.getElementById('product-image');
+    const preview = document.getElementById('image-preview');
+    if (imageInput) {
+        imageInput.value = '';
+    }
+    if (preview) {
+        preview.style.display = 'none';
+    }
 }
 
 async function editProduct(id) {
@@ -976,20 +1008,71 @@ async function handleProductFormSubmit(e) {
         return;
     }
 
-    const productData = {
-        name: sanitizeInput(document.getElementById('product-name').value),
-        category: document.getElementById('product-category').value,
-        badge: sanitizeInput(document.getElementById('product-badge').value) || null,
-        icon: sanitizeInput(document.getElementById('product-icon').value) || 'fa-tshirt',
-        sort_order: parseInt(document.getElementById('product-sort').value) || 0,
-        gradient: sanitizeInput(document.getElementById('product-gradient').value),
-        description: sanitizeInput(document.getElementById('product-description').value),
-        is_featured: document.getElementById('product-featured').checked
-    };
+    const submitBtn = document.getElementById('product-submit-btn');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
 
-    const id = document.getElementById('product-id').value;
+    let imageUrl = null;
+    const imageInput = document.getElementById('product-image');
+    const imageFile = imageInput.files[0];
 
     try {
+        // Handle image upload if a file is selected
+        if (imageFile) {
+            // Validate file size (5MB max)
+            if (imageFile.size > 5 * 1024 * 1024) {
+                showToast('L\'image est trop volumineuse (max 5MB)', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                return;
+            }
+
+            // Validate file type
+            if (!imageFile.type.startsWith('image/')) {
+                showToast('Veuillez sélectionner une image valide', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                return;
+            }
+
+            // Upload image to Supabase storage
+            const fileName = `products/${Date.now()}-${sanitizeInput(document.getElementById('product-name').value).replace(/\s+/g, '-')}.${imageFile.name.split('.').pop()}`;
+            
+            const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                .from('textile-images')
+                .upload(fileName, imageFile, { upsert: false });
+
+            if (uploadError) {
+                throw new Error(`Erreur d'upload: ${uploadError.message}`);
+            }
+
+            // Get public URL
+            const { data: urlData } = supabaseClient.storage
+                .from('textile-images')
+                .getPublicUrl(fileName);
+
+            imageUrl = urlData.publicUrl;
+        }
+
+        const productData = {
+            name: sanitizeInput(document.getElementById('product-name').value),
+            category: document.getElementById('product-category').value,
+            badge: sanitizeInput(document.getElementById('product-badge').value) || null,
+            icon: sanitizeInput(document.getElementById('product-icon').value) || 'fa-tshirt',
+            sort_order: parseInt(document.getElementById('product-sort').value) || 0,
+            gradient: sanitizeInput(document.getElementById('product-gradient').value),
+            description: sanitizeInput(document.getElementById('product-description').value),
+            is_featured: document.getElementById('product-featured').checked
+        };
+
+        // Add image URL if available
+        if (imageUrl) {
+            productData.image_url = imageUrl;
+        }
+
+        const id = document.getElementById('product-id').value;
+
         if (id) {
             await rateLimitedRequest(() => DataService.updateProduct(id, productData));
             showToast('Produit mis à jour avec succès');
@@ -1004,6 +1087,9 @@ async function handleProductFormSubmit(e) {
         if (error.message !== 'Rate limit exceeded') {
             showToast('Erreur: ' + error.message, 'error');
         }
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
     }
 }
 

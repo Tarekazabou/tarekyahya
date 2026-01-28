@@ -203,8 +203,8 @@ const PageRenderers = {
             container.innerHTML = result.data.map(product => `
                 <div class="pb-product-card" data-category="${Sanitizer.escapeHtml(product.category)}">
                     <div class="pb-product-image">
-                        <div class="pb-product-image-inner" style="background: ${Sanitizer.sanitizeGradient(product.gradient)};">
-                            <i class="fas ${Sanitizer.sanitizeIcon(product.icon)}"></i>
+                        <div class="pb-product-image-inner" style="background-image: url('${Sanitizer.escapeHtml(product.image_url || '')}'); background-size: cover; background-position: center; background-color: ${Sanitizer.sanitizeGradient(product.gradient)};">
+                            ${!product.image_url ? `<i class="fas ${Sanitizer.sanitizeIcon(product.icon)}"></i>` : ''}
                         </div>
                         
                         ${product.badge ? `
