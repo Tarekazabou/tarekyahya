@@ -1,7 +1,9 @@
 {
-  "name": "project-pret-a-porter",
+  "name": "primavet-website",
   "assets": {
-    "directory": "."
+    "directory": ".",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "single-page-application"
   },
   "compatibility_date": "2024-12-23",
   "observability": {

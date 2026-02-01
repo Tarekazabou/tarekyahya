@@ -1,0 +1,36 @@
+{
+  "name": "primavet-website",
+  "version": "1.0.0",
+  "description": "Primavet - Professional website for textile/fashion company",
+  "main": "index.html",
+  "scripts": {
+    "lint": "eslint js/*.js",
+    "lint:fix": "eslint js/*.js --fix",
+    "format": "prettier --write \"**/*.{js,html,css,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,html,css,json,md}\"",
+    "validate": "npm run lint && npm run format:check",
+    "dev": "npx live-server --port=8080 --open=index.html",
+    "deploy": "wrangler pages deploy . --project-name=primavet"
+  },
+  "keywords": [
+    "textile",
+    "fashion",
+    "ecommerce",
+    "website",
+    "supabase"
+  ],
+  "author": "Primavet",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "live-server": "^1.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Tarekazabou/tarekyahya.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
