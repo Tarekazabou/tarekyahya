@@ -3070,9 +3070,21 @@ function exportToWindow() {
     window.loadSalesLedger = loadSalesLedger;
     window.exportSalesLedgerToCSV = exportSalesLedgerToCSV;
     window.exportPipelineToCSV = exportPipelineToCSV;
+    window.exportOrdersToCSV = exportOrdersToCSV;
 
     // Navigation (used by sidebar links)
     window.switchSection = switchSection;
+    window.switchSubtab = switchSubtab;
+
+    // Image management functions
+    window.clearImagePreview = clearImagePreview;
+    window.clearImagePreview2 = clearImagePreview2;
+
+    // Storage management
+    window.loadStorageStats = loadStorageStats;
+
+    // Delete confirmation
+    window.handleConfirmDelete = handleConfirmDelete;
 
     // Utilities
     window.showToast = showToast;
