@@ -864,74 +864,162 @@
                                 <label for="product-name">Nom du Produit *</label>
                                 <input type="text" id="product-name" required placeholder="Nom du produit">
                             </div>
+                            
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="product-category">Catégorie *</label>
-                                    <select id="product-category" required>
+                                    <label for="product-gender">Genre *</label>
+                                    <select id="product-gender" required>
+                                        <option value="">-- Sélectionner --</option>
                                         <option value="homme">Homme</option>
                                         <option value="femme">Femme</option>
+                                        <option value="unisexe">Unisexe</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="product-badge">Badge</label>
-                                    <input type="text" id="product-badge" placeholder="Ex: Nouveau, Promo">
+                                    <label for="product-category">Catégorie *</label>
+                                    <select id="product-category" required>
+                                        <option value="">-- Sélectionner --</option>
+                                        <optgroup label="Hauts">
+                                            <option value="t-shirts">T-shirts</option>
+                                            <option value="chemises">Chemises</option>
+                                            <option value="polos">Polos</option>
+                                            <option value="pulls">Pulls & Sweats</option>
+                                        </optgroup>
+                                        <optgroup label="Bas">
+                                            <option value="pantalons">Pantalons</option>
+                                            <option value="jeans">Jeans</option>
+                                            <option value="shorts">Shorts</option>
+                                        </optgroup>
+                                        <optgroup label="Vêtements Extérieurs">
+                                            <option value="vestes">Vestes</option>
+                                            <option value="manteaux">Manteaux</option>
+                                            <option value="blazers">Blazers</option>
+                                        </optgroup>
+                                        <optgroup label="Professionnel">
+                                            <option value="uniformes">Uniformes</option>
+                                            <option value="vetements-travail">Vêtements de travail</option>
+                                            <option value="securite">Équipement de sécurité</option>
+                                        </optgroup>
+                                        <optgroup label="Accessoires">
+                                            <option value="ceintures">Ceintures</option>
+                                            <option value="cravates">Cravates</option>
+                                            <option value="echarpes">Écharpes</option>
+                                            <option value="casquettes">Casquettes & Chapeaux</option>
+                                        </optgroup>
+                                    </select>
                                 </div>
                             </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="product-color">Couleur</label>
+                                    <select id="product-color">
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="noir">Noir</option>
+                                        <option value="blanc">Blanc</option>
+                                        <option value="bleu">Bleu</option>
+                                        <option value="bleu-marine">Bleu Marine</option>
+                                        <option value="rouge">Rouge</option>
+                                        <option value="vert">Vert</option>
+                                        <option value="gris">Gris</option>
+                                        <option value="beige">Beige</option>
+                                        <option value="marron">Marron</option>
+                                        <option value="rose">Rose</option>
+                                        <option value="jaune">Jaune</option>
+                                        <option value="orange">Orange</option>
+                                        <option value="multicolore">Multicolore</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="product-material">Matière</label>
+                                    <select id="product-material">
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="coton">Coton</option>
+                                        <option value="polyester">Polyester</option>
+                                        <option value="lin">Lin</option>
+                                        <option value="laine">Laine</option>
+                                        <option value="soie">Soie</option>
+                                        <option value="denim">Denim</option>
+                                        <option value="cuir">Cuir</option>
+                                        <option value="synthetique">Synthétique</option>
+                                        <option value="mixte">Mixte</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="product-icon">Icône Font Awesome</label>
-                                    <input type="text" id="product-icon" placeholder="Ex: fa-tshirt" value="fa-tshirt">
+                                    <input type="text" id="product-icon" placeholder="fa-tshirt" value="fa-tshirt">
                                 </div>
                                 <div class="form-group">
                                     <label for="product-sort">Ordre d'affichage</label>
                                     <input type="number" id="product-sort" placeholder="0" value="0">
                                 </div>
                             </div>
+                            
+                            <div class="form-group" style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                                <label style="margin-bottom: 0.75rem; display: block; font-weight: 600;">Badges</label>
+                                <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                        <input type="checkbox" id="product-is-new" style="width: 18px; height: 18px;">
+                                        <span style="background: #10b981; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.85rem;">
+                                            <i class="fas fa-sparkles"></i> Nouveau
+                                        </span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                        <input type="checkbox" id="product-is-sale" style="width: 18px; height: 18px;">
+                                        <span style="background: #ef4444; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.85rem;">
+                                            <i class="fas fa-tag"></i> Promo
+                                        </span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                        <input type="checkbox" id="product-featured" style="width: 18px; height: 18px;">
+                                        <span style="background: #3b82f6; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.85rem;">
+                                            <i class="fas fa-star"></i> En vedette
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                            
                             <div class="form-group">
                                 <label for="product-image">Image 1 du Produit (Affichage par défaut)</label>
-                                <input type="file" id="product-image" accept="image/*"
-                                    placeholder="Sélectionner une image">
-                                <small style="color: #64748b; display: block; margin-top: 0.5rem;">Formats acceptés:
-                                    JPG, PNG, WebP (Max 5MB)</small>
+                                <input type="file" id="product-image" accept="image/*">
+                                <small style="color: #64748b; display: block; margin-top: 0.5rem;">Formats acceptés: JPG, PNG, WebP (Max 5MB)</small>
                                 <div id="image-preview" style="margin-top: 1rem; display: none;">
                                     <img id="image-preview-img" src="" alt="Preview"
-                                        style="max-width: 200px; max-height: 200px; border-radius: 8px;">
+                                        style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #e2e8f0;">
                                     <button type="button" class="btn btn-sm btn-secondary" onclick="clearImagePreview()"
-                                        style="margin-left: 1rem;">Supprimer l'image</button>
+                                        style="margin-left: 1rem;">Supprimer</button>
                                 </div>
                             </div>
+                            
                             <div class="form-group">
                                 <label for="product-image-2">Image 2 du Produit (Apparaît au survol)</label>
-                                <input type="file" id="product-image-2" accept="image/*"
-                                    placeholder="Sélectionner une deuxième image">
-                                <small style="color: #64748b; display: block; margin-top: 0.5rem;">Formats acceptés:
-                                    JPG, PNG, WebP (Max 5MB) - Cette image apparaît lors du survol</small>
+                                <input type="file" id="product-image-2" accept="image/*">
+                                <small style="color: #64748b; display: block; margin-top: 0.5rem;">Formats acceptés: JPG, PNG, WebP (Max 5MB) - Cette image apparaît lors du survol</small>
                                 <div id="image-preview-2" style="margin-top: 1rem; display: none;">
                                     <img id="image-preview-img-2" src="" alt="Preview 2"
-                                        style="max-width: 200px; max-height: 200px; border-radius: 8px;">
+                                        style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #e2e8f0;">
                                     <button type="button" class="btn btn-sm btn-secondary"
-                                        onclick="clearImagePreview2()" style="margin-left: 1rem;">Supprimer
-                                        l'image</button>
+                                        onclick="clearImagePreview2()" style="margin-left: 1rem;">Supprimer</button>
                                 </div>
                             </div>
+                            
                             <div class="form-group">
                                 <label for="product-gradient">Gradient (couleur fallback)</label>
                                 <input type="text" id="product-gradient"
                                     placeholder="linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)"
                                     value="linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)">
-                                <small style="color: #64748b; display: block; margin-top: 0.5rem;">Utilisé si aucune
-                                    image n'est disponible</small>
+                                <small style="color: #64748b; display: block; margin-top: 0.5rem;">Utilisé si aucune image n'est disponible</small>
                             </div>
+                            
                             <div class="form-group">
                                 <label for="product-description">Description *</label>
                                 <textarea id="product-description" required placeholder="Description du produit"
                                     style="min-height: 100px;"></textarea>
                             </div>
-                            <div class="form-group">
-                                <label>
-                                    <input type="checkbox" id="product-featured"> Mettre en avant sur la page d'accueil
-                                </label>
-                            </div>
+                            
                             <div class="form-actions">
                                 <button type="button" class="btn btn-secondary"
                                     onclick="closeProductModal()">Annuler</button>

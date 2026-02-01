@@ -872,19 +872,39 @@ async function loadProductsTable() {
                 <thead>
                     <tr>
                         <th>Nom</th>
+                        <th>Genre</th>
                         <th>Catégorie</th>
-                        <th>Badge</th>
-                        <th>En avant</th>
+                        <th>Badges</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${products.map(product => `
+                    ${products.map(product => {
+                        // Build badges HTML
+                        let badges = '';
+                        if (product.is_new || product.badge?.toLowerCase() === 'nouveau') {
+                            badges += '<span class="badge badge-success" style="margin-right:4px;"><i class="fas fa-sparkles"></i> Nouveau</span>';
+                        }
+                        if (product.is_on_sale || product.badge?.toLowerCase() === 'promo') {
+                            badges += '<span class="badge badge-warning" style="margin-right:4px;"><i class="fas fa-tag"></i> Promo</span>';
+                        }
+                        if (product.is_featured) {
+                            badges += '<span class="badge badge-info"><i class="fas fa-star"></i> Vedette</span>';
+                        }
+                        if (!badges) badges = '-';
+                        
+                        // Format gender
+                        const genderDisplay = product.gender ? product.gender.charAt(0).toUpperCase() + product.gender.slice(1) : '-';
+                        
+                        // Format category
+                        const categoryDisplay = product.category ? product.category.charAt(0).toUpperCase() + product.category.slice(1).replace(/-/g, ' ') : '-';
+                        
+                        return `
                         <tr>
                             <td><strong>${escapeHtml(product.name)}</strong></td>
-                            <td><span class="badge badge-info">${escapeHtml(product.category) || '-'}</span></td>
-                            <td>${escapeHtml(product.badge) || '-'}</td>
-                            <td>${product.is_featured ? '<span class="badge badge-success">Oui</span>' : '<span class="badge badge-warning">Non</span>'}</td>
+                            <td><span class="badge badge-secondary">${escapeHtml(genderDisplay)}</span></td>
+                            <td><span class="badge badge-info">${escapeHtml(categoryDisplay)}</span></td>
+                            <td>${badges}</td>
                             <td class="actions">
                                 <button class="btn-icon edit" data-action="edit-product" data-id="${product.id}" title="Modifier">
                                     <i class="fas fa-edit"></i>
@@ -894,7 +914,7 @@ async function loadProductsTable() {
                                 </button>
                             </td>
                         </tr>
-                    `).join('')}
+                    `}).join('')}
                 </tbody>
             </table>
         `;
@@ -909,16 +929,45 @@ function openProductModal(productData = null) {
     document.getElementById('product-form').reset();
     document.getElementById('product-id').value = '';
 
+    // Reset checkboxes
+    document.getElementById('product-is-new').checked = false;
+    document.getElementById('product-is-sale').checked = false;
+    document.getElementById('product-featured').checked = false;
+
     if (productData) {
         document.getElementById('product-id').value = productData.id;
-        document.getElementById('product-name').value = productData.name;
-        document.getElementById('product-category').value = productData.category || 'homme';
-        document.getElementById('product-badge').value = productData.badge || '';
+        document.getElementById('product-name').value = productData.name || '';
+        document.getElementById('product-gender').value = productData.gender || '';
+        document.getElementById('product-category').value = productData.category || '';
+        document.getElementById('product-color').value = productData.color || '';
+        document.getElementById('product-material').value = productData.material || '';
         document.getElementById('product-icon').value = productData.icon || 'fa-tshirt';
         document.getElementById('product-sort').value = productData.sort_order || 0;
-        document.getElementById('product-gradient').value = productData.gradient || '';
+        document.getElementById('product-gradient').value = productData.gradient || 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)';
         document.getElementById('product-description').value = productData.description || '';
+        
+        // Handle badges/checkboxes
         document.getElementById('product-featured').checked = !!productData.is_featured;
+        document.getElementById('product-is-new').checked = !!productData.is_new || productData.badge?.toLowerCase() === 'nouveau' || productData.badge?.toLowerCase() === 'new';
+        document.getElementById('product-is-sale').checked = !!productData.is_on_sale || productData.badge?.toLowerCase() === 'promo' || productData.badge?.toLowerCase() === 'sale';
+        
+        // Show existing images if available
+        if (productData.image_url) {
+            const preview = document.getElementById('image-preview');
+            const previewImg = document.getElementById('image-preview-img');
+            if (preview && previewImg) {
+                previewImg.src = productData.image_url;
+                preview.style.display = 'block';
+            }
+        }
+        if (productData.image_url_2) {
+            const preview2 = document.getElementById('image-preview-2');
+            const previewImg2 = document.getElementById('image-preview-img-2');
+            if (preview2 && previewImg2) {
+                previewImg2.src = productData.image_url_2;
+                preview2.style.display = 'block';
+            }
+        }
     }
 }
 
@@ -1217,15 +1266,28 @@ async function handleProductFormSubmit(e) {
 
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement du produit...';
 
+        // Build badge from checkboxes
+        let badge = null;
+        if (document.getElementById('product-is-new').checked) {
+            badge = 'Nouveau';
+        } else if (document.getElementById('product-is-sale').checked) {
+            badge = 'Promo';
+        }
+
         const productData = {
             name: sanitizeInput(document.getElementById('product-name').value),
+            gender: document.getElementById('product-gender').value,
             category: document.getElementById('product-category').value,
-            badge: sanitizeInput(document.getElementById('product-badge').value) || null,
+            color: document.getElementById('product-color').value || null,
+            material: document.getElementById('product-material').value || null,
+            badge: badge,
             icon: sanitizeInput(document.getElementById('product-icon').value) || 'fa-tshirt',
             sort_order: parseInt(document.getElementById('product-sort').value) || 0,
             gradient: sanitizeInput(document.getElementById('product-gradient').value),
             description: sanitizeInput(document.getElementById('product-description').value),
-            is_featured: document.getElementById('product-featured').checked
+            is_featured: document.getElementById('product-featured').checked,
+            is_new: document.getElementById('product-is-new').checked,
+            is_on_sale: document.getElementById('product-is-sale').checked
         };
 
         // Add image URLs if available
