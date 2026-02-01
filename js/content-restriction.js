@@ -28,7 +28,6 @@ const ContentRestriction = {
     // ==================== INITIALIZATION ====================
     
     async init() {
-        console.log('🔐 Initializing Content Restriction System...');
         
         // Check for existing session
         await this.checkAuthSession();
@@ -38,7 +37,6 @@ const ContentRestriction = {
         
         // Listen for auth changes
         supabaseClient.auth.onAuthStateChange((event, session) => {
-            console.log('Auth state changed:', event);
             if (event === 'SIGNED_IN') {
                 this.handleSignIn(session);
             } else if (event === 'SIGNED_OUT') {
@@ -49,7 +47,6 @@ const ContentRestriction = {
         // Initialize restricted content on page
         this.initRestrictedContent();
         
-        console.log('✅ Content Restriction System initialized');
     },
     
     // ==================== AUTHENTICATION ====================

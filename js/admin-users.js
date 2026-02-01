@@ -62,8 +62,6 @@ async function loadUsersTable() {
                 </tbody>
             </table>
         `;
-
-        console.log('✅ Users table loaded');
     } catch (error) {
         console.error('Error loading users:', error);
         showToast('Erreur lors du chargement des utilisateurs', 'error');

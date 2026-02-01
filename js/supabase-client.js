@@ -51,7 +51,6 @@ const initSupabase = async () => {
                         }
                     }
                 });
-                console.log('✅ Supabase client initialized successfully');
                 return true;
             } catch (error) {
                 console.error('❌ Error initializing Supabase client:', error);
@@ -179,4 +178,3 @@ Object.defineProperty(window, 'supabaseClient', {
 window.AuthManager = AuthManager;
 window.RateLimiter = RateLimiter;
 
-console.log('✅ Supabase client module loaded (initialization in progress...)');

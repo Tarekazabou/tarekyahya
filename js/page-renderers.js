@@ -786,4 +786,3 @@ const PageRenderers = {
 // Export for use
 window.PageRenderers = PageRenderers;
 
-console.log('✅ Page Renderers initialized');
