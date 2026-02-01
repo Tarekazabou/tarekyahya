@@ -28,7 +28,6 @@ const CollectionsPage = {
     
     // Initialize
     async init() {
-        console.log('Initializing Collections Page...');
         
         // Parse URL parameters
         this.parseUrlParams();
@@ -53,7 +52,6 @@ const CollectionsPage = {
             console.error('Error during initialization:', error);
         }
         
-        console.log('Collections Page initialized');
     },
     
     // Parse URL parameters to restore filters
@@ -210,7 +208,6 @@ const CollectionsPage = {
             
             // Fallback to basic pagination if faceted search failed or returned nothing
             if (!result || (!result.data || result.data.length === 0)) {
-                console.log('Using basic getProductsPaginated fallback');
                 result = await DataService.getProductsPaginated(
                     this.filters.page,
                     this.filters.perPage,

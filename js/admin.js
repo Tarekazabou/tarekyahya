@@ -154,7 +154,6 @@ function initGlobalEventListeners() {
         const action = btn.dataset.action;
         const id = btn.dataset.id;
 
-        console.log(`🔘 Action detected: ${action} on ID: ${id}`);
 
         // Route to the correct function
         switch (action) {
@@ -221,7 +220,6 @@ function initGlobalEventListeners() {
         }
     });
 
-    console.log('✅ Global event listeners initialized');
 }
 
 // ==================== NAVIGATION ====================
@@ -261,16 +259,6 @@ function switchSection(sectionName) {
     if (sectionName === 'users') loadUsersTable();
 }
 
-// ==================== DEBUGGING HELPER ====================
-
-function debugLog(operation, data) {
-    console.group(`🔍 ${operation}`);
-    console.log('Data:', data);
-    console.log('User:', currentUser);
-    console.log('Timestamp:', new Date().toISOString());
-    console.groupEnd();
-}
-
 // ==================== TOAST NOTIFICATIONS ====================
 
 function showToast(message, type = 'success') {
@@ -294,7 +282,6 @@ async function loadNewsTable() {
     const container = document.getElementById('news-table-container');
     container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>';
 
-    console.log('📰 Loading news table...');
 
     // CRITICAL: Check if supabaseClient is ready
     if (!supabaseClient) {
@@ -311,7 +298,6 @@ async function loadNewsTable() {
 
         if (error) throw error;
 
-        console.log(`✅ Loaded ${news.length} news items`);
 
         document.getElementById('news-count-badge').textContent = `${news.length} articles`;
         const statEl = document.getElementById('stat-news-count');
@@ -404,7 +390,6 @@ async function loadNewsTable() {
 }
 
 function openNewsModal(newsData = null) {
-    console.log('🟢 openNewsModal called', { newsData });
 
 
     // Switch to Éditer tab and reset/populate the inline editor
@@ -426,7 +411,6 @@ function openNewsModal(newsData = null) {
 }
 
 function closeNewsModal() {
-    console.log('🔴 closeNewsModal called');
     // Hide inline editor and return to list
     switchSubtab('news', 'list');
 }
@@ -469,7 +453,6 @@ function confirmDeleteNews(id) {
 }
 
 async function deleteNews(id) {
-    console.log('🗑️ Deleting news ID:', id);
 
     try {
         const result = await supabaseClient
@@ -480,7 +463,6 @@ async function deleteNews(id) {
 
         if (result.error) throw result.error;
 
-        console.log('✅ News deleted:', result.data);
         showToast('Actualité supprimée avec succès');
 
         await loadNewsTable();
@@ -506,7 +488,6 @@ async function deleteNews(id) {
 async function handleNewsFormSubmit(e) {
     e.preventDefault();
 
-    console.log('📝 News form submitted');
 
     const newsData = {
         title: document.getElementById('news-title').value.trim(),
@@ -519,8 +500,6 @@ async function handleNewsFormSubmit(e) {
 
     const id = document.getElementById('news-id').value;
 
-    debugLog('News Submit', { id, newsData });
-
     if (!newsData.title || !newsData.content) {
         showToast('Le titre et le contenu sont obligatoires', 'error');
         return;
@@ -530,7 +509,6 @@ async function handleNewsFormSubmit(e) {
         let result;
 
         if (id) {
-            console.log('🔄 Updating news ID:', id);
             result = await supabaseClient
                 .from('news')
                 .update(newsData)
@@ -541,9 +519,7 @@ async function handleNewsFormSubmit(e) {
             if (result.error) throw result.error;
 
             showToast('Actualité mise à jour avec succès');
-            console.log('✅ News updated:', result.data);
         } else {
-            console.log('➕ Creating new news');
             result = await supabaseClient
                 .from('news')
                 .insert([newsData])
@@ -553,7 +529,6 @@ async function handleNewsFormSubmit(e) {
             if (result.error) throw result.error;
 
             showToast('Actualité créée avec succès');
-            console.log('✅ News created:', result.data);
         }
 
         closeNewsModal();
@@ -685,7 +660,6 @@ async function loadJobsTable() {
 }
 
 function openJobModal(jobData = null) {
-    console.log('🟢 openJobModal called', { jobData });
     switchSubtab('jobs', 'edit');
     document.getElementById('job-form').reset();
     document.getElementById('job-id').value = '';
@@ -703,7 +677,6 @@ function openJobModal(jobData = null) {
 }
 
 function closeJobModal() {
-    console.log('🔴 closeJobModal called');
     switchSubtab('jobs', 'list');
 }
 
@@ -764,7 +737,6 @@ function confirmDeleteJob(id) {
 }
 
 async function deleteJob(id) {
-    console.log('🗑️ Deleting job ID:', id);
 
     try {
         const result = await supabaseClient
@@ -775,7 +747,6 @@ async function deleteJob(id) {
 
         if (result.error) throw result.error;
 
-        console.log('✅ Job deleted:', result.data);
         showToast('Offre supprimée avec succès');
 
         await loadJobsTable();
@@ -800,7 +771,6 @@ async function deleteJob(id) {
 async function handleJobFormSubmit(e) {
     e.preventDefault();
 
-    console.log('📝 Job form submitted');
 
     const jobData = {
         title: document.getElementById('job-title').value.trim(),
@@ -813,8 +783,6 @@ async function handleJobFormSubmit(e) {
 
     const id = document.getElementById('job-id').value;
 
-    debugLog('Job Submit', { id, jobData });
-
     if (!jobData.title || !jobData.description) {
         showToast('Le titre et la description sont obligatoires', 'error');
         return;
@@ -824,7 +792,6 @@ async function handleJobFormSubmit(e) {
         let result;
 
         if (id) {
-            console.log('🔄 Updating job ID:', id);
             result = await supabaseClient
                 .from('jobs')
                 .update(jobData)
@@ -835,9 +802,7 @@ async function handleJobFormSubmit(e) {
             if (result.error) throw result.error;
 
             showToast('Offre mise à jour avec succès');
-            console.log('✅ Job updated:', result.data);
         } else {
-            console.log('➕ Creating new job');
             result = await supabaseClient
                 .from('jobs')
                 .insert([jobData])
@@ -847,7 +812,6 @@ async function handleJobFormSubmit(e) {
             if (result.error) throw result.error;
 
             showToast('Offre créée avec succès');
-            console.log('✅ Job created:', result.data);
         }
 
         closeJobModal();
@@ -1111,7 +1075,6 @@ function confirmDeleteProduct(id) {
 }
 
 async function deleteProduct(id) {
-    console.log('🗑️ Deleting product ID:', id);
 
     try {
         const result = await supabaseClient
@@ -1122,7 +1085,6 @@ async function deleteProduct(id) {
 
         if (result.error) throw result.error;
 
-        console.log('✅ Product deleted:', result.data);
         showToast('Produit supprimé avec succès');
 
         await loadProductsTable();
@@ -1240,7 +1202,6 @@ async function handleProductFormSubmit(e) {
             let optimizedFile = imageFile;
             try {
                 optimizedFile = await optimizeImage(imageFile);
-                console.log(`📸 Image 1 optimisée: ${(imageFile.size / 1024 / 1024).toFixed(2)}MB → ${(optimizedFile.size / 1024 / 1024).toFixed(2)}MB`);
             } catch (optimizeError) {
                 console.warn('⚠️ Could not optimize image 1, using original:', optimizeError);
             }
@@ -1288,7 +1249,6 @@ async function handleProductFormSubmit(e) {
             let optimizedFile2 = imageFile2;
             try {
                 optimizedFile2 = await optimizeImage(imageFile2);
-                console.log(`📸 Image 2 optimisée: ${(imageFile2.size / 1024 / 1024).toFixed(2)}MB → ${(optimizedFile2.size / 1024 / 1024).toFixed(2)}MB`);
             } catch (optimizeError) {
                 console.warn('⚠️ Could not optimize image 2, using original:', optimizeError);
             }
@@ -1482,7 +1442,6 @@ function confirmDeleteShowroom(id) {
 }
 
 async function deleteShowroom(id) {
-    console.log('🗑️ Deleting showroom item ID:', id);
 
     try {
         const result = await supabaseClient
@@ -1493,7 +1452,6 @@ async function deleteShowroom(id) {
 
         if (result.error) throw result.error;
 
-        console.log('✅ Showroom item deleted:', result.data);
         showToast('Élément supprimé avec succès');
 
         await loadShowroomTable();
@@ -1780,7 +1738,6 @@ function confirmDeleteMessage(id) {
 }
 
 async function deleteMessage(id) {
-    console.log('🗑️ Deleting message ID:', id);
 
     try {
         const result = await supabaseClient
@@ -1791,7 +1748,6 @@ async function deleteMessage(id) {
 
         if (result.error) throw result.error;
 
-        console.log('✅ Message deleted:', result.data);
         showToast('Message supprimé avec succès');
 
         await loadMessagesTable();
@@ -1813,7 +1769,6 @@ async function deleteMessage(id) {
 // ==================== CONFIRM DELETE MODAL ====================
 
 async function handleConfirmDelete() {
-    console.log('🗑️ Handle Confirm Delete:', { deleteType, deleteProductId, deleteMessageId });
 
     if (!deleteType) return;
 
@@ -1999,7 +1954,6 @@ function confirmDeleteOrder(id) {
 }
 
 async function deleteOrder(id) {
-    console.log('🗑️ Deleting order ID:', id);
 
     try {
         const result = await supabaseClient
@@ -2010,7 +1964,6 @@ async function deleteOrder(id) {
 
         if (result.error) throw result.error;
 
-        console.log('✅ Order deleted:', result.data);
         showToast('Commande supprimée avec succès');
         await loadOrdersTable();
         await loadDashboardStats();
@@ -3044,31 +2997,25 @@ async function testSupabaseConnection() {
 
     // CRITICAL: Check if supabaseClient is ready
     if (!supabaseClient) {
-        console.log('❌ Supabase client is NOT initialized');
         console.groupEnd();
         return;
     }
 
     try {
-        console.log('1. Supabase client:', typeof supabaseClient !== 'undefined' ? '✅' : '❌');
 
         const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
-        console.log('2. Auth session:', session ? '✅' : '❌', session?.user?.email);
         if (authError) console.error('Auth error:', authError);
 
         const { data: newsData, error: newsError } = await supabaseClient
             .from('news')
             .select('count');
-        console.log('3. Read news:', newsError ? '❌' : '✅');
         if (newsError) console.error('News read error:', newsError);
 
         const { data: jobsData, error: jobsError } = await supabaseClient
             .from('jobs')
             .select('count');
-        console.log('4. Read jobs:', jobsError ? '❌' : '✅');
         if (jobsError) console.error('Jobs read error:', jobsError);
 
-        console.log('5. Testing write permissions...');
 
         const testData = {
             title: '__TEST__',
@@ -3082,10 +3029,8 @@ async function testSupabaseConnection() {
             .select();
 
         if (!insertError && insertTest) {
-            console.log('6. Write permission: ✅');
             await supabaseClient.from('news').delete().eq('title', '__TEST__');
         } else {
-            console.log('6. Write permission: ���');
             console.error('Insert error:', insertError);
         }
 
@@ -3125,14 +3070,25 @@ function exportToWindow() {
     window.loadSalesLedger = loadSalesLedger;
     window.exportSalesLedgerToCSV = exportSalesLedgerToCSV;
     window.exportPipelineToCSV = exportPipelineToCSV;
+    window.exportOrdersToCSV = exportOrdersToCSV;
 
     // Navigation (used by sidebar links)
     window.switchSection = switchSection;
+    window.switchSubtab = switchSubtab;
+
+    // Image management functions
+    window.clearImagePreview = clearImagePreview;
+    window.clearImagePreview2 = clearImagePreview2;
+
+    // Storage management
+    window.loadStorageStats = loadStorageStats;
+
+    // Delete confirmation
+    window.handleConfirmDelete = handleConfirmDelete;
 
     // Utilities
     window.showToast = showToast;
 
-    console.log('✅ Admin functions exported to window scope');
 }
 
 // Export immediately
@@ -3171,12 +3127,10 @@ async function initializeStorageBucket() {
         const bucketExists = buckets?.some(b => b.name === 'textile-images');
 
         if (bucketExists) {
-            console.log('✅ Storage bucket "textile-images" already exists');
             return true;
         }
 
         // Try to create the bucket
-        console.log('📦 Creating storage bucket "textile-images"...');
         const { data: newBucket, error: createError } = await supabaseClient.storage.createBucket('textile-images', {
             public: true,
             fileSizeLimit: 5242880 // 5MB
@@ -3188,7 +3142,6 @@ async function initializeStorageBucket() {
             return false;
         }
 
-        console.log('✅ Storage bucket created successfully:', newBucket);
         showToast('Bucket de stockage créé avec succès', 'success');
         return true;
 
@@ -3373,7 +3326,6 @@ function formatFileSize(bytes) {
 
 // Load storage statistics and files
 async function loadStorageStats() {
-    console.log('📦 Loading storage statistics...');
 
     // Check if Supabase is ready
     if (!supabaseClient) {
@@ -3446,7 +3398,6 @@ async function loadStorageStats() {
         // Load files table
         loadStorageFiles(actualFiles);
 
-        console.log(`✅ Storage stats loaded: ${totalMB.toFixed(2)} MB used (${percentage.toFixed(1)}%)`);
 
     } catch (error) {
         console.error('❌ Error loading storage stats:', error);
@@ -3534,7 +3485,6 @@ function confirmDeleteStorageFile(path) {
 
 // Delete storage file
 async function deleteStorageFile(path) {
-    console.log('🗑️ Deleting storage file:', path);
 
     if (!supabaseClient) {
         showToast('Connexion non disponible', 'error');
@@ -3548,7 +3498,6 @@ async function deleteStorageFile(path) {
 
         if (error) throw error;
 
-        console.log('✅ File deleted:', path);
         showToast('Fichier supprimé avec succès');
 
         // Reload storage stats
@@ -3564,10 +3513,8 @@ async function deleteStorageFile(path) {
 
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🚀 Admin panel initializing...');
 
     // CRITICAL: Wait for Supabase to be ready before doing anything
-    console.log('⏳ Waiting for Supabase...');
     if (window.supabaseReady) {
         await window.supabaseReady;
     } else {
@@ -3584,7 +3531,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         showToast('Erreur de connexion au serveur. Veuillez rafraîchir la page.', 'error');
         // Still try to show something
     } else {
-        console.log('✅ Supabase client ready');
     }
 
     // ==================== GLOBAL EXPORTS ====================
@@ -3615,13 +3561,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.handleWinWizardSubmit = typeof handleWinWizardSubmit !== 'undefined' ? handleWinWizardSubmit : null;
         window.handleConfirmDelete = typeof handleConfirmDelete !== 'undefined' ? handleConfirmDelete : null;
 
-        console.log('✅ Admin functions exported to window scope');
     }
 
     // Export immediately
     try {
         exportToWindow();
-        console.log('✅ Functions exported');
     } catch (e) {
         console.error('Failed to export functions:', e);
     }
@@ -3642,11 +3586,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Check authentication first
     const isLoggedIn = await checkAuth();
     if (!isLoggedIn) {
-        console.log('❌ Not logged in, redirecting...');
         return;
     }
 
-    console.log('✅ User authenticated');
 
     // Initialize navigation
     initNavigation();
@@ -3658,7 +3600,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     initEventListeners();
 
     // Initialize storage bucket (for image uploads)
-    console.log('📦 Initializing storage...');
     await initializeStorageBucket();
 
     // Run diagnostic
@@ -3676,10 +3617,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Load dashboard stats
-    console.log('📊 Loading dashboard stats...');
     await loadDashboardStats();
 
-    console.log('✅ Admin panel ready');
 });
 
 function renderKanbanColumnV2(status, leads) {

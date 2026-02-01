@@ -1,0 +1,8 @@
+# Ignore files for Prettier
+node_modules/
+backed_up/
+dist/
+build/
+.next/
+*.min.js
+*.min.css

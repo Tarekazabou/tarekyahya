@@ -26,7 +26,6 @@ const FormHandler = {
         this.initApplicationForm();
         this.initSuggestionForm();
         this.addHoneypotFields();
-        console.log('✅ Form Handler initialized with security enhancements');
     },
 
     /**

@@ -1,0 +1,74 @@
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+.classpath
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+
+# Dependencies
+node_modules/
+bower_components/
+jspm_packages/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.cache/
+*.min.js
+*.min.css
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+backed_up/
+
+# Package manager locks (keep package-lock.json for consistency)
+# Uncomment if using yarn
+# yarn.lock
+
+# OS generated files
+.fseventlog
+
+# Wrangler
+.wrangler/
+wrangler.toml

@@ -123,7 +123,6 @@ const DataService = {
         }
 
         // Fallback: Generate categories from products.category field
-        console.log('Categories table not found, generating from products.category');
         const { data: products, error: prodError } = await supabaseClient
             .from('products')
             .select('category');
@@ -190,7 +189,6 @@ const DataService = {
             }
 
             // Fallback: generate from products.category
-            console.log('Using fallback categories');
             const tree = await this.getCategoriesFallback();
             return tree;
         });
@@ -1579,4 +1577,3 @@ const DataService = {
 // Export for use
 window.DataService = DataService;
 
-console.log('✅ Data Service initialized');

@@ -62,8 +62,6 @@ async function loadUsersTable() {
                 </tbody>
             </table>
         `;
-
-        console.log('✅ Users table loaded');
     } catch (error) {
         console.error('Error loading users:', error);
         showToast('Erreur lors du chargement des utilisateurs', 'error');
@@ -360,4 +358,12 @@ async function viewUserDetails(userId) {
         console.error('Error viewing user details:', error);
         showToast('Erreur lors du chargement des détails', 'error');
     }
+}
+
+// ==================== GLOBAL EXPORTS ====================
+// Export functions to window for HTML onclick handlers
+if (typeof window !== 'undefined') {
+    window.loadUsersTable = loadUsersTable;
+    window.openUserAccessModal = openUserAccessModal;
+    window.viewUserDetails = viewUserDetails;
 }
