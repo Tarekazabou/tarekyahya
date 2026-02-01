@@ -127,7 +127,18 @@ function initNavigation() {
 
     // Close menu when clicking a link
     navLinks.forEach(link => {
-        link.addEventListener('click', function() {
+        link.addEventListener('click', function(e) {
+            // Don't close if clicking dropdown parent on mobile
+            const parentLi = this.closest('.has-dropdown');
+            if (parentLi && window.innerWidth <= 768) {
+                // Check if this is the dropdown toggle link (has chevron)
+                if (this.querySelector('.fa-chevron-down')) {
+                    e.preventDefault();
+                    parentLi.classList.toggle('active');
+                    return;
+                }
+            }
+            
             if (navToggle) {
                 navToggle.classList.remove('active');
                 navToggle.setAttribute('aria-expanded', 'false');
@@ -135,6 +146,8 @@ function initNavigation() {
             if (navMenu) {
                 navMenu.classList.remove('active');
             }
+            // Close any open dropdowns
+            document.querySelectorAll('.has-dropdown.active').forEach(dd => dd.classList.remove('active'));
         });
     });
 

@@ -68,6 +68,348 @@ const DataService = {
         };
     },
 
+    // ==================== CATEGORIES ====================
+
+    /**
+     * Get categories tree (hierarchical)
+     */
+    async getCategoriesTree() {
+        return this.getCached('categoriesTree', async () => {
+            try {
+                const { data, error } = await supabaseClient.rpc('get_categories_tree');
+                if (error) throw error;
+                return data || [];
+            } catch (error) {
+                console.error('Error fetching categories tree:', error);
+                // Fallback to direct query
+                return this.getCategoriesFallback();
+            }
+        });
+    },
+
+    /**
+     * Fallback: Get categories directly if RPC not available
+     * Works with existing schema - generates categories from products.category field
+     */
+    async getCategoriesFallback() {
+        // First try the categories table
+        const { data, error } = await supabaseClient
+            .from('categories')
+            .select('*')
+            .eq('is_active', true)
+            .order('sort_order', { ascending: true });
+
+        if (!error && data && data.length > 0) {
+            // Categories table exists and has data
+            const categories = data;
+            const rootCategories = categories.filter(c => !c.parent_id);
+            
+            const buildTree = (parent) => {
+                const children = categories.filter(c => c.parent_id === parent.id);
+                return {
+                    ...parent,
+                    level: 0,
+                    children: children.map(child => ({
+                        ...child,
+                        level: 1,
+                        children: categories.filter(c => c.parent_id === child.id).map(grandchild => ({
+                            ...grandchild,
+                            level: 2
+                        }))
+                    }))
+                };
+            };
+            return rootCategories.map(buildTree);
+        }
+
+        // Fallback: Generate categories from products.category field
+        console.log('Categories table not found, generating from products.category');
+        const { data: products, error: prodError } = await supabaseClient
+            .from('products')
+            .select('category');
+
+        if (prodError || !products) {
+            console.error('Error fetching products for categories:', prodError);
+            return this.getDefaultCategories();
+        }
+
+        // Count products per category
+        const categoryCounts = {};
+        products.forEach(p => {
+            if (p.category) {
+                categoryCounts[p.category] = (categoryCounts[p.category] || 0) + 1;
+            }
+        });
+
+        // Generate category objects
+        const categoryMap = {
+            'homme': { name: 'Homme', icon: 'fa-male', slug: 'homme' },
+            'femme': { name: 'Femme', icon: 'fa-female', slug: 'femme' },
+            'professionnel': { name: 'Professionnel', icon: 'fa-briefcase', slug: 'professionnel' },
+            'accessoires': { name: 'Accessoires', icon: 'fa-glasses', slug: 'accessoires' }
+        };
+
+        let id = 1;
+        return Object.entries(categoryCounts).map(([cat, count]) => ({
+            id: id++,
+            name: categoryMap[cat]?.name || cat.charAt(0).toUpperCase() + cat.slice(1),
+            slug: cat,
+            icon: categoryMap[cat]?.icon || 'fa-folder',
+            product_count: count,
+            level: 0,
+            path: [id]
+        }));
+    },
+
+    /**
+     * Default categories when nothing is available
+     */
+    getDefaultCategories() {
+        return [
+            { id: 1, name: 'Homme', slug: 'homme', icon: 'fa-male', product_count: 0, level: 0 },
+            { id: 2, name: 'Femme', slug: 'femme', icon: 'fa-female', product_count: 0, level: 0 },
+            { id: 3, name: 'Professionnel', slug: 'professionnel', icon: 'fa-briefcase', product_count: 0, level: 0 },
+            { id: 4, name: 'Accessoires', slug: 'accessoires', icon: 'fa-glasses', product_count: 0, level: 0 }
+        ];
+    },
+
+    /**
+     * Get flat list of all active categories
+     */
+    async getCategories() {
+        return this.getCached('categories', async () => {
+            // Try categories table first
+            const { data, error } = await supabaseClient
+                .from('categories')
+                .select('*')
+                .eq('is_active', true)
+                .order('sort_order', { ascending: true });
+
+            if (!error && data && data.length > 0) {
+                return data;
+            }
+
+            // Fallback: generate from products.category
+            console.log('Using fallback categories');
+            const tree = await this.getCategoriesFallback();
+            return tree;
+        });
+    },
+
+    // ==================== ATTRIBUTES (FACETS) ====================
+
+    /**
+     * Get all filterable attributes with their values
+     */
+    async getAttributes() {
+        return this.getCached('attributes', async () => {
+            const { data: attributes, error: attrError } = await supabaseClient
+                .from('attributes')
+                .select('*')
+                .eq('is_active', true)
+                .eq('is_filterable', true)
+                .order('sort_order', { ascending: true });
+
+            if (attrError) {
+                console.error('Error fetching attributes:', attrError);
+                return [];
+            }
+
+            // Get values for each attribute
+            const { data: values, error: valError } = await supabaseClient
+                .from('attribute_values')
+                .select('*')
+                .eq('is_active', true)
+                .order('sort_order', { ascending: true });
+
+            if (valError) {
+                console.error('Error fetching attribute values:', valError);
+                return attributes || [];
+            }
+
+            // Combine attributes with their values
+            return (attributes || []).map(attr => ({
+                ...attr,
+                values: (values || []).filter(v => v.attribute_id === attr.id)
+            }));
+        });
+    },
+
+    // ==================== FACETED PRODUCTS ====================
+
+    /**
+     * Get products with faceted filtering via RPC
+     * @param {Object} filters - Filter parameters
+     * @returns {Object} { items, total_count, total_pages, current_page, per_page, facets }
+     */
+    async getProductsFaceted(filters = {}) {
+        const {
+            categoryIds = null,
+            gender = null,
+            brands = null,
+            colors = null,
+            priceMin = null,
+            priceMax = null,
+            isNew = null,
+            isOnSale = null,
+            searchTerm = null,
+            sortBy = 'newest',
+            page = 1,
+            perPage = 12
+        } = filters;
+
+        try {
+            const { data, error } = await supabaseClient.rpc('get_products_faceted', {
+                p_category_ids: categoryIds,
+                p_gender: gender,
+                p_brands: brands,
+                p_colors: colors,
+                p_price_min: priceMin,
+                p_price_max: priceMax,
+                p_is_new: isNew,
+                p_is_on_sale: isOnSale,
+                p_search_term: searchTerm,
+                p_sort_by: sortBy,
+                p_page: page,
+                p_per_page: perPage
+            });
+
+            if (error) throw error;
+
+            return {
+                data: data?.items || [],
+                count: data?.total_count || 0,
+                totalPages: data?.total_pages || 0,
+                currentPage: data?.current_page || page,
+                perPage: data?.per_page || perPage,
+                facets: data?.facets || {}
+            };
+        } catch (error) {
+            console.error('Error fetching faceted products:', error);
+            // Fallback to basic query if RPC fails
+            return this.getProductsFacetedFallback(filters);
+        }
+    },
+
+    /**
+     * Fallback faceted search using direct queries
+     * Works with existing schema (products.category only)
+     */
+    async getProductsFacetedFallback(filters = {}) {
+        const {
+            categoryIds = null,
+            gender = null,
+            brands = null,
+            colors = null,
+            priceMin = null,
+            priceMax = null,
+            isNew = null,
+            isOnSale = null,
+            searchTerm = null,
+            sortBy = 'newest',
+            page = 1,
+            perPage = 12
+        } = filters;
+
+        const offset = (page - 1) * perPage;
+        
+        let query = supabaseClient
+            .from('products')
+            .select('*', { count: 'exact' });
+
+        // Filter by gender/category (using existing products.category field)
+        if (gender) {
+            query = query.eq('category', gender);
+        }
+
+        // Filter by search term
+        if (searchTerm) {
+            query = query.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+        }
+
+        // Apply sorting - use columns that exist in the original schema
+        switch (sortBy) {
+            case 'price_asc':
+            case 'price_desc':
+                query = query.order('sort_order', { ascending: sortBy === 'price_asc' });
+                break;
+            case 'name':
+                query = query.order('name', { ascending: true });
+                break;
+            case 'featured':
+                query = query.order('is_featured', { ascending: false }).order('sort_order', { ascending: true });
+                break;
+            case 'newest':
+            default:
+                query = query.order('created_at', { ascending: false });
+                break;
+        }
+
+        query = query.range(offset, offset + perPage - 1);
+
+        const { data, error, count } = await query;
+
+        if (error) {
+            console.error('Error in fallback faceted search:', error);
+            return { data: [], count: 0, totalPages: 0, currentPage: page, perPage, facets: {} };
+        }
+
+        // Get basic facets from existing data
+        const facets = await this.getBasicFacets(searchTerm);
+
+        return {
+            data: data || [],
+            count: count || 0,
+            totalPages: Math.ceil((count || 0) / perPage),
+            currentPage: page,
+            perPage,
+            facets
+        };
+    },
+
+    /**
+     * Get basic facet counts (fallback without RPC)
+     */
+    async getBasicFacets(searchTerm = null) {
+        try {
+            // Get gender counts
+            let genderQuery = supabaseClient
+                .from('products')
+                .select('category, gender');
+            
+            if (searchTerm) {
+                genderQuery = genderQuery.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+            }
+
+            const { data: products } = await genderQuery;
+
+            const genderCounts = {};
+            (products || []).forEach(p => {
+                const g = p.gender || p.category;
+                if (g) {
+                    genderCounts[g] = (genderCounts[g] || 0) + 1;
+                }
+            });
+
+            return {
+                genders: Object.entries(genderCounts).map(([value, count]) => ({ value, count })),
+                categories: [],
+                brands: [],
+                colors: [],
+                price_range: { min: 0, max: 1000 }
+            };
+        } catch (error) {
+            console.error('Error getting basic facets:', error);
+            return {
+                genders: [],
+                categories: [],
+                brands: [],
+                colors: [],
+                price_range: { min: 0, max: 1000 }
+            };
+        }
+    },
+
     // ==================== PRODUCTS ====================
 
     /**
