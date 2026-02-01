@@ -259,13 +259,6 @@ function switchSection(sectionName) {
     if (sectionName === 'users') loadUsersTable();
 }
 
-// ==================== DEBUGGING HELPER ====================
-
-function debugLog(operation, data) {
-    console.group(`🔍 ${operation}`);
-    console.groupEnd();
-}
-
 // ==================== TOAST NOTIFICATIONS ====================
 
 function showToast(message, type = 'success') {
@@ -506,8 +499,6 @@ async function handleNewsFormSubmit(e) {
     };
 
     const id = document.getElementById('news-id').value;
-
-    debugLog('News Submit', { id, newsData });
 
     if (!newsData.title || !newsData.content) {
         showToast('Le titre et le contenu sont obligatoires', 'error');
@@ -791,8 +782,6 @@ async function handleJobFormSubmit(e) {
     };
 
     const id = document.getElementById('job-id').value;
-
-    debugLog('Job Submit', { id, jobData });
 
     if (!jobData.title || !jobData.description) {
         showToast('Le titre et la description sont obligatoires', 'error');

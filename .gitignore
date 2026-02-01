@@ -60,7 +60,6 @@ temp/
 # Backup files
 *.bak
 *.backup
-*~
 backed_up/
 
 # Package manager locks (keep package-lock.json for consistency)
