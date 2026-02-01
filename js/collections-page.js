@@ -339,6 +339,15 @@ const CollectionsPage = {
     },
     
     renderProductCard(product) {
+        // Check if product is restricted and user doesn't have access
+        const isRestricted = product.is_restricted || false;
+        const minAccessLevel = product.min_access_level || 0;
+        
+        // Use ContentRestriction service if available
+        const hasAccess = typeof ContentRestriction !== 'undefined' 
+            ? ContentRestriction.hasAccess(minAccessLevel)
+            : true; // Default to allowing access if service not loaded
+        
         const hasImage = product.image_url && product.image_url.trim();
         const hasImage2 = product.image_url_2 && product.image_url_2.trim();
         const gradient = product.gradient || 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)';
@@ -354,6 +363,52 @@ const CollectionsPage = {
             badge = `<span class="pb-badge pb-badge-new">${this.escapeHtml(product.badge)}</span>`;
         }
         
+        // Access level badge for restricted content
+        const accessLevelLabels = ['', 'Membre', 'Premium', 'Entreprise'];
+        const accessBadge = isRestricted && minAccessLevel > 0 
+            ? `<span class="pb-badge pb-badge-restricted"><i class="fas fa-lock"></i> ${accessLevelLabels[minAccessLevel]}</span>`
+            : '';
+        
+        // If restricted and no access, render restricted card
+        if (isRestricted && !hasAccess) {
+            return `
+                <div class="pb-product-card pb-product-card-restricted" data-restricted="true" data-access-level="${minAccessLevel}">
+                    <div class="pb-product-image">
+                        <div class="pb-product-image-inner blurred" 
+                             style="background-image: url('${this.escapeHtml(product.image_url || '')}'); background-size: cover; background-position: center; ${!hasImage ? `background: ${gradient};` : ''}"
+                             loading="lazy">
+                            ${!hasImage ? `<i class="fas ${icon}"></i>` : ''}
+                        </div>
+                        
+                        ${badge}
+                        ${accessBadge}
+                        
+                        <!-- Lock overlay -->
+                        <div class="lock-overlay">
+                            <div class="lock-icon">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <p class="lock-message">Contenu réservé aux ${accessLevelLabels[minAccessLevel]}s</p>
+                            <button class="btn-upgrade" onclick="event.stopPropagation(); ContentRestriction.showUpgradeModal(${minAccessLevel})">
+                                <i class="fas fa-crown"></i> Débloquer
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="pb-product-info">
+                        <span class="pb-product-category">${this.escapeHtml(this.capitalizeFirst(category))}</span>
+                        <h3 class="pb-product-name blurred-text">${this.escapeHtml(product.name)}</h3>
+                        <p class="pb-product-desc blurred-text">${this.escapeHtml(product.description || '')}</p>
+                        
+                        <div class="pb-product-price">
+                            <span class="pb-price-current"><i class="fas fa-lock"></i> Réservé</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Normal card (not restricted or has access)
         return `
             <div class="pb-product-card" 
                  data-category="${this.escapeHtml(category)}"
@@ -374,6 +429,7 @@ const CollectionsPage = {
                     </div>
                     
                     ${badge}
+                    ${accessBadge}
                     
                     <button class="pb-favorite-btn" onclick="event.stopPropagation(); toggleFavorite(this, event)" aria-label="Ajouter aux favoris">
                         <i class="far fa-heart"></i>

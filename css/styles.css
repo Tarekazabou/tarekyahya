@@ -607,6 +607,137 @@ p {
     margin-left: var(--spacing-lg);
 }
 
+/* User Account Dropdown */
+.user-account-dropdown {
+    position: relative;
+    margin-left: var(--spacing-md);
+}
+
+.user-account-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--primary-color);
+    background: transparent;
+    color: var(--primary-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.user-account-btn:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.user-account-btn.logged-in {
+    border-color: #22c55e;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+}
+
+.user-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 280px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.user-account-dropdown:hover .user-dropdown-menu,
+.user-dropdown-menu:hover {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.user-menu-header {
+    padding: 1rem;
+    background: var(--gradient-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-menu-header i {
+    font-size: 2rem;
+}
+
+.user-menu-header span {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.user-menu-badge {
+    padding: 8px 1rem;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.user-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 1rem;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.user-menu-item:hover {
+    background: var(--light-gray);
+    color: var(--primary-color);
+}
+
+.user-menu-item i {
+    width: 20px;
+    text-align: center;
+    color: var(--gray);
+}
+
+.user-menu-item:hover i {
+    color: var(--primary-color);
+}
+
+.user-menu-divider {
+    height: 1px;
+    background: var(--light-gray);
+    margin: 0.5rem 0;
+}
+
+.user-menu-promo {
+    padding: 1rem;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #92400e;
+}
+
+.user-menu-promo i {
+    color: #f59e0b;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
 /* Mobile Navigation */
 .nav-toggle {
     display: none;
@@ -2459,6 +2590,104 @@ p {
     top: auto;
     bottom: 12px;
     left: 12px;
+}
+
+/* Restricted Badge */
+.pb-badge-restricted {
+    background: linear-gradient(135deg, #6b21a8 0%, #9333ea 100%);
+    color: #fff;
+    top: auto;
+    bottom: 12px;
+    right: 12px;
+    left: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 4px;
+}
+
+.pb-badge-restricted i {
+    font-size: 9px;
+}
+
+/* Restricted Product Card */
+.pb-product-card-restricted {
+    cursor: not-allowed;
+}
+
+.pb-product-card-restricted .pb-product-image {
+    position: relative;
+}
+
+.pb-product-card-restricted .blurred {
+    filter: blur(12px);
+    transform: scale(1.1);
+}
+
+.pb-product-card-restricted .blurred-text {
+    filter: blur(4px);
+    user-select: none;
+}
+
+.pb-product-card-restricted .lock-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.pb-product-card-restricted:hover .lock-overlay {
+    opacity: 1;
+}
+
+.pb-product-card-restricted .lock-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.pb-product-card-restricted .lock-icon i {
+    font-size: 1.5rem;
+    color: white;
+}
+
+.pb-product-card-restricted .lock-message {
+    color: white;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.pb-product-card-restricted .btn-upgrade {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.pb-product-card-restricted .btn-upgrade:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
 }
 
 /* Favorite Button */

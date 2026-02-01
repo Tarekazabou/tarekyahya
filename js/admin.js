@@ -80,13 +80,38 @@ async function checkAuth() {
         }
 
         currentUser = session.user;
-        console.log('✅ User authenticated:', currentUser.email);
+        
+        // CHECK IF USER IS ADMIN by querying user_profiles
+        const { data: profile, error } = await supabaseClient
+            .from('user_profiles')
+            .select('access_level, role')
+            .eq('id', currentUser.id)
+            .single();
+        
+        if (error) {
+            console.error('Error fetching user profile:', error);
+            showToast('Erreur de vérification des droits', 'error');
+            window.location.href = 'index.html';
+            return false;
+        }
+        
+        // Only allow access if user has admin access level (level 3)
+        if (!profile || profile.access_level !== 3) {
+            console.warn('Access denied: User is not an admin');
+            showToast('Accès refusé: Vous n\'avez pas les droits administrateur', 'error');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
+            return false;
+        }
+        
+        // Admin authenticated successfully
         return true;
     } catch (error) {
         console.error('Auth check failed:', error);
-        currentUser = { email: 'demo@primavet.tn', role: 'admin' };
-        showToast('Mode démo: connexion locale', 'error');
-        return true;
+        showToast('Erreur d\'authentification', 'error');
+        window.location.href = 'index.html';
+        return false;
     }
 }
 
@@ -233,6 +258,7 @@ function switchSection(sectionName) {
     if (sectionName === 'sales-ledger') loadSalesLedger();
     if (sectionName === 'messages') loadMessagesTable();
     if (sectionName === 'storage') loadStorageStats();
+    if (sectionName === 'users') loadUsersTable();
 }
 
 // ==================== DEBUGGING HELPER ====================
@@ -875,6 +901,7 @@ async function loadProductsTable() {
                         <th>Genre</th>
                         <th>Catégorie</th>
                         <th>Badges</th>
+                        <th>Accès</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -899,12 +926,22 @@ async function loadProductsTable() {
                         // Format category
                         const categoryDisplay = product.category ? product.category.charAt(0).toUpperCase() + product.category.slice(1).replace(/-/g, ' ') : '-';
                         
+                        // Access level display
+                        const accessLevels = ['Public', 'Membre', 'Premium', 'Entreprise'];
+                        const accessColors = ['badge-secondary', 'badge-info', 'badge-warning', 'badge-primary'];
+                        const accessLevel = product.min_access_level || 0;
+                        const accessIcons = ['fa-globe', 'fa-user', 'fa-crown', 'fa-building'];
+                        const accessBadge = `<span class="badge ${accessColors[accessLevel]}" style="display:inline-flex;align-items:center;gap:4px;">
+                            <i class="fas ${accessIcons[accessLevel]}"></i> ${accessLevels[accessLevel]}
+                        </span>`;
+                        
                         return `
                         <tr>
                             <td><strong>${escapeHtml(product.name)}</strong></td>
                             <td><span class="badge badge-secondary">${escapeHtml(genderDisplay)}</span></td>
                             <td><span class="badge badge-info">${escapeHtml(categoryDisplay)}</span></td>
                             <td>${badges}</td>
+                            <td>${accessBadge}</td>
                             <td class="actions">
                                 <button class="btn-icon edit" data-action="edit-product" data-id="${product.id}" title="Modifier">
                                     <i class="fas fa-edit"></i>
@@ -933,6 +970,10 @@ function openProductModal(productData = null) {
     document.getElementById('product-is-new').checked = false;
     document.getElementById('product-is-sale').checked = false;
     document.getElementById('product-featured').checked = false;
+    document.getElementById('product-is-restricted').checked = false;
+    document.getElementById('product-access-level').value = '0';
+    document.getElementById('product-unlock-message').value = 'Passez à Premium pour accéder à ce contenu';
+    document.getElementById('product-restricted-preview').value = '';
 
     if (productData) {
         document.getElementById('product-id').value = productData.id;
@@ -950,6 +991,12 @@ function openProductModal(productData = null) {
         document.getElementById('product-featured').checked = !!productData.is_featured;
         document.getElementById('product-is-new').checked = !!productData.is_new || productData.badge?.toLowerCase() === 'nouveau' || productData.badge?.toLowerCase() === 'new';
         document.getElementById('product-is-sale').checked = !!productData.is_on_sale || productData.badge?.toLowerCase() === 'promo' || productData.badge?.toLowerCase() === 'sale';
+        
+        // Handle restriction
+        document.getElementById('product-is-restricted').checked = !!productData.is_restricted;
+        document.getElementById('product-access-level').value = productData.min_access_level || 0;
+        document.getElementById('product-unlock-message').value = productData.unlock_message || 'Passez à Premium pour accéder à ce contenu';
+        document.getElementById('product-restricted-preview').value = productData.restricted_preview || '';
         
         // Show existing images if available
         if (productData.image_url) {
@@ -969,6 +1016,8 @@ function openProductModal(productData = null) {
             }
         }
     }
+    
+    // Restriction fields are always visible now - no need for checkbox toggle
 }
 
 function closeProductModal() {
@@ -1274,6 +1323,12 @@ async function handleProductFormSubmit(e) {
             badge = 'Promo';
         }
 
+        // Get restriction settings (always save selected values)
+        const accessLevel = parseInt(document.getElementById('product-access-level').value) || 0;
+        const isRestricted = accessLevel > 0; // Auto-set restricted if access level > 0
+        const unlockMessage = accessLevel > 0 ? document.getElementById('product-unlock-message').value : null;
+        const restrictedPreview = accessLevel > 0 ? document.getElementById('product-restricted-preview').value : null;
+
         const productData = {
             name: sanitizeInput(document.getElementById('product-name').value),
             gender: document.getElementById('product-gender').value,
@@ -1287,7 +1342,11 @@ async function handleProductFormSubmit(e) {
             description: sanitizeInput(document.getElementById('product-description').value),
             is_featured: document.getElementById('product-featured').checked,
             is_new: document.getElementById('product-is-new').checked,
-            is_on_sale: document.getElementById('product-is-sale').checked
+            is_on_sale: document.getElementById('product-is-sale').checked,
+            is_restricted: isRestricted,
+            min_access_level: accessLevel,
+            unlock_message: unlockMessage,
+            restricted_preview: restrictedPreview
         };
 
         // Add image URLs if available

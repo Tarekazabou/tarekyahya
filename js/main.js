@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', function() {
     initProductFilter();
     initFileUpload();
     initAccessibility();
+    
+    // Initialize content restriction system (if available)
+    if (typeof ContentRestriction !== 'undefined') {
+        ContentRestriction.init();
+    }
 });
 
 /* ------------------------------------------------
