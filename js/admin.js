@@ -252,7 +252,7 @@ function switchSection(sectionName) {
     if (sectionName === 'jobs') loadJobsTable();
     if (sectionName === 'products') loadProductsTable();
     if (sectionName === 'showroom') loadShowroomTable();
-    if (sectionName === 'pipeline') loadPipeline();
+    if (sectionName === 'pipeline') PipelineBoard.loadBoard();
     if (sectionName === 'sales-ledger') loadSalesLedger();
     if (sectionName === 'messages') loadMessagesTable();
     if (sectionName === 'storage') loadStorageStats();
@@ -2042,485 +2042,599 @@ function closeConfirmModal() {
     deleteType = null;
 }
 
-// ==================== PIPELINE (KANBAN) MANAGEMENT ====================
+// ==================== PIPELINE KANBAN (COMPLETELY REWRITTEN) ====================
 
-let currentLeadId = null;
-let allLeads = [];
-
-async function loadPipeline() {
-    const statuses = ['new', 'contacted', 'negotiating', 'won', 'lost'];
-    const filter = document.getElementById('pipeline-filter')?.value || 'all';
-
-    // Show loading state in all columns
-    statuses.forEach(status => {
-        const container = document.getElementById(`cards-${status}`);
-        if (container) {
-            container.innerHTML = '<div class="kanban-loading"><i class="fas fa-spinner fa-spin"></i></div>';
-        }
-    });
-
-    // CRITICAL: Check if supabaseClient is ready
-    if (!supabaseClient) {
-        console.warn('loadPipeline: Supabase not ready yet');
-        statuses.forEach(status => {
-            const container = document.getElementById(`cards-${status}`);
-            if (container) {
-                container.innerHTML = '<div class="kanban-empty"><i class="fas fa-exclamation-triangle"></i><p>Connexion en cours...</p></div>';
-            }
-        });
-        showToast('Connexion en cours...', 'warning');
-        return;
-    }
-
-    try {
-        // Fetch all orders (leads) from database
-        let query = supabaseClient
-            .from('orders')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        const { data: leads, error } = await query;
-
-        if (error) throw error;
-
-        allLeads = leads || [];
-
-        // Apply filters
-        let filteredLeads = [...allLeads];
-
-        if (filter === 'vip') {
-            filteredLeads = filteredLeads.filter(l => l.lead_tags?.includes('vip') || l.lead_tags?.includes('high_potential'));
-        } else if (filter === 'wholesale') {
-            filteredLeads = filteredLeads.filter(l => l.lead_tags?.includes('wholesale'));
-        } else if (filter === 'this-week') {
-            const oneWeekAgo = new Date();
-            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-            filteredLeads = filteredLeads.filter(l => new Date(l.created_at) >= oneWeekAgo);
+const PipelineBoard = {
+    leads: [],
+    statuses: ['new', 'contacted', 'negotiating', 'won', 'lost'],
+    statusLabels: {
+        'new': 'Nouveaux',
+        'contacted': 'Contactés',
+        'negotiating': 'Négociation',
+        'won': 'Gagnés',
+        'lost': 'Perdus'
+    },
+    statusIcons: {
+        'new': 'fa-inbox',
+        'contacted': 'fa-phone-alt',
+        'negotiating': 'fa-handshake',
+        'won': 'fa-check-circle',
+        'lost': 'fa-times-circle'
+    },
+    
+    async loadBoard() {
+        if (!supabaseClient) {
+            showToast('Connexion en cours...', 'warning');
+            return;
         }
 
-        // Group by lead_status (with fallback to 'new')
-        const grouped = {
-            new: [],
-            contacted: [],
-            negotiating: [],
-            won: [],
-            lost: []
-        };
+        try {
+            const container = document.getElementById('kanban-container');
+            container.innerHTML = '<div class="board-loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement du pipeline...</p></div>';
 
-        filteredLeads.forEach(lead => {
-            const status = lead.lead_status || 'new';
-            if (grouped[status]) {
-                grouped[status].push(lead);
-            } else {
-                grouped.new.push(lead);
+            // Get filter value
+            const filter = document.getElementById('kanban-filter')?.value || 'all';
+
+            // Fetch leads
+            let query = supabaseClient.from('orders').select('*').order('created_at', { ascending: false });
+            const { data: leads, error } = await query;
+
+            if (error) throw error;
+
+            this.leads = leads || [];
+
+            // Apply filters
+            let filteredLeads = [...this.leads];
+            
+            if (filter === 'vip') {
+                filteredLeads = filteredLeads.filter(l => 
+                    l.lead_tags?.includes('vip') || l.lead_tags?.includes('high_potential')
+                );
+            } else if (filter === 'wholesale') {
+                filteredLeads = filteredLeads.filter(l => l.lead_tags?.includes('wholesale'));
+            } else if (filter === 'this-week') {
+                const oneWeekAgo = new Date();
+                oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                filteredLeads = filteredLeads.filter(l => new Date(l.created_at) >= oneWeekAgo);
             }
-        });
 
-        // Render each column
-        Object.keys(grouped).forEach(status => {
-            renderKanbanColumnV2(status, grouped[status]);
-        });
+            // Group by status
+            const grouped = {
+                new: [],
+                contacted: [],
+                negotiating: [],
+                won: [],
+                lost: []
+            };
 
-        // Update counts
-        document.getElementById('count-new').textContent = grouped.new.length;
-        document.getElementById('count-contacted').textContent = grouped.contacted.length;
-        document.getElementById('count-negotiating').textContent = grouped.negotiating.length;
-        document.getElementById('count-won').textContent = grouped.won.length;
-        document.getElementById('count-lost').textContent = grouped.lost.length;
+            filteredLeads.forEach(lead => {
+                const status = lead.lead_status || 'new';
+                if (grouped[status]) {
+                    grouped[status].push(lead);
+                }
+            });
 
-        // Initialize drag and drop
-        initKanbanDragDrop();
+            // Render board
+            this.renderBoard(grouped, filteredLeads);
+            
+            // Update stats
+            this.updateStats(grouped, filteredLeads);
+            
+            // Setup drag and drop
+            this.initDragDrop();
 
-    } catch (error) {
-        console.error('Error loading pipeline:', error);
-        showToast('Erreur lors du chargement du pipeline', 'error');
+        } catch (error) {
+            console.error('Error loading board:', error);
+            document.getElementById('kanban-container').innerHTML = 
+                '<div class="board-loading"><i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i><p>Erreur de chargement</p></div>';
+            showToast('Erreur lors du chargement', 'error');
+        }
+    },
 
-        // CRITICAL: Clear loading spinners to show error state
-        ['new', 'contacted', 'negotiating', 'won', 'lost'].forEach(status => {
-            const container = document.getElementById(`cards-${status}`);
-            if (container) {
-                container.innerHTML = '<div class="kanban-empty"><i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i><p>Erreur de chargement</p></div>';
-            }
-        });
-    }
-}
-
-function renderKanbanColumn(status, leads) {
-    const container = document.getElementById(`cards-${status}`);
-    if (!container) return;
-
-    if (leads.length === 0) {
-        container.innerHTML = `
-            <div class="kanban-empty">
-                <i class="fas fa-inbox"></i>
-                <p>Aucun lead</p>
+    renderBoard(grouped) {
+        const html = `
+            <div class="kanban-board">
+                ${this.statuses.map(status => `
+                    <div class="kanban-column" data-status="${status}">
+                        <div class="column-header">
+                            <div class="column-title">
+                                <i class="fas ${this.statusIcons[status]}"></i>
+                                <span>${this.statusLabels[status]}</span>
+                            </div>
+                            <span class="column-count" data-count-${status}>0</span>
+                        </div>
+                        <div class="column-cards" data-cards-${status}>
+                            <div class="column-empty">
+                                <i class="fas fa-inbox"></i>
+                                <p>Aucun lead</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
             </div>
         `;
-        return;
-    }
 
-    container.innerHTML = leads.map(lead => {
+        document.getElementById('kanban-container').innerHTML = html;
+
+        // Populate columns
+        this.statuses.forEach(status => {
+            const cards = grouped[status] || [];
+            const container = document.querySelector(`[data-cards-${status}]`);
+            const counter = document.querySelector(`[data-count-${status}]`);
+            
+            counter.textContent = cards.length;
+
+            if (cards.length === 0) {
+                container.innerHTML = '<div class="column-empty"><i class="fas fa-inbox"></i><p>Aucun lead</p></div>';
+            } else {
+                container.innerHTML = cards.map(lead => this.renderCard(lead, status)).join('');
+            }
+        });
+    },
+
+    renderCard(lead, status) {
         const tags = lead.lead_tags || [];
         const isVip = tags.includes('vip') || tags.includes('high_potential');
-        const isWholesale = tags.includes('wholesale');
+        const isB2B = tags.includes('wholesale');
 
         return `
-            <div class="lead-card ${isVip ? 'vip' : ''} ${isWholesale ? 'wholesale' : ''}" 
-                 data-id="${lead.id}" 
-                 draggable="true">
-                <div class="lead-card-header">
-                    <span class="lead-card-name">${escapeHtml(lead.client_name)}</span>
-                    <div class="lead-card-tags">
-                        ${isVip ? '<span class="lead-tag vip">🌟 VIP</span>' : ''}
-                        ${isWholesale ? '<span class="lead-tag wholesale">🏢 Grossiste</span>' : ''}
+            <div class="lead-card" data-id="${lead.id}" data-vip="${isVip}" data-wholesale="${isB2B}" draggable="true">
+                <div class="card-header">
+                    <h4 class="card-title">${escapeHtml(lead.client_name)}</h4>
+                    <div class="card-tags">
+                        ${isVip ? '<span class="card-tag vip">VIP</span>' : ''}
+                        ${isB2B ? '<span class="card-tag b2b">B2B</span>' : ''}
                     </div>
-                </div>
-                <div class="lead-card-product">
-                    <i class="fas fa-box"></i>
-                    ${escapeHtml(lead.product_interest || 'Non spécifié')}
-                    ${lead.quantity ? `<span style="color: #3b82f6;">(x${lead.quantity})</span>` : ''}
-                </div>
-                
-                <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 2px;">
-                    ${lead.client_phone ? `<span><i class="fas fa-phone-alt" style="font-size: 0.75rem; margin-right: 4px;"></i> ${escapeHtml(lead.client_phone)}</span>` : ''}
-                    ${lead.client_email ? `<span><i class="fas fa-envelope" style="font-size: 0.75rem; margin-right: 4px;"></i> ${escapeHtml(lead.client_email)}</span>` : ''}
                 </div>
 
-                ${lead.message ? `
-                    <div style="margin-top: 0.75rem; font-size: 0.85rem; color: #475569; font-style: italic; border-left: 2px solid #cbd5e1; padding-left: 8px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
-                        "${escapeHtml(lead.message)}"
+                <div class="card-body">
+                    <div class="card-item">
+                        <i class="fas fa-hashtag"></i>
+                        <span style="font-family: monospace; font-size: 0.85rem; color: #64748b;">${lead.order_number || 'N/A'}</span>
                     </div>
-                ` : ''}
-
-                ${status === 'won' && lead.final_sale_price ? `
-                    <div style="margin-top: 0.5rem;">
-                        <span class="lead-sale-amount">TND ${formatNumber(lead.final_sale_price)}</span>
-                    </div>
-                ` : ''}
-                <!-- Expanded Details (Hidden by default) -->
-                <div class="lead-card-details" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
-                    <div style="font-size: 0.9rem; color: #334155; white-space: pre-wrap; margin-bottom: 1rem;">${escapeHtml(lead.message || 'Pas de message')}</div>
                     
-                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-                        <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); viewLead('${lead.id}')">
-                            <i class="fas fa-edit"></i> Gérer
-                        </button>
-                    </div>
+                    ${lead.product_interest || lead.product_name ? `
+                        <div class="card-item">
+                            <i class="fas fa-box"></i>
+                            <span>${escapeHtml(lead.product_interest || lead.product_name)}</span>
+                        </div>
+                    ` : ''}
+                    
+                    ${lead.client_email ? `
+                        <div class="card-item">
+                            <i class="fas fa-envelope"></i>
+                            <span style="font-size: 0.85rem;">${escapeHtml(lead.client_email)}</span>
+                        </div>
+                    ` : ''}
+                    
+                    ${lead.client_company ? `
+                        <div class="card-item">
+                            <i class="fas fa-building"></i>
+                            <span>${escapeHtml(lead.client_company)}</span>
+                        </div>
+                    ` : ''}
+
+                    ${lead.quantity ? `
+                        <div class="card-item">
+                            <i class="fas fa-boxes"></i>
+                            <span>Quantité: ${lead.quantity}</span>
+                        </div>
+                    ` : ''}
+
+                    ${status === 'won' && lead.final_sale_price ? `
+                        <div class="card-amount">+ TND ${formatNumber(lead.final_sale_price)}</div>
+                    ` : ''}
                 </div>
 
-                <div class="lead-card-footer">
-                    <span>${formatDate(lead.created_at)}</span>
-                    <div class="lead-card-actions">
+                <div class="card-footer">
+                    <span style="font-size: 0.85rem; color: #64748b;">${formatDate(lead.created_at)}</span>
+                    <div class="card-actions">
                         ${lead.client_phone ? `
-                            <button class="whatsapp" onclick="event.stopPropagation(); openWhatsApp('${lead.client_phone}')" title="WhatsApp">
+                            <button class="card-action-btn whatsapp" onclick="event.stopPropagation(); openWhatsApp('${lead.client_phone}')" title="WhatsApp">
                                 <i class="fab fa-whatsapp"></i>
                             </button>
                         ` : ''}
-                        <button onclick="event.stopPropagation(); toggleLeadCard(this, '${lead.id}')" title="Aperçu rapide">
-                            <i class="fas fa-chevron-down"></i>
+                        <button class="card-action-btn" onclick="event.stopPropagation(); PipelineBoard.showQuickActions(event, '${lead.id}', '${status}')" title="Actions rapides">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <button class="card-action-btn" onclick="event.stopPropagation(); PipelineBoard.openDetail('${lead.id}')" title="Détails">
+                            <i class="fas fa-info-circle"></i>
                         </button>
                     </div>
                 </div>
             </div>
         `;
-    }).join('');
-
-    // Add click handlers
-    container.querySelectorAll('.lead-card').forEach(card => {
-        card.addEventListener('click', () => {
-            viewLead(card.dataset.id);
-        });
-    });
-}
-
-function toggleLeadCard(btn, id) {
-    const card = btn.closest('.lead-card');
-    const details = card.querySelector('.lead-card-details');
-    const icon = btn.querySelector('i');
-
-    if (details.style.display === 'none') {
-        details.style.display = 'block';
-        icon.classList.remove('fa-chevron-down');
-        icon.classList.add('fa-chevron-up');
-        card.style.background = '#f8fafc'; // Highlight expanded
-    } else {
-        details.style.display = 'none';
-        icon.classList.remove('fa-chevron-up');
-        icon.classList.add('fa-chevron-down');
-        card.style.background = ''; // Reset
-    }
-}
-
-function initKanbanDragDrop() {
-    const cards = document.querySelectorAll('.lead-card');
-    const columns = document.querySelectorAll('.kanban-column');
-
-    cards.forEach(card => {
-        card.addEventListener('dragstart', (e) => {
-            card.classList.add('dragging');
-            e.dataTransfer.setData('text/plain', card.dataset.id);
-        });
-
-        card.addEventListener('dragend', () => {
-            card.classList.remove('dragging');
-            columns.forEach(col => col.classList.remove('drag-over'));
-        });
-    });
-
-    columns.forEach(column => {
-        column.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            column.classList.add('drag-over');
-        });
-
-        column.addEventListener('dragleave', () => {
-            column.classList.remove('drag-over');
-        });
-
-        column.addEventListener('drop', async (e) => {
-            e.preventDefault();
-            column.classList.remove('drag-over');
-
-            const leadId = e.dataTransfer.getData('text/plain');
-            const newStatus = column.dataset.status;
-
-            // If dropping on 'won' column, show Win Wizard
-            if (newStatus === 'won') {
-                const lead = allLeads.find(l => l.id === leadId);
-                if (lead) {
-                    openWinWizard(lead);
-                }
-            } else {
-                await updateLeadStatus(leadId, newStatus);
-            }
-        });
-    });
-}
-
-async function viewLead(id) {
-    // CRITICAL: Check if supabaseClient is ready
-    if (!supabaseClient) {
-        console.warn('viewLead: Supabase not ready yet');
-        showToast('Connexion en cours...', 'warning');
-        return;
-    }
-
-    try {
-        const { data: lead, error } = await supabaseClient
-            .from('orders')
-            .select('*')
-            .eq('id', id)
-            .single();
-
-        if (error) throw error;
-
-        currentLeadId = id;
-
-        const statusLabels = {
-            'new': '🆕 Nouveau',
-            'contacted': '📞 Contacté',
-            'negotiating': '⏳ En Négociation',
-            'won': '✅ Gagné',
-            'lost': '❌ Perdu'
-        };
-
-        let content = `
-            <div class="lead-detail-row">
-                <span class="lead-detail-label">Statut:</span>
-                <span class="lead-detail-value"><strong>${statusLabels[lead.lead_status || 'new']}</strong></span>
-            </div>
-            <div class="lead-detail-row">
-                <span class="lead-detail-label">Client:</span>
-                <span class="lead-detail-value">${escapeHtml(lead.client_name)}</span>
-            </div>
-            <div class="lead-detail-row">
-                <span class="lead-detail-label">Email:</span>
-                <span class="lead-detail-value">${escapeHtml(lead.client_email || '-')}</span>
-            </div>
-            <div class="lead-detail-row">
-                <span class="lead-detail-label">Téléphone:</span>
-                <span class="lead-detail-value">${escapeHtml(lead.client_phone || '-')}</span>
-            </div>
-            <div class="lead-detail-row">
-                <span class="lead-detail-label">Entreprise:</span>
-                <span class="lead-detail-value">${escapeHtml(lead.client_company || '-')}</span>
-            </div>
-            <div class="lead-detail-row">
-                <span class="lead-detail-label">Produit:</span>
-                <span class="lead-detail-value">${escapeHtml(lead.product_interest || '-')}</span>
-            </div>
-            <div class="lead-detail-row">
-                <span class="lead-detail-label">Quantité:</span>
-                <span class="lead-detail-value">${lead.quantity || '-'}</span>
-            </div>
-            <div class="lead-detail-row">
-                <span class="lead-detail-label">Message:</span>
-                <span class="lead-detail-value">${escapeHtml(lead.message || 'Pas de message')}</span>
-            </div>
+    },
+    
+    showQuickActions(event, leadId, currentStatus) {
+        event.stopPropagation();
+        
+        // Remove any existing quick action menu
+        const existingMenu = document.querySelector('.quick-action-menu');
+        if (existingMenu) {
+            existingMenu.remove();
+        }
+        
+        // Create quick action menu
+        const menu = document.createElement('div');
+        menu.className = 'quick-action-menu';
+        menu.innerHTML = `
+            <div class="quick-action-header">Actions rapides</div>
+            ${this.statuses.filter(s => s !== currentStatus).map(status => `
+                <button class="quick-action-item" onclick="PipelineBoard.quickChangeStatus('${leadId}', '${status}'); PipelineBoard.closeQuickActions();">
+                    <i class="fas ${this.statusIcons[status]}"></i>
+                    <span>Marquer comme ${this.statusLabels[status]}</span>
+                </button>
+            `).join('')}
+            <div class="quick-action-divider"></div>
+            <button class="quick-action-item danger" onclick="PipelineBoard.confirmDeleteLead('${leadId}'); PipelineBoard.closeQuickActions();">
+                <i class="fas fa-trash"></i>
+                <span>Supprimer</span>
+            </button>
         `;
+        
+        // Position the menu
+        const button = event.currentTarget;
+        const rect = button.getBoundingClientRect();
+        menu.style.position = 'fixed';
+        menu.style.top = `${rect.bottom + 5}px`;
+        menu.style.right = `${window.innerWidth - rect.right}px`;
+        
+        document.body.appendChild(menu);
+        
+        // Close menu when clicking outside
+        setTimeout(() => {
+            document.addEventListener('click', function closeMenu() {
+                menu.remove();
+                document.removeEventListener('click', closeMenu);
+            });
+        }, 10);
+    },
+    
+    closeQuickActions() {
+        const menu = document.querySelector('.quick-action-menu');
+        if (menu) {
+            menu.remove();
+        }
+    },
 
-        if (lead.lead_status === 'won' && lead.final_sale_price) {
-            content += `
-                <div class="lead-detail-row" style="background: #f0fdf4; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
-                    <span class="lead-detail-label" style="color: #16a34a;">💰 Vente:</span>
-                    <span class="lead-detail-value" style="color: #16a34a; font-weight: 600;">TND ${formatNumber(lead.final_sale_price)}</span>
+    updateStats(grouped, allLeads) {
+        const total = allLeads.length;
+        const won = grouped.won.length;
+        const negotiating = grouped.negotiating.length;
+        const conversion = total > 0 ? Math.round((won / total) * 100) : 0;
+        const revenue = grouped.won.reduce((sum, lead) => sum + (lead.final_sale_price || 0), 0);
+
+        document.getElementById('stat-total').textContent = total;
+        document.getElementById('stat-conversion').textContent = conversion + '%';
+        document.getElementById('stat-negotiating').textContent = negotiating;
+        document.getElementById('stat-revenue').textContent = 'TND ' + formatNumber(revenue);
+    },
+
+    initDragDrop() {
+        const cards = document.querySelectorAll('.lead-card');
+        const columns = document.querySelectorAll('.kanban-column');
+
+        cards.forEach(card => {
+            card.addEventListener('dragstart', (e) => {
+                card.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', card.dataset.id);
+            });
+
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+                columns.forEach(col => col.classList.remove('drag-over'));
+            });
+        });
+
+        columns.forEach(column => {
+            column.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                column.classList.add('drag-over');
+            });
+
+            column.addEventListener('dragleave', () => {
+                column.classList.remove('drag-over');
+            });
+
+            column.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                column.classList.remove('drag-over');
+
+                const leadId = e.dataTransfer.getData('text/plain');
+                const newStatus = column.dataset.status;
+                
+                await this.moveCard(leadId, newStatus);
+            });
+        });
+    },
+
+    async moveCard(leadId, newStatus) {
+        if (!supabaseClient) return;
+
+        try {
+            const { error } = await supabaseClient
+                .from('orders')
+                .update({ 
+                    lead_status: newStatus,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', leadId);
+
+            if (error) throw error;
+            
+            showToast(`Lead déplacé vers ${this.statusLabels[newStatus]}`, 'success');
+            this.loadBoard();
+            
+        } catch (error) {
+            console.error('Error moving card:', error);
+            showToast('Erreur lors du déplacement', 'error');
+        }
+    },
+
+    async openDetail(leadId) {
+        if (!supabaseClient) return;
+
+        try {
+            const { data: lead, error } = await supabaseClient
+                .from('orders')
+                .select('*')
+                .eq('id', leadId)
+                .single();
+
+            if (error) throw error;
+
+            // Create and show detail modal
+            this.showLeadDetailModal(lead);
+            
+        } catch (error) {
+            console.error('Error loading detail:', error);
+            showToast('Erreur de chargement', 'error');
+        }
+    },
+    
+    showLeadDetailModal(lead) {
+        // Create modal HTML
+        const modalHTML = `
+            <div class="modal-overlay" id="leadDetailModal" onclick="if(event.target === this) PipelineBoard.closeDetailModal()">
+                <div class="modal-content modal-lg" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-file-invoice"></i> Détails de la Commande</h3>
+                        <button onclick="PipelineBoard.closeDetailModal()" class="modal-close">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="lead-detail-grid">
+                            <div class="detail-section">
+                                <h4><i class="fas fa-hashtag"></i> Informations de Commande</h4>
+                                <div class="detail-row">
+                                    <span class="detail-label">Numéro:</span>
+                                    <span class="detail-value"><strong>${lead.order_number || 'N/A'}</strong></span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Date:</span>
+                                    <span class="detail-value">${formatDate(lead.created_at)}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Statut:</span>
+                                    <span class="detail-value">
+                                        <span class="status-badge status-${lead.lead_status || 'new'}">
+                                            ${this.statusLabels[lead.lead_status] || 'Nouveau'}
+                                        </span>
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h4><i class="fas fa-user"></i> Informations Client</h4>
+                                <div class="detail-row">
+                                    <span class="detail-label">Nom:</span>
+                                    <span class="detail-value">${escapeHtml(lead.client_name) || 'N/A'}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Email:</span>
+                                    <span class="detail-value">
+                                        ${lead.client_email ? `<a href="mailto:${lead.client_email}">${escapeHtml(lead.client_email)}</a>` : 'N/A'}
+                                    </span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Téléphone:</span>
+                                    <span class="detail-value">
+                                        ${lead.client_phone ? `<a href="tel:${lead.client_phone}">${escapeHtml(lead.client_phone)}</a>` : 'N/A'}
+                                    </span>
+                                </div>
+                                ${lead.client_company ? `
+                                <div class="detail-row">
+                                    <span class="detail-label">Société:</span>
+                                    <span class="detail-value">${escapeHtml(lead.client_company)}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                            
+                            ${lead.product_name || lead.product_category || lead.quantity ? `
+                            <div class="detail-section">
+                                <h4><i class="fas fa-box"></i> Détails Produit</h4>
+                                ${lead.product_name ? `
+                                <div class="detail-row">
+                                    <span class="detail-label">Produit:</span>
+                                    <span class="detail-value">${escapeHtml(lead.product_name)}</span>
+                                </div>
+                                ` : ''}
+                                ${lead.product_category ? `
+                                <div class="detail-row">
+                                    <span class="detail-label">Catégorie:</span>
+                                    <span class="detail-value">${escapeHtml(lead.product_category)}</span>
+                                </div>
+                                ` : ''}
+                                ${lead.quantity ? `
+                                <div class="detail-row">
+                                    <span class="detail-label">Quantité:</span>
+                                    <span class="detail-value">${lead.quantity}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                            ` : ''}
+                            
+                            ${lead.message ? `
+                            <div class="detail-section full-width">
+                                <h4><i class="fas fa-comment"></i> Message</h4>
+                                <div class="detail-message">
+                                    ${escapeHtml(lead.message).replace(/\n/g, '<br>')}
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            ${lead.final_sale_price ? `
+                            <div class="detail-section full-width">
+                                <h4><i class="fas fa-money-bill-wave"></i> Prix Final</h4>
+                                <div class="detail-row">
+                                    <span class="detail-label">Montant:</span>
+                                    <span class="detail-value price-highlight">TND ${formatNumber(lead.final_sale_price)}</span>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-danger" onclick="PipelineBoard.confirmDeleteLead('${lead.id}')" title="Supprimer">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </button>
+                        <div style="flex: 1;"></div>
+                        ${lead.client_phone ? `
+                        <button class="btn btn-success" onclick="openWhatsApp('${lead.client_phone}')">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </button>
+                        ` : ''}
+                        ${lead.client_email ? `
+                        <button class="btn btn-primary" onclick="window.location.href='mailto:${lead.client_email}'">
+                            <i class="fas fa-envelope"></i> Email
+                        </button>
+                        ` : ''}
+                        <button class="btn btn-secondary" onclick="PipelineBoard.closeDetailModal()">
+                            Fermer
+                        </button>
+                    </div>
                 </div>
-                ${lead.sale_notes ? `
-                    <div class="lead-detail-row">
-                        <span class="lead-detail-label">Notes:</span>
-                        <span class="lead-detail-value">${escapeHtml(lead.sale_notes)}</span>
-                    </div>
-                ` : ''}
-                ${lead.salesperson ? `
-                    <div class="lead-detail-row">
-                        <span class="lead-detail-label">Vendeur:</span>
-                        <span class="lead-detail-value">${escapeHtml(lead.salesperson)}</span>
-                    </div>
-                ` : ''}
-            `;
-        }
-
-        content += `
-            <div class="lead-detail-row">
-                <span class="lead-detail-label">Créé le:</span>
-                <span class="lead-detail-value">${formatDate(lead.created_at)}</span>
             </div>
         `;
-
-        document.getElementById('lead-modal-title').textContent = `Lead: ${lead.client_name}`;
-        document.getElementById('lead-detail-content').innerHTML = content;
-
-        // Update quick action links
-        const phone = lead.client_phone?.replace(/[^0-9+]/g, '');
-        document.getElementById('lead-whatsapp-link').href = phone ? `https://wa.me/${phone.replace('+', '')}` : '#';
-        document.getElementById('lead-email-link').href = lead.client_email ? `mailto:${lead.client_email}` : '#';
-        document.getElementById('lead-phone-link').href = phone ? `tel:${phone}` : '#';
-
-        // Show/hide status buttons based on current status
-        const currentStatus = lead.lead_status || 'new';
-        document.getElementById('btn-status-contacted').style.display = currentStatus === 'new' ? '' : 'none';
-        document.getElementById('btn-status-negotiating').style.display = ['new', 'contacted'].includes(currentStatus) ? '' : 'none';
-        document.getElementById('btn-status-won').style.display = !['won', 'lost'].includes(currentStatus) ? '' : 'none';
-        document.getElementById('btn-status-lost').style.display = !['won', 'lost'].includes(currentStatus) ? '' : 'none';
-
-        document.getElementById('lead-detail-modal').classList.add('active');
-
-    } catch (error) {
-        console.error('Error loading lead:', error);
-        showToast('Erreur lors du chargement du lead', 'error');
-    }
-}
-
-function closeLeadModal() {
-    document.getElementById('lead-detail-modal').classList.remove('active');
-    currentLeadId = null;
-}
-
-async function changeLeadStatus(newStatus) {
-    if (!currentLeadId) return;
-
-    // If changing to 'won', show Win Wizard
-    if (newStatus === 'won') {
-        const lead = allLeads.find(l => l.id === currentLeadId);
-        closeLeadModal();
-        if (lead) {
-            openWinWizard(lead);
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('leadDetailModal');
+        if (existingModal) {
+            existingModal.remove();
         }
-        return;
-    }
+        
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Show modal with animation
+        setTimeout(() => {
+            document.getElementById('leadDetailModal').classList.add('active');
+        }, 10);
+    },
+    
+    closeDetailModal() {
+        const modal = document.getElementById('leadDetailModal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => modal.remove(), 300);
+        }
+    },
+    
+    confirmDeleteLead(leadId) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette commande ? Cette action est irréversible.')) {
+            this.deleteLead(leadId);
+        }
+    },
+    
+    async deleteLead(leadId) {
+        if (!supabaseClient) return;
+        
+        try {
+            const { error } = await supabaseClient
+                .from('orders')
+                .delete()
+                .eq('id', leadId);
+                
+            if (error) throw error;
+            
+            showToast('Commande supprimée avec succès', 'success');
+            this.closeDetailModal();
+            this.loadBoard(); // Refresh the board
+            
+        } catch (error) {
+            console.error('Error deleting lead:', error);
+            showToast('Erreur lors de la suppression', 'error');
+        }
+    },
+    
+    async quickChangeStatus(leadId, newStatus) {
+        if (!supabaseClient) return;
+        
+        try {
+            const { error } = await supabaseClient
+                .from('orders')
+                .update({ lead_status: newStatus })
+                .eq('id', leadId);
+                
+            if (error) throw error;
+            
+            showToast(`Statut changé: ${this.statusLabels[newStatus]}`, 'success');
+            this.loadBoard(); // Refresh the board
+            
+        } catch (error) {
+            console.error('Error changing status:', error);
+            showToast('Erreur lors du changement de statut', 'error');
+        }
+    },
 
-    await updateLeadStatus(currentLeadId, newStatus);
-    closeLeadModal();
-}
+    exportCSV() {
+        const filter = document.getElementById('kanban-filter')?.value || 'all';
+        let data = [...this.leads];
 
-async function updateLeadStatus(leadId, newStatus) {
-    // CRITICAL: Check if supabaseClient is ready
-    if (!supabaseClient) {
-        console.warn('updateLeadStatus: Supabase not ready yet');
-        showToast('Connexion en cours...', 'warning');
-        return;
-    }
-
-    try {
-        const updateData = {
-            lead_status: newStatus,
-            updated_at: new Date().toISOString()
-        };
-
-        if (newStatus === 'lost') {
-            updateData.closed_at = new Date().toISOString();
+        if (filter === 'vip') {
+            data = data.filter(l => l.lead_tags?.includes('vip') || l.lead_tags?.includes('high_potential'));
+        } else if (filter === 'wholesale') {
+            data = data.filter(l => l.lead_tags?.includes('wholesale'));
         }
 
-        const { error } = await supabaseClient
-            .from('orders')
-            .update(updateData)
-            .eq('id', leadId);
+        const csv = [
+            ['Nom', 'Email', 'Téléphone', 'Produit', 'Quantité', 'Statut', 'Prix', 'Date'],
+            ...data.map(l => [
+                l.client_name,
+                l.client_email,
+                l.client_phone,
+                l.product_interest,
+                l.quantity,
+                l.lead_status || 'new',
+                l.final_sale_price || '',
+                formatDate(l.created_at)
+            ])
+        ];
 
-        if (error) throw error;
-
-        showToast(`Lead mis à jour: ${newStatus}`);
-        await loadPipeline();
-        await loadDashboardStats();
-
-    } catch (error) {
-        console.error('Error updating lead:', error);
-        showToast('Erreur lors de la mise à jour', 'error');
+        const csvContent = csv.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pipeline-${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
     }
-}
+};
 
-// ==================== WIN WIZARD ====================
-
-function openWinWizard(lead) {
-    document.getElementById('win-lead-id').value = lead.id;
-    document.getElementById('win-client-name').value = lead.client_name;
-    document.getElementById('win-products').value = lead.product_interest || 'Non spécifié';
-    document.getElementById('win-final-price').value = '';
-    document.getElementById('win-salesperson').value = '';
-    document.getElementById('win-notes').value = '';
-
-    document.getElementById('win-wizard-modal').classList.add('active');
-}
-
-function closeWinWizard() {
-    document.getElementById('win-wizard-modal').classList.remove('active');
-}
-
-async function handleWinWizardSubmit(e) {
-    e.preventDefault();
-
-    const leadId = document.getElementById('win-lead-id').value;
-    const finalPrice = parseFloat(document.getElementById('win-final-price').value);
-    const salesperson = document.getElementById('win-salesperson').value.trim();
-    const notes = document.getElementById('win-notes').value.trim();
-
-    if (!finalPrice || finalPrice <= 0) {
-        showToast('Veuillez entrer un montant valide', 'error');
-        return;
-    }
-
-    try {
-        const { error } = await supabaseClient
-            .from('orders')
-            .update({
-                lead_status: 'won',
-                final_sale_price: finalPrice,
-                salesperson: salesperson || null,
-                sale_notes: notes || null,
-                closed_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', leadId);
-
-        if (error) throw error;
-
-        showToast('🎉 Vente enregistrée avec succès!');
-        closeWinWizard();
-        await loadPipeline();
-        await loadDashboardStats();
-
-    } catch (error) {
-        console.error('Error recording sale:', error);
-        showToast('Erreur lors de l\'enregistrement', 'error');
+// Initialize on dashboard load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (document.getElementById('kanban-container')) {
+            PipelineBoard.loadBoard();
+        }
+    });
+} else {
+    if (document.getElementById('kanban-container')) {
+        PipelineBoard.loadBoard();
     }
 }
 
@@ -3056,14 +3170,10 @@ function exportToWindow() {
     window.closeMessageModal = closeMessageModal;
     window.closeConfirmModal = closeConfirmModal;
 
-    // Pipeline/Lead Management functions
-    window.loadPipeline = loadPipeline;
-    window.viewLead = viewLead;
+    // Pipeline/Lead Management functions (using new PipelineBoard object)
+    window.PipelineBoard = PipelineBoard;
+    window.loadPipeline = () => PipelineBoard.loadBoard();
     window.viewMessage = viewMessage;
-    window.closeLeadModal = closeLeadModal;
-    window.changeLeadStatus = changeLeadStatus;
-    window.openWinWizard = openWinWizard;
-    window.closeWinWizard = closeWinWizard;
     window.openWhatsApp = openWhatsApp;
 
     // Sales Ledger functions
@@ -3546,12 +3656,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.closeMessageModal = closeMessageModal;
         window.closeConfirmModal = typeof closeConfirmModal !== 'undefined' ? closeConfirmModal : () => document.getElementById('confirm-modal')?.classList.remove('active');
 
-        // Pipeline functions
-        window.loadPipeline = loadPipeline;
+        // Pipeline functions (using new PipelineBoard object)
+        window.PipelineBoard = PipelineBoard;
+        window.loadPipeline = () => PipelineBoard.loadBoard();
         window.switchSection = switchSection;
         window.showToast = showToast;
         window.exportSalesLedgerToCSV = loadSalesLedger ? exportSalesLedgerToCSV : null;
-        window.exportPipelineToCSV = window.exportPipelineToCSV || null;
+        window.exportPipelineToCSV = () => PipelineBoard.exportCSV();
 
         // Make handlers available
         window.handleNewsFormSubmit = handleNewsFormSubmit;

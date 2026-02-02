@@ -428,8 +428,17 @@ const CollectionsPage = {
                     ${badge}
                     ${accessBadge}
                     
-                    <button class="pb-favorite-btn" onclick="event.stopPropagation(); toggleFavorite(this, event)" aria-label="Ajouter aux favoris">
-                        <i class="far fa-heart"></i>
+                    <button class="pb-cart-btn" 
+                            data-product-id="${product.id}"
+                            data-product-name="${this.escapeHtml(product.name)}"
+                            data-product-category="${this.escapeHtml(category)}"
+                            data-product-image="${this.escapeHtml(product.image_url || '')}"
+                            data-product-gradient="${gradient}"
+                            data-product-icon="${icon}"
+                            data-product-description="${this.escapeHtml(product.description || '')}"
+                            onclick="event.stopPropagation(); addToCartFromCard(this)" 
+                            aria-label="Ajouter au panier">
+                        <i class="fas fa-shopping-cart"></i>
                     </button>
 
                     <div class="pb-quick-actions">
@@ -1155,23 +1164,41 @@ let isZoomMode = false;
 let currentZoomElement = null;
 
 function openProductModalFromCard(cardElement) {
-    openProductModal(
-        cardElement.dataset.productName,
-        cardElement.dataset.productDescription,
-        cardElement.dataset.productCategory,
-        cardElement.dataset.productGradient,
-        cardElement.dataset.productIcon,
-        cardElement.dataset.productImage,
-        cardElement.dataset.productImage2
-    );
+    try {
+        if (!cardElement) {
+            console.error('Élément de carte invalide');
+            return;
+        }
+        
+        openProductModal(
+            cardElement.dataset.productName,
+            cardElement.dataset.productDescription,
+            cardElement.dataset.productCategory,
+            cardElement.dataset.productGradient,
+            cardElement.dataset.productIcon,
+            cardElement.dataset.productImage,
+            cardElement.dataset.productImage2
+        );
+    } catch (error) {
+        console.error('Erreur lors de l\'ouverture des détails du produit:', error);
+        alert('Erreur: Impossible d\'ouvrir les détails du produit. Veuillez réessayer.');
+    }
 }
 
 function openProductModal(name, description, category, gradient, icon, imageUrl = null, imageUrl2 = null) {
-    const modal = document.getElementById('productModal');
-    const modalImage = document.getElementById('modalImage');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalDesc = document.getElementById('modalDesc');
-    const modalCategory = document.getElementById('modalCategory');
+    try {
+        const modal = document.getElementById('productModal');
+        const modalImage = document.getElementById('modalImage');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalDesc = document.getElementById('modalDesc');
+        const modalCategory = document.getElementById('modalCategory');
+        
+        // Check if all required elements exist
+        if (!modal || !modalImage || !modalTitle || !modalDesc || !modalCategory) {
+            console.error('Éléments de modal manquants');
+            alert('Erreur: Les éléments de la fenêtre de détails sont manquants.');
+            return;
+        }
 
     // Reset state
     isZoomMode = false;
@@ -1249,6 +1276,11 @@ function openProductModal(name, description, category, gradient, icon, imageUrl 
     // Show modal
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
+    
+    } catch (error) {
+        console.error('Erreur dans openProductModal:', error);
+        alert('Erreur: Impossible d\'ouvrir les détails du produit. Veuillez réessayer.');
+    }
 }
 
 function isTouchDevice() {
@@ -1258,84 +1290,125 @@ function isTouchDevice() {
 }
 
 function toggleZoom(element, event) {
-    // Disable zoom on mobile/touch devices for better UX (handled by native pinch)
-    if (isTouchDevice()) return;
+    try {
+        // Disable zoom on mobile/touch devices for better UX (handled by native pinch)
+        if (isTouchDevice()) return;
+        
+        if (!element) {
+            console.warn('Élément invalide pour le zoom');
+            return;
+        }
 
-    if (!isZoomMode) {
-        // ENABLE ZOOM
-        isZoomMode = true;
-        currentZoomElement = element;
-        element.style.cursor = 'zoom-out';
-        element.style.backgroundSize = '250%'; // Zoom level
+        if (!isZoomMode) {
+            // ENABLE ZOOM
+            isZoomMode = true;
+            currentZoomElement = element;
+            element.style.cursor = 'zoom-out';
+            element.style.backgroundSize = '250%'; // Zoom level
 
-        // Initial pan to click position
-        panImage(element, event);
+            // Initial pan to click position
+            panImage(element, event);
 
-    } else {
-        // DISABLE ZOOM
-        disableZoom(element);
+        } else {
+            // DISABLE ZOOM
+            disableZoom(element);
+        }
+    } catch (error) {
+        console.error('Erreur lors du zoom:', error);
     }
 }
 
 function disableZoom(element) {
-    if (!element) return;
-    isZoomMode = false;
-    currentZoomElement = null;
+    try {
+        if (!element) return;
+        isZoomMode = false;
+        currentZoomElement = null;
 
-    // Reset logic
-    element.style.cursor = 'zoom-in';
-    element.style.backgroundSize = 'cover';
-    element.style.backgroundPosition = 'center';
+        // Reset logic
+        element.style.cursor = 'zoom-in';
+        element.style.backgroundSize = 'cover';
+        element.style.backgroundPosition = 'center';
 
-    // Reset to current image (logic handles switching back if needed)
-    const currentImg = element.dataset.current;
-    element.style.backgroundImage = `url('${currentImg}')`;
+        // Reset to current image (logic handles switching back if needed)
+        const currentImg = element.dataset.current;
+        if (currentImg) {
+            element.style.backgroundImage = `url('${currentImg}')`;
+        }
+    } catch (error) {
+        console.error('Erreur lors de la désactivation du zoom:', error);
+    }
 }
 
 function panImage(element, event) {
-    const rect = element.getBoundingClientRect();
+    try {
+        if (!element || !event) return;
+        
+        const rect = element.getBoundingClientRect();
 
-    // Calculate mouse position as percentage of element size
-    const x = (event.clientX - rect.left) / rect.width * 100;
-    const y = (event.clientY - rect.top) / rect.height * 100;
+        // Calculate mouse position as percentage of element size
+        const x = (event.clientX - rect.left) / rect.width * 100;
+        const y = (event.clientY - rect.top) / rect.height * 100;
 
-    element.style.backgroundPosition = `${x}% ${y}%`;
+        element.style.backgroundPosition = `${x}% ${y}%`;
+    } catch (error) {
+        console.error('Erreur lors du panoramique:', error);
+    }
 }
 
 function manualSwitchImage(url) {
-    const element = document.getElementById('zoomableImage');
-    if (!element) return;
+    try {
+        const element = document.getElementById('zoomableImage');
+        if (!element) {
+            console.warn('Élément zoomableImage introuvable');
+            return;
+        }
 
-    // If zoomed, reset zoom first
-    if (isZoomMode) disableZoom(element);
+        // If zoomed, reset zoom first
+        if (isZoomMode) disableZoom(element);
 
-    element.style.backgroundImage = `url('${url}')`;
-    element.dataset.current = url;
-    updateActiveThumb(url);
+        element.style.backgroundImage = `url('${url}')`;
+        element.dataset.current = url;
+        updateActiveThumb(url);
+    } catch (error) {
+        console.error('Erreur lors du changement d\'image:', error);
+    }
 }
 
 function updateActiveThumb(url) {
-    const thumbs = document.querySelectorAll('.pb-thumb');
-    thumbs.forEach(thumb => {
-        // Simple check if url contains the thumb's bg url
-        const style = thumb.style.backgroundImage.replace(/url\(['"]?(.*?)['"]?\)/i, '$1');
-        if (url.includes(style) || style.includes(url)) {
-            thumb.style.border = '2px solid white';
-            thumb.style.opacity = '1';
-        } else {
-            thumb.style.border = '1px solid rgba(255,255,255,0.5)';
-            thumb.style.opacity = '0.7';
-        }
-    });
+    try {
+        const thumbs = document.querySelectorAll('.pb-thumb');
+        thumbs.forEach(thumb => {
+            // Simple check if url contains the thumb's bg url
+            const style = thumb.style.backgroundImage.replace(/url\(['"]?(.*?)['"]?\)/i, '$1');
+            if (url.includes(style) || style.includes(url)) {
+                thumb.style.border = '2px solid white';
+                thumb.style.opacity = '1';
+            } else {
+                thumb.style.border = '1px solid rgba(255,255,255,0.5)';
+                thumb.style.opacity = '0.7';
+            }
+        });
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour des miniatures:', error);
+    }
 }
 
 function closeProductModal() {
-    const modal = document.getElementById('productModal');
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
+    try {
+        const modal = document.getElementById('productModal');
+        if (!modal) {
+            console.error('Modal introuvable');
+            return;
+        }
+        
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
 
-    if (currentZoomElement) {
-        disableZoom(currentZoomElement);
+        if (currentZoomElement) {
+            disableZoom(currentZoomElement);
+        }
+    } catch (error) {
+        console.error('Erreur lors de la fermeture du modal:', error);
     }
 }
 
@@ -1345,6 +1418,27 @@ document.addEventListener('keydown', function (e) {
         closeProductModal();
     }
 });
+
+// ==================== SHOPPING CART FUNCTIONS ====================
+
+// Add product to cart from card
+function addToCartFromCard(button) {
+    const product = {
+        id: button.getAttribute('data-product-id'),
+        name: button.getAttribute('data-product-name'),
+        category: button.getAttribute('data-product-category'),
+        image_url: button.getAttribute('data-product-image'),
+        gradient: button.getAttribute('data-product-gradient'),
+        icon: button.getAttribute('data-product-icon'),
+        description: button.getAttribute('data-product-description')
+    };
+    
+    if (typeof ShoppingCart !== 'undefined') {
+        ShoppingCart.addToCart(product);
+    } else {
+        console.error('ShoppingCart service not loaded');
+    }
+}
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {

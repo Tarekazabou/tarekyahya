@@ -92,9 +92,11 @@ const FormHandler = {
      * Validate phone format
      */
     isValidPhone(phone) {
-        if (!phone) return true; // Optional field
-        const phoneRegex = /^[\d\s\-\+\(\)]{8,20}$/;
-        return phoneRegex.test(phone);
+        if (!phone || phone.trim().length === 0) return true; // Optional field
+        const cleaned = phone.replace(/[\s\-\(\)]/g, '');
+        // Allow + prefix for international, then 8-15 digits
+        const phoneRegex = /^[\+]?[\d]{8,15}$/;
+        return phoneRegex.test(cleaned);
     },
 
     /**
@@ -245,19 +247,31 @@ const FormHandler = {
             // Validate required fields
             const name = this.sanitizeInput(formData.get('name'));
             const email = formData.get('email')?.trim();
+            const phone = formData.get('phone')?.trim();
             const address = this.sanitizeInput(formData.get('address'));
             
             if (!name || name.length < 2) {
                 throw new Error('Veuillez entrer un nom valide');
             }
             
-            if (email && !this.isValidEmail(email)) {
-                throw new Error('Veuillez entrer une adresse e-mail valide');
-            }
-            
-            const phone = formData.get('phone');
-            if (phone && !this.isValidPhone(phone)) {
-                throw new Error('Veuillez entrer un numéro de téléphone valide');
+            // For quote form, email OR phone is required (at least one)
+            if (formType === 'quote') {
+                if ((!email || email.length === 0) && (!phone || phone.length === 0)) {
+                    throw new Error('Veuillez fournir au moins un e-mail ou un téléphone');
+                }
+                // Validate email if provided
+                if (email && email.length > 0 && !this.isValidEmail(email)) {
+                    throw new Error('Veuillez entrer une adresse e-mail valide');
+                }
+                // Validate phone if provided
+                if (phone && phone.length > 0 && !this.isValidPhone(phone)) {
+                    throw new Error('Veuillez entrer un numéro de téléphone valide (ex: 0612345678 ou +212 612 345 678)');
+                }
+            } else {
+                // For other forms, email is required
+                if (!email || !this.isValidEmail(email)) {
+                    throw new Error('Veuillez entrer une adresse e-mail valide');
+                }
             }
 
             // Validate quantity (must be at least 200)
@@ -540,8 +554,28 @@ const FormHandler = {
                 };
 
             case 'quote':
+                // Get cart items if they exist in sessionStorage
+                let cartItems = null;
+                try {
+                    const cartData = sessionStorage.getItem('quote_cart_items');
+                    if (cartData) {
+                        cartItems = JSON.parse(cartData);
+                    }
+                } catch (e) {
+                    console.error('Error reading cart items:', e);
+                }
+
+                // Ensure email field has a value (use phone if email is empty)
+                const email = formData.get('email')?.trim();
+                const phone = formData.get('phone')?.trim();
+                const finalEmail = (email && email.length > 0) ? email : (phone ? `${phone}@phone.temp` : 'no-email@temp.local');
+
                 return {
-                    ...baseData,
+                    form_type: formType,
+                    name: this.sanitizeInput(formData.get('name')),
+                    email: finalEmail,
+                    phone: phone || null,
+                    message: this.sanitizeInput(formData.get('message') || formData.get('details')) || null,
                     company: this.sanitizeInput(formData.get('company')) || null,
                     product_interest: this.sanitizeInput(formData.get('category')) || null,
                     quantity: this.sanitizeInput(formData.get('quantity')) || null,
@@ -552,7 +586,10 @@ const FormHandler = {
                         deadline: this.sanitizeInput(formData.get('deadline')),
                         customization: formData.getAll('customization[]').map(c => this.sanitizeInput(c)),
                         budget: this.sanitizeInput(formData.get('budget')),
-                        newsletter: formData.get('newsletter') === 'on'
+                        newsletter: formData.get('newsletter') === 'on',
+                        cart_items: cartItems,
+                        original_email: email || null,
+                        original_phone: phone || null
                     }
                 };
 

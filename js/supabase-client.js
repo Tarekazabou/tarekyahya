@@ -7,16 +7,33 @@
  * limited public access - RLS policies must be properly configured.
  */
 
-// Configuration - In production, load from environment or config endpoint
-// For local development, you can use a .env file with a build tool like Vite
+// Configuration - Load from environment variables
 const getConfig = () => {
     // Check for environment-injected config (from build process)
     if (window.__SUPABASE_CONFIG__) {
         return window.__SUPABASE_CONFIG__;
     }
     
-    // Fallback for development - REMOVE IN PRODUCTION
-    console.warn('⚠️ Using hardcoded Supabase config. Configure environment variables for production.');
+    // Try to load from window environment (set by build process or server)
+    if (typeof window.__ENV__ !== 'undefined' && window.__ENV__.SUPABASE_URL && window.__ENV__.SUPABASE_ANON_KEY) {
+        console.log('✅ Loaded Supabase config from environment variables');
+        return {
+            url: window.__ENV__.SUPABASE_URL,
+            anonKey: window.__ENV__.SUPABASE_ANON_KEY
+        };
+    }
+    
+    // Try process.env (for build tools like Vite/Webpack)
+    if (typeof process !== 'undefined' && process.env && process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+        console.log('✅ Loaded Supabase config from process.env');
+        return {
+            url: process.env.SUPABASE_URL,
+            anonKey: process.env.SUPABASE_ANON_KEY
+        };
+    }
+    
+    // Development fallback with hardcoded values
+    console.warn('⚠️ Using hardcoded Supabase config (development mode). For production, set SUPABASE_URL and SUPABASE_ANON_KEY environment variables.');
     return {
         url: 'https://sqjtchehpuwiwyqkyxft.supabase.co',
         anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxanRjaGVocHV3aXd5cWt5eGZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwODUzMzEsImV4cCI6MjA4MjY2MTMzMX0.7izZxD7jx5zDkAiL2CMt2v_7WGvJnApPgqz8mjlkZYw'

@@ -102,6 +102,15 @@
                         vous répondra sous 24h.</p>
 
                     <form action="#" method="post" id="quoteForm">
+                        
+                        <!-- Cart Items Section (visible when coming from cart) -->
+                        <div id="cart-items-section" style="display: none; margin-bottom: 2rem;">
+                            <h4 style="color: var(--primary-color); margin-bottom: 1rem; border-bottom: 2px solid var(--light-gray); padding-bottom: 0.5rem;">
+                                <i class="fas fa-shopping-cart"></i> Articles sélectionnés
+                            </h4>
+                            <div id="quote-cart-items" style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);"></div>
+                        </div>
+                        
                         <!-- Request Type -->
                         <div class="form-group">
                             <label>Type de demande *</label>
@@ -132,8 +141,8 @@
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="quote-email">E-mail</label>
-                                <input type="email" id="quote-email" name="email" placeholder="Votre e-mail">
+                                <label for="quote-email">E-mail *</label>
+                                <input type="email" id="quote-email" name="email" placeholder="Votre e-mail" required>
                             </div>
                             <div class="form-group">
                                 <label for="quote-phone">Téléphone *</label>
@@ -394,6 +403,95 @@
     <script src="js/form-handler.js"></script>
     <script src="js/main.js"></script>
     <script src="js/content-restriction.js"></script>
+    
+    <!-- Cart Items Handler for Quote Page -->
+    <script>
+        // Load cart items if coming from cart
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const fromCart = urlParams.get('from_cart');
+            
+            if (fromCart === 'true') {
+                const cartItemsJSON = sessionStorage.getItem('quote_cart_items');
+                
+                if (cartItemsJSON) {
+                    try {
+                        const cartItems = JSON.parse(cartItemsJSON);
+                        displayCartItems(cartItems);
+                    } catch (error) {
+                        console.error('Error parsing cart items:', error);
+                    }
+                }
+            }
+        });
+        
+        function displayCartItems(items) {
+            if (!items || items.length === 0) return;
+            
+            const section = document.getElementById('cart-items-section');
+            const container = document.getElementById('quote-cart-items');
+            
+            section.style.display = 'block';
+            
+            let html = '<div style="display: grid; gap: 1rem;">';
+            
+            items.forEach(item => {
+                const hasImage = item.image && item.image.trim();
+                const imageStyle = hasImage 
+                    ? `background-image: url('${item.image}'); background-size: cover; background-position: center;`
+                    : `background: ${item.gradient || 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)'};`;
+                
+                html += `
+                    <div style="display: grid; grid-template-columns: 80px 1fr auto; gap: 1rem; padding: 1rem; background: #f9fafb; border-radius: 8px; align-items: center;">
+                        <div style="width: 80px; height: 80px; border-radius: 8px; ${imageStyle} display: flex; align-items: center; justify-content: center;">
+                            ${!hasImage ? `<i class="fas ${item.icon || 'fa-tshirt'}" style="font-size: 2rem; color: white;"></i>` : ''}
+                        </div>
+                        <div>
+                            <h4 style="margin: 0 0 0.25rem 0; font-size: 1.125rem; color: var(--dark-blue);">${escapeHtml(item.name)}</h4>
+                            <p style="margin: 0; font-size: 0.875rem; color: var(--primary-color); font-weight: 500;">${escapeHtml(item.category || 'Produit')}</p>
+                            ${item.description ? `<p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: #6b7280;">${escapeHtml(item.description)}</p>` : ''}
+                        </div>
+                        <div style="background: var(--primary-color); color: white; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; font-size: 1.125rem;">
+                            x${item.quantity}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            // Add summary
+            const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+            html += `
+                <div style="margin-top: 1rem; padding: 1rem; background: #e0f2fe; border-radius: 8px; text-align: center;">
+                    <strong style="color: var(--primary-color); font-size: 1.125rem;">
+                        <i class="fas fa-box"></i> Total: ${totalItems} article${totalItems > 1 ? 's' : ''} sélectionné${totalItems > 1 ? 's' : ''}
+                    </strong>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            
+            // Pre-fill form with cart data
+            const productInput = document.getElementById('quote-product');
+            if (productInput && items.length > 0) {
+                const productNames = items.map(item => `${item.name} (x${item.quantity})`).join(', ');
+                productInput.value = productNames;
+            }
+            
+            // Pre-fill quantity
+            const quantityInput = document.getElementById('quote-quantity');
+            if (quantityInput) {
+                quantityInput.value = Math.max(200, totalItems);
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+    </script>
 </body>
 
 </html>

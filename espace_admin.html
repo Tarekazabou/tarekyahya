@@ -7,6 +7,10 @@
     <meta name="description" content="Espace Administration Primavet - Tableau de bord et gestion du contenu.">
     <meta name="robots" content="noindex, nofollow">
 
+    <!-- Supabase Configuration -->
+    <meta name="supabase-url" content="https://sqjtchehpuwiwyqkyxft.supabase.co">
+    <meta name="supabase-anon-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxanRjaGVocHV3aXd5cWt5eGZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwODUzMzEsImV4cCI6MjA4MjY2MTMzMX0.7izZxD7jx5zDkAiL2CMt2v_7WGvJnApPgqz8mjlkZYw">
+
     <title>Espace Admin | Primavet - Tableau de Bord</title>
 
     <!-- Favicon -->
@@ -66,6 +70,10 @@
     <!-- Supabase SDK -->
     <script src="https://unpkg.com/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Configuration and Initialization (in correct order) -->
+    <script src="js/env-config.js"></script>
+    <script src="js/supabase-client.js"></script>
 </head>
 
 <body>
@@ -521,81 +529,49 @@
             <!-- Pipeline (Kanban) Section -->
             <section class="section" id="section-pipeline">
                 <div class="admin-header">
-                    <h1><i class="fas fa-columns"></i> Pipeline Commercial</h1>
-                    <div class="admin-header-actions">
-                        <select id="pipeline-filter" onchange="loadPipeline()"
-                            style="padding: 0.5rem; border-radius: 8px; border: 1px solid #e2e8f0; margin-right: 0.5rem;">
+                    <div>
+                        <h1><i class="fas fa-columns"></i> Pipeline Commercial</h1>
+                        <p style="margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.95rem;">Gérez vos leads à travers les étapes de vente</p>
+                    </div>
+                    <div class="admin-header-actions" style="display: flex; gap: 1rem; align-items: center;">
+                        <select id="kanban-filter" onchange="PipelineBoard.loadBoard()"
+                            style="padding: 0.625rem 1rem; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.9rem; background: white; color: #334155; cursor: pointer; transition: all 0.2s;">
                             <option value="all">Tous les leads</option>
-                            <option value="vip">🌟 VIP uniquement</option>
-                            <option value="wholesale">🏢 Grossistes</option>
+                            <option value="vip">🌟 VIP</option>
+                            <option value="wholesale">🏢 B2B</option>
                             <option value="this-week">📅 Cette semaine</option>
                         </select>
-                        <button class="btn btn-secondary" onclick="exportPipelineToCSV()" style="background: #8b5cf6;">
+                        <button class="btn btn-secondary" onclick="PipelineBoard.exportCSV()" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border: none; color: white;">
                             <i class="fas fa-download"></i> Exporter
                         </button>
                     </div>
                 </div>
 
-                <!-- Kanban Board -->
-                <div class="kanban-board" id="kanban-board">
-                    <!-- Column: New -->
-                    <div class="kanban-column" data-status="new">
-                        <div class="kanban-column-header"
-                            style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);">
-                            <span>🆕 Nouveaux</span>
-                            <span class="kanban-count" id="count-new">0</span>
-                        </div>
-                        <div class="kanban-cards" id="cards-new">
-                            <div class="kanban-loading"><i class="fas fa-spinner fa-spin"></i></div>
-                        </div>
+                <!-- Pipeline Stats -->
+                <div class="pipeline-stats" id="pipeline-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-total">0</div>
+                        <div class="stat-label">Total Leads</div>
                     </div>
-
-                    <!-- Column: Contacted -->
-                    <div class="kanban-column" data-status="contacted">
-                        <div class="kanban-column-header"
-                            style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);">
-                            <span>📞 Contactés</span>
-                            <span class="kanban-count" id="count-contacted">0</span>
-                        </div>
-                        <div class="kanban-cards" id="cards-contacted">
-                            <div class="kanban-loading"><i class="fas fa-spinner fa-spin"></i></div>
-                        </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-conversion">0%</div>
+                        <div class="stat-label">Taux Conversion</div>
                     </div>
-
-                    <!-- Column: Negotiating -->
-                    <div class="kanban-column" data-status="negotiating">
-                        <div class="kanban-column-header"
-                            style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                            <span>⏳ En Négociation</span>
-                            <span class="kanban-count" id="count-negotiating">0</span>
-                        </div>
-                        <div class="kanban-cards" id="cards-negotiating">
-                            <div class="kanban-loading"><i class="fas fa-spinner fa-spin"></i></div>
-                        </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-negotiating">0</div>
+                        <div class="stat-label">En Négociation</div>
                     </div>
-
-                    <!-- Column: Won -->
-                    <div class="kanban-column" data-status="won">
-                        <div class="kanban-column-header"
-                            style="background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);">
-                            <span>✅ Gagnés</span>
-                            <span class="kanban-count" id="count-won">0</span>
-                        </div>
-                        <div class="kanban-cards" id="cards-won">
-                            <div class="kanban-loading"><i class="fas fa-spinner fa-spin"></i></div>
-                        </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-revenue">TND 0</div>
+                        <div class="stat-label">Revenu Total</div>
                     </div>
+                </div>
 
-                    <!-- Column: Lost -->
-                    <div class="kanban-column" data-status="lost">
-                        <div class="kanban-column-header"
-                            style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
-                            <span>❌ Perdus</span>
-                            <span class="kanban-count" id="count-lost">0</span>
-                        </div>
-                        <div class="kanban-cards" id="cards-lost">
-                            <div class="kanban-loading"><i class="fas fa-spinner fa-spin"></i></div>
-                        </div>
+                <!-- Kanban Board Container -->
+                <div class="kanban-container" id="kanban-container">
+                    <div class="board-loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Chargement du pipeline...</p>
                     </div>
                 </div>
             </section>
@@ -1501,7 +1477,6 @@
     </div>
 
     <!-- Scripts -->
-    <script src="js/supabase-client.js"></script>
     <script src="js/data-service.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/admin-users.js"></script>
